@@ -1,0 +1,157 @@
+# Response 统一响应体包
+
+提供微服务 API 的统一响应格式，支持 HTTP 和 gRPC 协议，内置错误码体系和分页支持。
+
+## 特性
+
+- 泛型响应体 `Response[T]`
+- 数字错误码体系（含 i18n 消息键）
+- HTTP/gRPC 状态码自动映射
+- 内置分页响应 `PagedResponse[T]`
+- 与 `gateway` 包无缝集成
+- 内部错误信息自动隐藏
+- i18n 本地化错误消息（内置中/英文，可扩展）
+
+## 响应格式
+
+### 标准响应
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": { ... }
+}
+```
+
+### 分页响应
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "page_size": 20,
+    "total": 100,
+    "total_pages": 5
+  }
+}
+```
+
+### 错误响应
+
+```json
+{
+  "code": 40001,
+  "message": "用户不存在"
+}
+```
+
+## 状态码映射
+
+| 业务错误码               | HTTP 状态码 | gRPC 状态码       |
+| ------------------------ | ----------- | ----------------- |
+| `CodeSuccess`            | 200         | OK                |
+| `CodeInvalidParam`       | 400         | InvalidArgument   |
+| `CodeUnauthorized`       | 401         | Unauthenticated   |
+| `CodeForbidden`          | 403         | PermissionDenied  |
+| `CodeNotFound`           | 404         | NotFound          |
+| `CodeAlreadyExists`      | 409         | AlreadyExists     |
+| `CodeResourceExhausted`  | 429         | ResourceExhausted |
+| `CodeInternal`           | 500         | Internal          |
+| `CodeServiceUnavailable` | 503         | Unavailable       |
+
+## API 参考
+
+### 响应构建
+
+| 函数                            | 说明                  |
+| ------------------------------- | --------------------- |
+| `OK[T](data)`                   | 成功响应              |
+| `OKWithMessage[T](data, msg)`   | 带消息的成功响应      |
+| `Fail[T](code)`                 | 失败响应              |
+| `FailWithMessage[T](code, msg)` | 带消息的失败响应      |
+| `FailWithError[T](err)`         | 从 error 创建失败响应 |
+| `Paged[T](result)`              | 分页响应              |
+| `PagedFail[T](code)`            | 分页失败响应          |
+
+### 错误处理
+
+| 函数                             | 说明                             |
+| -------------------------------- | -------------------------------- |
+| `NewError(code)`                 | 创建业务错误                     |
+| `NewErrorWithMessage(code, msg)` | 带消息的业务错误                 |
+| `Wrap(code, err)`                | 包装错误                         |
+| `ExtractCode(err)`               | 提取错误码                       |
+| `ExtractMessage(err)`            | 提取错误消息（内部错误隐藏详情） |
+| `ExtractMessageUnsafe(err)`      | 提取完整错误消息（仅用于日志）   |
+
+### gRPC 集成
+
+| 函数                        | 说明                    |
+| --------------------------- | ----------------------- |
+| `GRPCError(err)`            | 转换为 gRPC error       |
+| `UnaryServerInterceptor()`  | gRPC 一元拦截器         |
+| `StreamServerInterceptor()` | gRPC 流拦截器           |
+| `FromGRPCError(err)`        | 从 gRPC error 提取 Code |
+
+### HTTP 集成
+
+| 函数                       | 说明         |
+| -------------------------- | ------------ |
+| `WriteSuccess[T](w, data)` | 写入成功响应 |
+| `WriteFail(w, code)`       | 写入失败响应 |
+| `WriteError(w, err)`       | 写入错误响应 |
+| `WritePaged[T](w, resp)`   | 写入分页响应 |
+
+### i18n 本地化
+
+`response` 包内置中英文错误消息，通过 `Accept-Language` 请求头自动选择语言。
+
+```go
+// 获取本地化错误消息（通常由框架适配层自动调用）
+msg := response.LocalizedMessage(err, "en-US,en;q=0.9")  // → "Resource not found"
+msg := response.LocalizedMessage(err, "zh-CN")            // → "资源不存在"
+```
+
+**替换/扩展消息包**（在应用启动时调用一次）：
+
+```go
+bundle := i18n.NewBundle(language.Chinese)
+bundle.LoadMessages(language.Chinese, map[string]string{
+    "error.not_found": "找不到该资源",
+    "my.custom.error": "自定义错误消息",
+})
+bundle.LoadMessages(language.English, map[string]string{
+    "error.not_found": "The resource was not found",
+    "my.custom.error": "Custom error message",
+})
+response.SetBundle(bundle)
+```
+
+**自定义错误码 + i18n 键**：
+
+```go
+var ErrUserBanned = response.Code{
+    Num:        40010,
+    Message:    "账号已封禁",  // 未命中 i18n 时的回退值
+    HTTPStatus: http.StatusForbidden,
+    GRPCCode:   codes.PermissionDenied,
+    Key:        "error.user_banned",  // i18n 消息键
+}
+```
+
+**内置消息键**（中英文均内置）：
+
+| 键                    | 中文默认值       | 英文默认值              |
+| --------------------- | ---------------- | ----------------------- |
+| `success`             | 成功             | Success                 |
+| `error.unauthorized`  | 未授权           | Unauthorized            |
+| `error.forbidden`     | 禁止访问         | Forbidden               |
+| `error.invalid_param` | 参数无效         | Invalid parameter       |
+| `error.not_found`     | 资源不存在       | Resource not found      |
+| `error.internal`      | 服务器内部错误   | Internal server error   |
+| `error.unavailable`   | 服务不可用       | Service unavailable     |
+| （更多见 `bundle.go`）  |                  |                         |
