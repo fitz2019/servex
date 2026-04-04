@@ -1,0 +1,1223 @@
+# servex
+
+Go 微服务开发工具包，提供构建生产级微服务所需的核心组件。
+
+## 安装
+
+```bash
+go get github.com/Tsukikage7/servex
+```
+
+## Claude Code Plugin
+
+servex 内置 [Claude Code Plugin](https://code.claude.com/docs/en/plugins.md)，为 AI 辅助开发提供 13 个专业 skill（模块使用指南、代码生成规范、最佳实践）。
+
+**安装插件：**
+
+```bash
+claude plugin add --from https://github.com/Tsukikage7/servex
+```
+
+**可用 Skills（20 个）：**
+
+| Skill | 说明 |
+|-------|------|
+| `servex:servex` | 主索引 — 模块映射、代码生成规范、工作流程 |
+| `servex:transport` | 传输层（httpserver/grpcserver/httpclient/gateway/WS/SSE） |
+| `servex:middleware` | 中间件（限流/熔断/重试/恢复/超时/CORS/幂等/并发控制） |
+| `servex:auth` | 认证（JWT/API Key） |
+| `servex:storage` | 存储（Cache/RDBMS/MongoDB/Elasticsearch/S3/Lock/SQLx） |
+| `servex:observability` | 可观测性（Metrics/Tracing/Logger） |
+| `servex:config` | 配置与服务发现（File/Etcd/Consul/Env） |
+| `servex:ai` | AI（OpenAI/Anthropic/Gemini/ToolCall/Router/Embedding/Prompt） |
+| `servex:distributed` | 分布式模式（CQRS/Outbox/Saga/领域事件） |
+| `servex:pubsub` | 消息与任务（Pub/Sub/JobQueue） |
+| `servex:webhook` | Webhook 投递与接收 |
+| `servex:oauth2` | OAuth2 第三方登录（GitHub/Google/微信） |
+| `servex:openapi` | OpenAPI 文档生成 |
+| `servex:collections` | 数据结构（Deque/LRU/TreeMap/PriorityQueue/HashSet 等） |
+| `servex:xutil` | 工具包（ptrx/strx/copier/syncx/sorting/pagination 等） |
+| `servex:httpx` | HTTP 请求分析（ClientIP/UserAgent/Locale/BotDetect 等） |
+| `servex:errors` | 统一错误处理（HTTP/gRPC 映射） |
+| `servex:i18n` | 国际化 |
+| `servex:tenant` | 多租户（中间件 + GORM Scope） |
+| `servex:notify` | 通知系统（Email/SMS/Push/Webhook 渠道） |
+
+安装后 Claude 会根据上下文自动触发对应 skill，也可手动调用如 `/servex:storage`。
+
+## 包概览
+
+### 可观测性 (observability/)
+
+| 包                                                | 说明                   | Endpoint | HTTP | gRPC |
+| ------------------------------------------------- | ---------------------- | :------: | :--: | :--: |
+| [observability/metrics](./observability/metrics/) | Prometheus 指标收集    |    Y    |  Y  |  Y  |
+| [observability/tracing](./observability/tracing/) | OpenTelemetry 链路追踪 |    Y    |  Y  |  Y  |
+
+### 中间件 (middleware/)
+
+| 包                                                  | 说明                             | Endpoint | HTTP | gRPC |
+| --------------------------------------------------- | -------------------------------- | :------: | :--: | :--: |
+| [middleware/ratelimit](./middleware/ratelimit/)           | 限流（令牌桶、滑动窗口、分布式） | Y | Y | Y |
+| [middleware/retry](./middleware/retry/)                   | 重试机制（指数退避）             | Y | Y | Y |
+| [middleware/recovery](./middleware/recovery/)             | Panic 恢复                       | Y | Y | Y |
+| [middleware/timeout](./middleware/timeout/)               | 超时控制                         | Y | Y | Y |
+| [middleware/idempotency](./middleware/idempotency/)       | 幂等性保证                       | Y | Y | - |
+| [middleware/semaphore](./middleware/semaphore/)           | 并发控制                         | Y | - | - |
+| [middleware/circuitbreaker](./middleware/circuitbreaker/) | 熔断器（Closed/Open/HalfOpen）   | Y | Y | Y |
+| [middleware/cors](./middleware/cors/)                     | 跨域资源共享（CORS）             | - | Y | - |
+| [middleware/requestid](./middleware/requestid/)           | 请求 ID 注入与传播               | Y | Y | Y |
+| [middleware/logging](./middleware/logging/)               | 请求日志（HTTP / gRPC）          | - | Y | Y |
+
+### 请求上下文 (httpx/)
+
+| 包                                          | 说明                          | HTTP | gRPC |
+| ------------------------------------------- | ----------------------------- | :--: | :--: |
+| [httpx](./httpx/)                       | 组合中间件（统一入口）        |  Y  |  Y  |
+| [httpx/clientip](./httpx/clientip/)     | 客户端 IP 提取、地理位置、ACL |  Y  |  Y  |
+| [httpx/useragent](./httpx/useragent/)   | User-Agent 解析               |  Y  |  Y  |
+| [httpx/deviceinfo](./httpx/deviceinfo/) | 设备信息（Client Hints 优先） |  Y  |  Y  |
+| [httpx/botdetect](./httpx/botdetect/)   | 机器人检测                    |  Y  |  Y  |
+| [httpx/locale](./httpx/locale/)         | 语言区域设置                  |  Y  |  Y  |
+| [httpx/referer](./httpx/referer/)       | 来源页面解析、UTM 参数        |  Y  |  Y  |
+| [httpx/activity](./httpx/activity/)     | 用户活动追踪（Redis + Kafka） |  Y  |  Y  |
+
+### 传输扩展 (transport/)
+
+| 包                                            | 说明                                  |
+| --------------------------------------------- | ------------------------------------- |
+| [transport/websocket](./transport/websocket/) | WebSocket 服务端（gorilla/websocket） |
+| [transport/sse](./transport/sse/)             | Server-Sent Events 服务端             |
+
+### 存储 (storage/)
+
+| 包                                      | 说明                | 工厂函数                          |
+| --------------------------------------- | ------------------- | --------------------------------- |
+| [storage/cache](./storage/cache/)       | 缓存（内存、Redis） | `NewCache` / `MustNewCache`       |
+| [storage/database](./storage/database/) | 数据库（GORM）      | `NewDatabase` / `MustNewDatabase` |
+| [storage/mongodb](./storage/mongodb/)   | MongoDB 客户端      | `NewClient` / `MustNewClient`     |
+| [storage/s3](./storage/s3/)             | S3 兼容对象存储     | `NewClient` / `MustNewClient`     |
+| [storage/lock](./storage/lock/)         | 分布式锁            | `NewLock`                         |
+
+### 运维
+
+| 包                                      | 说明                                          |
+| --------------------------------------- | --------------------------------------------- |
+| [transport/health](./transport/health/) | 健康检查（K8s 探针）                          |
+| [transport](./transport/)               | 优雅关闭（集成在 Application 中）             |
+| HTTP Server                             | 性能分析（通过 `Profiling()` 选项启用 pprof） |
+
+### 编码 (encoding/)
+
+| 包                                    | 说明                                     |
+| ------------------------------------- | ---------------------------------------- |
+| [encoding](./encoding/)               | 编解码器接口与 HTTP 内容协商             |
+| [encoding/json](./encoding/json/)     | JSON 编解码器                            |
+| [encoding/xml](./encoding/xml/)       | XML 编解码器                             |
+| [encoding/proto](./encoding/proto/)   | Protobuf JSON 编解码器                   |
+
+### 工具
+
+| 包                                    | 说明                                     |
+| ------------------------------------- | ---------------------------------------- |
+| [pagination](./pagination/)           | 分页工具                                 |
+| [sorting](./sorting/)                 | 排序工具                                 |
+| [collections](./collections/)         | 集合工具（TreeMap、TreeSet、LinkedList） |
+| [pbjson](./pbjson/)                   | Protobuf JSON 序列化（零值字段输出）     |
+
+### 核心组件
+
+| 包                        | 说明                               | 工厂函数                            |
+| ------------------------- | ---------------------------------- | ----------------------------------- |
+| [transport](./transport/) | 传输层抽象（Endpoint、Middleware） | -                                   |
+| [auth](./auth/)           | 认证授权（JWT、API Key、RBAC）     | -                                   |
+| [logger](./logger/)       | 结构化日志（Zap）                  | `NewLogger` / `MustNewLogger`       |
+| [config](./config/)       | 配置管理（多源、热加载、Source 抽象） | `Load` / `NewManager`             |
+| [discovery](./discovery/) | 服务发现（Consul、etcd）           | `NewDiscovery` / `MustNewDiscovery` |
+| [pubsub](./pubsub/)       | 消息发布/订阅（Kafka、RabbitMQ、Redis Streams） | `Publisher` / `Subscriber`      |
+| [jobqueue](./jobqueue/)   | 异步任务队列（延迟、重试、死信）   | `NewClient` / `NewWorker`       |
+| [scheduler](./scheduler/) | 定时任务调度                       | `NewScheduler` / `MustNewScheduler` |
+| [tenant](./tenant/)       | 多租户（租户解析、隔离、限流）     | -                                   |
+
+### AI 集成 (ai/)
+
+| 包 | 说明 |
+| --- | --- |
+| [ai](./ai/) | 统一 ChatModel / EmbeddingModel 接口抽象 |
+| [ai/openai](./ai/openai/) | OpenAI 适配器（兼容 DeepSeek、通义千问等） |
+| [ai/anthropic](./ai/anthropic/) | Anthropic Claude 适配器 |
+| [ai/gemini](./ai/gemini/) | Google Gemini 适配器 |
+| [ai/middleware](./ai/middleware/) | AI 中间件链（日志、重试、限流、用量追踪） |
+| [ai/conversation](./ai/conversation/) | 多轮对话会话管理（BufferMemory / WindowMemory） |
+| [ai/toolcall](./ai/toolcall/) | 工具注册与自动 ReAct 循环执行器 |
+| [ai/prompt](./ai/prompt/) | 基于 text/template 的提示词模板引擎 |
+| [ai/embedding](./ai/embedding/) | 批量嵌入 + 余弦相似度工具函数 |
+| [ai/vectorstore](./ai/vectorstore/) | 向量存储统一接口抽象 |
+| [ai/router](./ai/router/) | 多 Provider 路由器（按模型名路由） |
+
+### 分布式模式
+
+| 包                  | 说明                             |
+| ------------------- | -------------------------------- |
+| [domain](./domain/) | 领域驱动设计（聚合根、领域事件） |
+| [cqrs](./cqrs/)     | 命令查询职责分离                 |
+| [saga](./saga/)     | Saga 分布式事务                  |
+| [outbox](./outbox/) | 事务发件箱模式                   |
+
+### 消息与任务
+
+| 包                      | 说明                                    | 工厂函数 |
+| ----------------------- | --------------------------------------- | -------- |
+| [pubsub](./pubsub/)     | 统一 Pub/Sub 抽象                       | -        |
+| [pubsub/factory](./pubsub/factory/) | **Config 驱动工厂（推荐）**    | `NewPublisher` / `NewSubscriber` |
+| [pubsub/kafka](./pubsub/kafka/)       | Kafka Publisher/Subscriber     | `NewPublisher` / `NewSubscriber` |
+| [pubsub/rabbitmq](./pubsub/rabbitmq/) | RabbitMQ Publisher/Subscriber  | `NewPublisher` / `NewSubscriber` |
+| [pubsub/redis](./pubsub/redis/)       | Redis Streams Publisher/Subscriber | `NewPublisher` / `NewSubscriber` |
+| [jobqueue](./jobqueue/) | 异步任务队列（延迟、优先级、重试、死信）| `NewClient` / `NewWorker` |
+| [jobqueue/factory](./jobqueue/factory/) | **Config 驱动工厂（推荐）**  | `NewStore` |
+| [jobqueue/redis](./jobqueue/redis/)       | Redis Store（sorted set）   | `NewStore` |
+| [jobqueue/kafka](./jobqueue/kafka/)       | Kafka Store                  | `NewStore` |
+| [jobqueue/rabbitmq](./jobqueue/rabbitmq/) | RabbitMQ Store               | `NewStore` |
+| [jobqueue/database](./jobqueue/database/) | GORM Database Store          | `NewStore` |
+
+### Webhook
+
+| 包                                        | 说明                      | 工厂函数 |
+| ----------------------------------------- | ------------------------- | -------- |
+| [webhook](./webhook/)                     | Webhook 投递与接收        | `NewDispatcher` / `NewReceiver` |
+| [webhook/store/memory](./webhook/store/memory/) | 内存 SubscriptionStore | `NewStore` |
+| [webhook/store/gorm](./webhook/store/gorm/)     | GORM SubscriptionStore | `NewStore` |
+
+### OAuth2 第三方登录
+
+| 包                                      | 说明                   | 工厂函数 |
+| --------------------------------------- | ---------------------- | -------- |
+| [oauth2](./oauth2/)                     | Provider/StateStore 接口 | -      |
+| [oauth2/state](./oauth2/state/)         | State 管理（Memory/Redis）| `NewMemoryStore` / `NewRedisStore` |
+| [oauth2/github](./oauth2/github/)       | GitHub OAuth2 Provider | `NewProvider` |
+| [oauth2/google](./oauth2/google/)       | Google OAuth2 Provider | `NewProvider` |
+| [oauth2/wechat](./oauth2/wechat/)       | 微信 OAuth2 Provider   | `NewProvider` |
+
+### OpenAPI 文档
+
+| 包                      | 说明                           | 工厂函数 |
+| ----------------------- | ------------------------------ | -------- |
+| [openapi](./openapi/)   | Code-first OpenAPI 3.0 生成    | `NewRegistry` / `SchemaFrom` |
+
+## 快速开始
+
+### 完整服务示例
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "net/http"
+    "time"
+
+    "github.com/Tsukikage7/servex/observability/logger"
+    "github.com/Tsukikage7/servex/transport"
+    "github.com/Tsukikage7/servex/transport/httpserver"
+)
+
+func main() {
+    log := logger.MustNewLogger(logger.DefaultConfig())
+
+    // 1. 创建路由
+    mux := http.NewServeMux()
+    mux.HandleFunc("/api/v1/users", func(w http.ResponseWriter, _ *http.Request) {
+        fmt.Fprintln(w, `{"message": "hello"}`)
+    })
+
+    // 2. 创建 HTTP 服务器（内置健康检查、pprof）
+    srv := httpserver.New(mux,
+        httpserver.WithLogger(log),
+        httpserver.WithAddr(":8080"),
+        httpserver.WithRecovery(),
+        httpserver.WithProfiling("/debug/pprof"),
+    )
+
+    // 3. 启动应用（自动处理信号、优雅关闭）
+    app := transport.NewApplication(
+        transport.WithLogger(log),
+        transport.WithGracefulTimeout(30*time.Second),
+        transport.WithCleanup("logs", func(_ context.Context) error {
+            return log.Sync()
+        }, 100),
+    )
+    app.Use(srv).Run()
+}
+```
+
+### 基础组件初始化
+
+```go
+package main
+
+import (
+    "context"
+    "time"
+
+    "github.com/Tsukikage7/servex/config"
+    "github.com/Tsukikage7/servex/observability/logger"
+    "github.com/Tsukikage7/servex/observability/metrics"
+    "github.com/Tsukikage7/servex/storage/cache"
+    "github.com/Tsukikage7/servex/storage/rdbms"
+)
+
+func main() {
+    // 1. 加载配置
+    cfg, _ := config.New(&config.Options{
+        Paths: []string{"config.yaml"},
+    })
+
+    // 2. 初始化日志
+    log := logger.MustNewLogger(&logger.Config{Level: "info"})
+    defer log.Close()
+
+    // 3. 初始化指标收集
+    collector := metrics.MustNewMetrics(&metrics.Config{
+        Namespace: "my_service",
+        Path:      "/metrics",
+    })
+
+    // 4. 初始化缓存
+    memCache := cache.MustNewCache(cache.NewMemoryConfig(), log)
+    defer memCache.Close()
+
+    // 5. 初始化数据库
+    db := database.MustNewDatabase(&database.Config{
+        Driver: database.DriverMySQL,
+        DSN:    "user:pass@tcp(localhost:3306)/dbname?charset=utf8mb4&parseTime=True",
+    }, log)
+    defer db.Close()
+
+    // 使用组件...
+}
+```
+
+### HTTP 服务示例
+
+```go
+package main
+
+import (
+    "context"
+    "net/http"
+
+    "github.com/Tsukikage7/servex/auth/jwt"
+    "github.com/Tsukikage7/servex/observability/logger"
+    "github.com/Tsukikage7/servex/middleware/ratelimit"
+    "github.com/Tsukikage7/servex/observability/metrics"
+    "github.com/Tsukikage7/servex/observability/tracing"
+)
+
+func main() {
+    // 初始化日志
+    log := logger.MustNewLogger(logger.DefaultConfig())
+    defer log.Close()
+
+    // 初始化指标收集
+    collector := metrics.MustNewMetrics(&metrics.Config{
+        Namespace: "my_service",
+        Path:      "/metrics",
+    })
+
+    // 初始化链路追踪
+    tp, _ := tracing.NewTracer(&tracing.TracingConfig{
+        Enabled:      true,
+        SamplingRate: 0.1,
+        OTLP:         &tracing.OTLPConfig{Endpoint: "localhost:4318"},
+    }, "my-service", "1.0.0")
+    defer tp.Shutdown(context.Background())
+
+    // 创建限流器
+    limiter := ratelimit.NewTokenBucket(1000, 100)
+
+    // 初始化 JWT 认证
+    whitelist := jwt.NewWhitelist().AddHTTPPaths("/health", "/metrics")
+    j := jwt.NewJWT(
+        jwt.WithSecretKey("your-secret-key"),
+        jwt.WithLogger(log),
+        jwt.WithWhitelist(whitelist),
+    )
+
+    // 创建路由
+    mux := http.NewServeMux()
+    mux.HandleFunc("/health", healthHandler)
+    mux.HandleFunc("/api/users", usersHandler)
+
+    // 应用中间件（从外到内）
+    var handler http.Handler = mux
+    handler = metrics.HTTPMiddleware(collector)(handler)
+    handler = tracing.HTTPMiddleware("my-service")(handler)
+    handler = ratelimit.HTTPMiddleware(limiter)(handler)
+    handler = jwt.HTTPMiddleware(j)(handler)
+
+    // 暴露指标端点
+    http.Handle(collector.GetPath(), collector.GetHandler())
+
+    log.Info("Server starting on :8080")
+    http.ListenAndServe(":8080", handler)
+}
+
+func healthHandler(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte(`{"status": "ok"}`))
+}
+
+func usersHandler(w http.ResponseWriter, r *http.Request) {
+    claims, ok := jwt.ClaimsFromContext(r.Context())
+    if !ok {
+        http.Error(w, "unauthorized", http.StatusUnauthorized)
+        return
+    }
+    subject, _ := claims.GetSubject()
+    w.Write([]byte(`{"user": "` + subject + `"}`))
+}
+```
+
+### gRPC 服务示例
+
+```go
+package main
+
+import (
+    "context"
+    "net"
+
+    "github.com/Tsukikage7/servex/auth/jwt"
+    "github.com/Tsukikage7/servex/observability/logger"
+    "github.com/Tsukikage7/servex/middleware/ratelimit"
+    "github.com/Tsukikage7/servex/observability/metrics"
+    "github.com/Tsukikage7/servex/observability/tracing"
+    "google.golang.org/grpc"
+)
+
+func main() {
+    // 初始化日志
+    log := logger.MustNewLogger(logger.DefaultConfig())
+    defer log.Close()
+
+    // 初始化组件
+    collector := metrics.MustNewMetrics(&metrics.Config{Namespace: "my_service"})
+    tp, _ := tracing.NewTracer(&tracing.TracingConfig{
+        Enabled: true,
+        OTLP:    &tracing.OTLPConfig{Endpoint: "localhost:4318"},
+    }, "my-service", "1.0.0")
+    defer tp.Shutdown(context.Background())
+    limiter := ratelimit.NewTokenBucket(1000, 100)
+
+    // 初始化 JWT 认证
+    whitelist := jwt.NewWhitelist().AddGRPCMethods("/grpc.health.v1.Health/")
+    j := jwt.NewJWT(
+        jwt.WithSecretKey("your-secret-key"),
+        jwt.WithLogger(log),
+        jwt.WithWhitelist(whitelist),
+    )
+
+    // 创建 gRPC 服务器
+    server := grpc.NewServer(
+        grpc.ChainUnaryInterceptor(
+            metrics.UnaryServerInterceptor(collector),
+            tracing.UnaryServerInterceptor("my-service"),
+            ratelimit.UnaryServerInterceptor(limiter),
+            jwt.UnaryServerInterceptor(j),
+        ),
+        grpc.ChainStreamInterceptor(
+            metrics.StreamServerInterceptor(collector),
+            tracing.StreamServerInterceptor("my-service"),
+            ratelimit.StreamServerInterceptor(limiter),
+            jwt.StreamServerInterceptor(j),
+        ),
+    )
+
+    // 注册服务...
+    // pb.RegisterMyServiceServer(server, &myService{})
+
+    lis, _ := net.Listen("tcp", ":50051")
+    log.Info("gRPC server starting on :50051")
+    server.Serve(lis)
+}
+```
+
+## 中间件使用指南
+
+### Endpoint 中间件
+
+Endpoint 中间件用于 `transport.Endpoint` 层，适合服务内部的横切关注点处理。
+
+```go
+import (
+    "github.com/Tsukikage7/servex/transport"
+    "github.com/Tsukikage7/servex/observability/metrics"
+    "github.com/Tsukikage7/servex/observability/tracing"
+    "github.com/Tsukikage7/servex/middleware/ratelimit"
+    "github.com/Tsukikage7/servex/middleware/retry"
+    "github.com/Tsukikage7/servex/auth/jwt"
+)
+
+// 定义 Endpoint
+var myEndpoint transport.Endpoint = func(ctx context.Context, req any) (any, error) {
+    return process(req)
+}
+
+// 服务端中间件（从外到内执行）
+myEndpoint = transport.Chain(
+    metrics.EndpointMiddleware(collector, "my-service", "MyMethod"),
+    tracing.EndpointMiddleware("my-service", "MyMethod"),
+    ratelimit.EndpointMiddleware(limiter),
+    jwt.NewParser(j),
+)(myEndpoint)
+
+// 客户端中间件
+clientEndpoint = transport.Chain(
+    metrics.EndpointMiddleware(collector, "my-service", "MyMethod"),
+    tracing.EndpointMiddleware("my-service", "MyMethod"),
+    jwt.NewSigner(j),
+    retry.EndpointMiddleware(retryConfig),
+)(clientEndpoint)
+```
+
+### HTTP 中间件
+
+```go
+mux := http.NewServeMux()
+mux.HandleFunc("/api/users", handleUsers)
+
+// 应用中间件（从外到内执行）
+var handler http.Handler = mux
+handler = metrics.HTTPMiddleware(collector)(handler)
+handler = tracing.HTTPMiddleware("my-service")(handler)
+handler = ratelimit.HTTPMiddleware(limiter)(handler)
+handler = jwt.HTTPMiddleware(j)(handler)
+```
+
+### gRPC 拦截器
+
+```go
+// 服务端
+server := grpc.NewServer(
+    grpc.ChainUnaryInterceptor(
+        metrics.UnaryServerInterceptor(collector),
+        tracing.UnaryServerInterceptor("my-service"),
+        ratelimit.UnaryServerInterceptor(limiter),
+        jwt.UnaryServerInterceptor(j),
+    ),
+    grpc.ChainStreamInterceptor(
+        metrics.StreamServerInterceptor(collector),
+        tracing.StreamServerInterceptor("my-service"),
+        ratelimit.StreamServerInterceptor(limiter),
+        jwt.StreamServerInterceptor(j),
+    ),
+)
+
+// 客户端
+conn, _ := grpc.Dial("localhost:50051",
+    grpc.WithChainUnaryInterceptor(
+        metrics.UnaryClientInterceptor(collector),
+        tracing.UnaryClientInterceptor("my-service"),
+        retry.UnaryClientInterceptor(retryConfig),
+    ),
+    grpc.WithChainStreamInterceptor(
+        metrics.StreamClientInterceptor(collector),
+        tracing.StreamClientInterceptor("my-service"),
+        retry.StreamClientInterceptor(retryConfig),
+    ),
+)
+```
+
+### 请求上下文提取中间件
+
+```go
+import (
+    "github.com/Tsukikage7/servex/request"
+    "github.com/Tsukikage7/servex/httpx/clientip"
+)
+
+// 方式 1: 使用组合中间件（默认启用 ClientIP, UserAgent, Locale, Referer）
+handler = request.HTTPMiddleware()(handler)
+
+// 方式 2: 启用所有解析器（包括 Device, Bot）
+handler = request.HTTPMiddleware(request.WithAll())(handler)
+
+// 方式 3: 自定义配置
+handler = request.HTTPMiddleware(
+    request.WithClientIP(clientip.WithTrustedProxies("10.0.0.0/8")),
+    request.WithBot(),
+    request.DisableReferer(),
+)(handler)
+
+// 方式 4: 单独使用子模块
+handler = clientip.HTTPMiddleware()(handler)
+
+// 在 handler 中获取请求信息
+func myHandler(w http.ResponseWriter, r *http.Request) {
+    // 获取聚合信息
+    info := request.FromContext(r.Context())
+
+    // 或单独获取
+    ip, _ := clientip.FromContext(r.Context())
+    ua, _ := useragent.FromContext(r.Context())
+    loc, _ := locale.FromContext(r.Context())
+}
+```
+
+## 中间件执行顺序
+
+推荐的中间件执行顺序（从外到内）：
+
+1. **Metrics** - 首先记录请求指标
+2. **Tracing** - 创建追踪 span
+3. **RateLimit** - 限流保护
+4. **Request** - 请求上下文提取（ClientIP, UserAgent 等）
+5. **Auth/JWT** - 认证验证
+6. **Retry** - 重试逻辑（客户端）
+7. **Business Logic** - 业务处理
+
+## 基础设施组件
+
+### Logger - 结构化日志
+
+```go
+log := logger.MustNewLogger(&logger.Config{
+    Level:      "info",
+    Format:     "json",
+    OutputPath: "stdout",
+})
+defer log.Close()
+
+log.Info("服务启动", "port", 8080)
+log.Error("请求失败", "error", err, "request_id", reqID)
+```
+
+### Cache - 缓存
+
+```go
+// 内存缓存
+memCache := cache.MustNewCache(cache.NewMemoryConfig(), log)
+
+// Redis 缓存
+redisCache := cache.MustNewCache(&cache.Config{
+    Type: cache.TypeRedis,
+    Addr: "localhost:6379",
+}, log)
+
+// 使用
+ctx := context.Background()
+cache.Set(ctx, "key", "value", 5*time.Minute)
+value, err := cache.Get(ctx, "key")
+```
+
+### Database - 数据库
+
+```go
+db := database.MustNewDatabase(&database.Config{
+    Driver:        database.DriverMySQL,
+    DSN:           "user:pass@tcp(localhost:3306)/dbname",
+    AutoMigrate:   true,
+    SlowThreshold: 100 * time.Millisecond,
+    Pool: database.PoolConfig{
+        MaxOpen:     100,
+        MaxIdle:     10,
+        MaxLifetime: time.Hour,
+    },
+}, log)
+defer db.Close()
+
+// 自动迁移
+db.AutoMigrate(&User{})
+
+// 获取 GORM 实例
+if gormDB, ok := database.AsGORM(db); ok {
+    gormDB.GORM().Create(&User{Name: "John"})
+}
+```
+
+### MongoDB - 文档数据库
+
+```go
+import "github.com/Tsukikage7/servex/storage/mongodb"
+
+client, _ := mongodb.NewClient(&mongodb.Config{
+    URI:      "mongodb://localhost:27017",
+    Database: "mydb",
+}, log)
+defer client.Close(ctx)
+
+// 插入文档
+coll := client.Collection("users")
+result, _ := coll.InsertOne(ctx, mongodb.M{"name": "John", "age": 30})
+
+// 查询文档
+var user map[string]any
+coll.FindOne(ctx, mongodb.M{"name": "John"}).Decode(&user)
+
+// 更新文档
+coll.UpdateOne(ctx, mongodb.M{"name": "John"}, mongodb.M{"$set": mongodb.M{"age": 31}})
+
+// 事务操作
+client.UseTransaction(ctx, func(sc context.Context) error {
+    coll.InsertOne(sc, mongodb.M{"name": "Alice"})
+    coll.InsertOne(sc, mongodb.M{"name": "Bob"})
+    return nil
+})
+```
+
+### S3 - 对象存储
+
+```go
+import "github.com/Tsukikage7/servex/storage/s3"
+
+client, _ := s3.NewClient(&s3.Config{
+    Endpoint:     "http://localhost:9000",
+    Region:       "us-east-1",
+    AccessKey:    "minioadmin",
+    SecretKey:    "minioadmin",
+    Bucket:       "my-bucket",
+    UsePathStyle: true, // MinIO 需要
+}, log)
+
+// 上传文件
+file, _ := os.Open("photo.jpg")
+client.Upload(ctx, "images/photo.jpg", file, fileSize,
+    s3.WithContentType("image/jpeg"),
+)
+
+// 下载文件
+obj, _ := client.GetObject(ctx, "images/photo.jpg")
+io.Copy(output, obj.Body)
+obj.Body.Close()
+
+// 生成预签名 URL
+url, _ := client.PresignGetObject(ctx, "images/photo.jpg", 1*time.Hour)
+```
+
+### WebSocket - 实时通信
+
+```go
+import "github.com/Tsukikage7/servex/transport/websocket"
+
+// 创建消息处理器
+handler := func(client websocket.Client, msg *websocket.Message) {
+    // 广播消息给所有客户端
+    hub.Broadcast(msg)
+}
+
+// 创建 Hub
+hub := websocket.NewHub(handler,
+    websocket.RecoveryMiddleware(log),
+    websocket.LoggingMiddleware(log),
+)
+go hub.Run(ctx)
+
+// HTTP 升级处理
+http.HandleFunc("/ws", websocket.HTTPHandler(hub, websocket.DefaultConfig()))
+```
+
+### SSE - 服务端推送
+
+```go
+import "github.com/Tsukikage7/servex/transport/sse"
+
+// 创建 SSE 服务器
+server := sse.NewServer(sse.DefaultConfig())
+go server.Run(ctx)
+
+// HTTP 处理
+http.HandleFunc("/events", server.ServeHTTP)
+
+// 广播事件
+server.Broadcast(sse.NewJSONEvent("update", map[string]any{
+    "type": "notification",
+    "data": "Hello, World!",
+}))
+
+// 发送给指定客户端
+server.Send(clientID, sse.NewTextEvent("message", "Private message"))
+```
+
+### Discovery - 服务发现
+
+```go
+// Consul
+discovery := discovery.MustNewDiscovery(&discovery.Config{
+    Type: discovery.TypeConsul,
+    Addr: "localhost:8500",
+}, log)
+
+// 注册服务
+id, _ := discovery.Register(ctx, "my-service", "localhost:8080")
+defer discovery.Deregister(ctx, id)
+
+// 发现服务
+instances, _ := discovery.Discover(ctx, "other-service")
+```
+
+### Pub/Sub - 消息发布/订阅
+
+```go
+import (
+    "github.com/Tsukikage7/servex/pubsub"
+    "github.com/Tsukikage7/servex/pubsub/factory"
+)
+
+// Config 驱动（推荐）：一个 Config 即可创建 Publisher/Subscriber
+pub, _ := factory.NewPublisher(&factory.Config{
+    Type:    "kafka",
+    Brokers: []string{"localhost:9092"},
+}, log)
+defer pub.Close()
+
+// 发布消息
+pub.Publish(ctx, "orders", &pubsub.Message{
+    Key:  []byte("order-123"),
+    Body: []byte(`{"id":"123","amount":99.9}`),
+    Headers: map[string]string{"source": "api"},
+})
+
+// 创建 Subscriber
+sub, _ := factory.NewSubscriber(&factory.Config{
+    Type:    "kafka",
+    Brokers: []string{"localhost:9092"},
+}, "my-group", log)
+defer sub.Close()
+
+// 订阅（返回 channel）
+ch, _ := sub.Subscribe(ctx, "orders")
+for msg := range ch {
+    process(msg)
+    sub.Ack(ctx, msg)
+}
+```
+
+### JobQueue - 异步任务队列
+
+```go
+import (
+    "github.com/Tsukikage7/servex/jobqueue"
+    "github.com/Tsukikage7/servex/jobqueue/factory"
+)
+
+// Config 驱动（推荐）：一个 StoreConfig 即可创建 Store
+store, _ := factory.NewStore(&factory.StoreConfig{
+    Type: "redis",
+    Addr: "localhost:6379",
+})
+
+// 投递任务
+client := jobqueue.NewClient(store)
+client.Enqueue(ctx, &jobqueue.Job{
+    Queue: "emails", Type: "welcome",
+    Payload: []byte(`{"user":"test"}`),
+    Priority: 3, MaxRetries: 5, Delay: 10 * time.Minute,
+})
+
+// 消费任务
+w := jobqueue.NewWorker(store,
+    jobqueue.WithQueues("emails", "reports"),
+    jobqueue.WithConcurrency(10),
+)
+w.Register("welcome", sendWelcomeEmail)
+w.Start(ctx) // 阻塞，ctx 取消后优雅退出
+```
+
+### Webhook - 投递与接收
+
+```go
+import "github.com/Tsukikage7/servex/webhook"
+
+// 发送端
+d := webhook.NewDispatcher(webhook.WithTimeout(10 * time.Second))
+d.Dispatch(ctx, &webhook.Subscription{
+    URL: "https://example.com/hook", Secret: "my-secret",
+}, &webhook.Event{
+    ID: "evt-1", Type: "order.created", Payload: []byte(`{"id":1}`),
+})
+
+// 接收端
+r := webhook.NewReceiver(webhook.WithSecret("my-secret"))
+http.HandleFunc("/webhook", func(w http.ResponseWriter, req *http.Request) {
+    event, err := r.Handle(ctx, req) // 自动验签
+    if err != nil {
+        http.Error(w, "invalid signature", http.StatusUnauthorized)
+        return
+    }
+    // 处理 event
+})
+```
+
+### OAuth2 - 第三方登录
+
+```go
+import (
+    "github.com/Tsukikage7/servex/oauth2/github"
+    "github.com/Tsukikage7/servex/oauth2/state"
+)
+
+// 创建 Provider
+gh := github.NewProvider(
+    github.WithClientID("xxx"),
+    github.WithClientSecret("xxx"),
+    github.WithRedirectURL("https://myapp.com/callback"),
+    github.WithScopes("user:email"),
+)
+
+// State 管理（防 CSRF）
+stateStore := state.NewMemoryStore()
+
+// 1. 生成授权链接
+s, _ := stateStore.Generate(ctx)
+url := gh.AuthURL(s)
+// 重定向用户到 url
+
+// 2. 回调处理
+ok, _ := stateStore.Validate(ctx, r.URL.Query().Get("state"))
+token, _ := gh.Exchange(ctx, r.URL.Query().Get("code"))
+user, _ := gh.UserInfo(ctx, token)
+// user.Name, user.Email, user.ProviderID
+```
+
+### OpenAPI - 文档生成
+
+```go
+import "github.com/Tsukikage7/servex/openapi"
+
+reg := openapi.NewRegistry(
+    openapi.WithInfo("My Service", "1.0.0", "订单服务 API"),
+    openapi.WithServer("https://api.example.com"),
+)
+
+reg.Add(openapi.POST("/orders").
+    Summary("创建订单").Tags("orders").
+    Request(CreateOrderRequest{}).Response(CreateOrderResponse{}).
+    Build(),
+)
+
+// 挂载文档端点
+mux.Handle("/openapi.json", reg.ServeJSON())
+mux.Handle("/openapi.yaml", reg.ServeYAML())
+```
+
+### Scheduler - 定时任务
+
+```go
+scheduler := scheduler.MustNewScheduler(
+    scheduler.WithLogger(log),
+)
+
+// 添加任务
+scheduler.AddFunc("@every 1m", func() {
+    // 每分钟执行
+})
+
+scheduler.AddFunc("0 0 * * *", func() {
+    // 每天零点执行
+})
+
+scheduler.Start()
+defer scheduler.Stop()
+```
+
+### 优雅关闭（集成在 Application 中）
+
+```go
+import "github.com/Tsukikage7/servex/transport"
+
+app := transport.NewApplication(
+    transport.WithLogger(log),
+    transport.WithGracefulTimeout(30*time.Second),
+    // 注册清理任务（按优先级执行，数字越小越先执行）
+    transport.WithCleanup("database", db.Close, 10),
+    transport.WithCloser("cache", cache, 10),
+    transport.WithCleanup("logger", func(ctx context.Context) error {
+        return log.Sync()
+    }, 100),
+)
+
+// 使用服务器并运行（自动处理 SIGTERM、SIGINT 信号）
+app.Use(httpServer, grpcServer).Run()
+```
+
+### Encoding - 内容协商
+
+基于 `Accept`/`Content-Type` 头自动选择编解码器，支持 JSON、XML、Protobuf JSON。
+
+```go
+import (
+    "github.com/Tsukikage7/servex/transport/httpserver"
+    _ "github.com/Tsukikage7/servex/encoding/json"
+    _ "github.com/Tsukikage7/servex/encoding/xml"
+)
+
+type CreateUserRequest struct {
+    Name string `json:"name" xml:"name"`
+    Age  int    `json:"age" xml:"age"`
+}
+
+type UserResponse struct {
+    ID   int    `json:"id" xml:"id"`
+    Name string `json:"name" xml:"name"`
+}
+
+// 创建 EndpointHandler，根据请求头自动协商编解码格式
+handler := httpserver.NewEndpointHandler(
+    createUserEndpoint,
+    httpserver.DecodeCodecRequest[CreateUserRequest](),
+    httpserver.EncodeCodecResponse,
+    httpserver.WithBefore(httpserver.WithRequest()), // 必须：将请求存入 context
+)
+
+// 客户端可通过 Accept 头选择响应格式：
+// Accept: application/json  → JSON 响应
+// Accept: application/xml   → XML 响应
+// Accept: application/x-protobuf → Protobuf JSON 响应
+```
+
+自定义编解码器：
+
+```go
+import "github.com/Tsukikage7/servex/encoding"
+
+// 实现 Codec 接口
+type msgpackCodec struct{}
+func (msgpackCodec) Marshal(v any) ([]byte, error)     { /* ... */ }
+func (msgpackCodec) Unmarshal(data []byte, v any) error { /* ... */ }
+func (msgpackCodec) Name() string                      { return "msgpack" }
+
+// 注册后即可通过 Accept: application/msgpack 使用
+func init() { encoding.RegisterCodec(msgpackCodec{}) }
+```
+
+### Config Manager - 配置热加载
+
+支持多数据源合并、`atomic.Pointer` 无锁读取、变更通知。
+
+```go
+import (
+    "log"
+
+    "github.com/Tsukikage7/servex/config"
+    "github.com/Tsukikage7/servex/config/source/file"
+    "github.com/Tsukikage7/servex/config/source/consul"
+    consulapi "github.com/hashicorp/consul/api"
+)
+
+type AppConfig struct {
+    Name string `json:"name" yaml:"name"`
+    Port int    `json:"port" yaml:"port"`
+}
+
+// 创建配置源
+fileSrc := file.New("config.yaml")
+
+consulClient, _ := consulapi.NewClient(consulapi.DefaultConfig())
+consulSrc := consul.New(consulClient, "app/config", consul.WithFormat("json"))
+
+// 创建管理器（多源合并，后者覆盖前者）
+mgr, _ := config.NewManager[AppConfig](
+    config.WithSource[AppConfig](fileSrc),
+    config.WithSource[AppConfig](consulSrc),
+    config.WithObserver[AppConfig](func(old, new *AppConfig) {
+        log.Printf("config updated: %s -> %s", old.Name, new.Name)
+    }),
+)
+
+// 初始加载 + 启动热加载
+mgr.Load()
+mgr.Watch()
+defer mgr.Close()
+
+// 无锁读取最新配置
+cfg := mgr.Get()
+log.Printf("running on port %d", cfg.Port)
+```
+
+### Profiling - 性能分析
+
+通过 HTTP Server 的 `Profiling()` 选项启用 pprof：
+
+```go
+import "github.com/Tsukikage7/servex/transport/httpserver"
+
+srv := httpserver.New(mux,
+    httpserver.WithLogger(log),
+    httpserver.WithAddr(":8080"),
+    httpserver.WithProfiling("/debug/pprof"),                    // 公开访问
+    // httpserver.WithProfilingAuth("/debug/pprof", authFn), // 带认证
+)
+
+// 访问端点:
+// - /debug/pprof/          - 索引页面
+// - /debug/pprof/heap      - 堆内存分析
+// - /debug/pprof/goroutine - Goroutine 分析
+// - /debug/pprof/profile   - CPU 分析（需要 ?seconds=30）
+```
+
+## 工厂函数命名规范
+
+本工具包遵循统一的工厂函数命名规范：
+
+| 模式            | 说明              | 示例                        |
+| --------------- | ----------------- | --------------------------- |
+| `NewXXX`        | 返回 `(T, error)` | `NewDatabase(cfg, log)`     |
+| `MustNewXXX`    | 失败时 panic      | `MustNewDatabase(cfg, log)` |
+| `DefaultConfig` | 返回默认配置      | `logger.DefaultConfig()`    |
+
+## 各包详细文档
+
+### 可观测性 (observability/)
+
+- **[observability/metrics](./observability/metrics/)** - Prometheus 指标收集
+- **[observability/tracing](./observability/tracing/)** - OpenTelemetry 链路追踪
+
+### 中间件 (middleware/)
+
+- **[middleware/ratelimit](./middleware/ratelimit/)** - 限流（令牌桶、滑动窗口、固定窗口、分布式）
+- **[middleware/retry](./middleware/retry/)** - 重试机制（固定/指数/线性退避）
+- **[middleware/recovery](./middleware/recovery/)** - Panic 恢复
+- **[middleware/timeout](./middleware/timeout/)** - 超时控制
+- **[middleware/idempotency](./middleware/idempotency/)** - 幂等性保证
+- **[middleware/semaphore](./middleware/semaphore/)** - 并发控制
+- **[middleware/circuitbreaker](./middleware/circuitbreaker/)** - 熔断器（Closed/Open/HalfOpen 状态机）
+- **[middleware/cors](./middleware/cors/)** - 跨域资源共享（CORS）
+- **[middleware/requestid](./middleware/requestid/)** - 请求 ID 注入与传播
+- **[middleware/logging](./middleware/logging/)** - 请求日志（HTTP / gRPC）
+
+### 请求上下文 (httpx/)
+
+- **[httpx](./httpx/)** - 请求上下文提取组合层
+- **[httpx/clientip](./httpx/clientip/)** - 客户端 IP 提取、地理位置、ACL
+- **[httpx/useragent](./httpx/useragent/)** - User-Agent 解析
+- **[httpx/deviceinfo](./httpx/deviceinfo/)** - 设备信息（Client Hints 优先）
+- **[httpx/botdetect](./httpx/botdetect/)** - 机器人检测
+- **[httpx/locale](./httpx/locale/)** - 语言区域设置
+- **[httpx/referer](./httpx/referer/)** - 来源页面解析、UTM 参数
+- **[httpx/activity](./httpx/activity/)** - 用户活动追踪
+
+### 传输扩展 (transport/)
+
+- **[transport/websocket](./transport/websocket/)** - WebSocket 服务端（连接管理、广播、中间件）
+- **[transport/sse](./transport/sse/)** - Server-Sent Events（实时推送、主题订阅）
+
+### 存储 (storage/)
+
+- **[storage/cache](./storage/cache/)** - 缓存（内存、Redis）
+- **[storage/database](./storage/database/)** - 数据库（GORM）
+- **[storage/mongodb](./storage/mongodb/)** - MongoDB（CRUD、事务、索引）
+- **[storage/s3](./storage/s3/)** - S3 兼容存储（分片上传、预签名 URL）
+- **[storage/lock](./storage/lock/)** - 分布式锁
+
+### 运维
+
+- **[transport/health](./transport/health/)** - 健康检查（存活/就绪探针、组合检查器）
+- **[transport](./transport/)** - 优雅关闭（集成在 Application 中，信号处理、优先级排序）
+- **HTTP Server** - 性能分析（通过 `Profiling()` 选项启用 pprof）
+
+### 编码 (encoding/)
+
+- **[encoding](./encoding/)** - 编解码器接口与 HTTP 内容协商
+- **[encoding/json](./encoding/json/)** - JSON 编解码器
+- **[encoding/xml](./encoding/xml/)** - XML 编解码器
+- **[encoding/proto](./encoding/proto/)** - Protobuf JSON 编解码器
+
+### 工具
+
+- **[pagination](./pagination/)** - 分页工具
+- **[sorting](./sorting/)** - 排序工具
+- **[collections](./collections/)** - 集合工具（TreeMap、TreeSet、LinkedList）
+- **[pbjson](./pbjson/)** - Protobuf JSON 序列化（零值字段输出）
+
+### 核心组件
+
+- **[transport](./transport/)** - 传输层抽象，定义 Endpoint 和 Middleware
+- **[auth](./auth/)** - 认证授权（JWT、API Key、RBAC）
+- **[logger](./logger/)** - 结构化日志
+- **[config](./config/)** - 配置管理（文件/Consul 源、Manager 热加载、多源合并）
+- **[discovery](./discovery/)** - 服务发现（Consul、etcd）
+- **[pubsub](./pubsub/)** - 统一消息发布/订阅接口（Kafka、RabbitMQ、Redis Streams）
+- **[jobqueue](./jobqueue/)** - 异步任务队列（延迟、优先级、重试、死信）
+- **[scheduler](./scheduler/)** - 定时任务调度
+- **[tenant](./tenant/)** - 多租户（租户解析、隔离、限流、Scope 过滤）
+
+### AI 集成 (ai/)
+
+- **[ai](./ai/)** - 统一 ChatModel / EmbeddingModel 接口，哨兵错误，消息辅助函数
+- **[ai/openai](./ai/openai/)** - OpenAI 适配器（兼容 DeepSeek、通义千问等 OpenAI 格式 Provider）
+- **[ai/anthropic](./ai/anthropic/)** - Anthropic Claude 适配器
+- **[ai/gemini](./ai/gemini/)** - Google Gemini 适配器
+- **[ai/middleware](./ai/middleware/)** - AI 中间件链（日志、重试、限流、用量追踪）
+- **[ai/conversation](./ai/conversation/)** - 多轮对话会话管理（BufferMemory / WindowMemory）
+- **[ai/toolcall](./ai/toolcall/)** - 工具注册与自动 ReAct 循环执行器，支持步骤回调
+- **[ai/prompt](./ai/prompt/)** - 基于 text/template 的提示词模板引擎
+- **[ai/embedding](./ai/embedding/)** - 批量嵌入 + 余弦相似度工具函数
+- **[ai/vectorstore](./ai/vectorstore/)** - 向量存储统一接口抽象
+- **[ai/router](./ai/router/)** - 多 Provider 路由器（按模型名路由到不同 Provider）
+
+### 分布式模式
+
+- **[domain](./domain/)** - 领域驱动设计（聚合根、领域事件）
+- **[cqrs](./cqrs/)** - 命令查询职责分离
+- **[saga](./saga/)** - Saga 分布式事务
+- **[outbox](./outbox/)** - 事务发件箱模式
+
+### 消息与任务
+
+- **[pubsub](./pubsub/)** - 统一 Pub/Sub 抽象（Publisher/Subscriber 接口）
+- **[pubsub/factory](./pubsub/factory/)** - Config 驱动工厂（推荐入口）
+- **[pubsub/kafka](./pubsub/kafka/)** - Kafka driver
+- **[pubsub/rabbitmq](./pubsub/rabbitmq/)** - RabbitMQ driver
+- **[pubsub/redis](./pubsub/redis/)** - Redis Streams driver
+- **[jobqueue](./jobqueue/)** - 异步任务队列（Client/Worker/Store 抽象）
+- **[jobqueue/factory](./jobqueue/factory/)** - Config 驱动工厂（推荐入口）
+- **[jobqueue/redis](./jobqueue/redis/)** - Redis Store
+- **[jobqueue/kafka](./jobqueue/kafka/)** - Kafka Store
+- **[jobqueue/rabbitmq](./jobqueue/rabbitmq/)** - RabbitMQ Store
+- **[jobqueue/database](./jobqueue/database/)** - GORM Database Store
+
+### Webhook
+
+- **[webhook](./webhook/)** - Webhook 投递与接收（HMAC-SHA256 签名）
+- **[webhook/store/memory](./webhook/store/memory/)** - 内存 SubscriptionStore
+- **[webhook/store/gorm](./webhook/store/gorm/)** - GORM SubscriptionStore
+
+### OAuth2 第三方登录
+
+- **[oauth2](./oauth2/)** - OAuth2 Provider/StateStore 接口
+- **[oauth2/state](./oauth2/state/)** - State 管理（Memory、Redis）
+- **[oauth2/github](./oauth2/github/)** - GitHub OAuth2
+- **[oauth2/google](./oauth2/google/)** - Google OAuth2（支持 refresh）
+- **[oauth2/wechat](./oauth2/wechat/)** - 微信 OAuth2
+
+### OpenAPI 文档
+
+- **[openapi](./openapi/)** - Code-first OpenAPI 3.0 生成（struct tag 反射、JSON/YAML 输出）
+
+## 设计原则
+
+本工具包遵循以下设计原则：
+
+- **KISS** - 保持简单，避免过度设计
+- **DRY** - 抽象通用模式，减少重复代码
+- **SOLID** - 单一职责，接口隔离
+- **可组合** - 中间件可自由组合
+- **可扩展** - 支持自定义实现
+
+## Claude Code Skill
+
+本仓库内置 [Claude Code](https://claude.ai/claude-code) Skill，在 Claude Code 中使用 servex 时可自动获得模块级代码补全与示例生成。
+
+**激活方式：** 将本仓库作为工作目录打开 Claude Code，Skill 会自动加载，无需任何配置。
+
+**触发规则：**
+
+- 描述业务意图（如"我需要一个带熔断的 HTTP 服务"）- 自动映射到对应模块并生成完整示例
+- 明确说出模块名（如"帮我用 servex 的 circuitbreaker"）- 直接生成该模块用法
+- 手动调用：在对话框输入 `/servex`（主索引）或 `/servex-transport`、`/servex-middleware` 等子 Skill
+
+**覆盖模块：** 传输层 / 中间件 / 认证 / 存储 / 可观测性 / 配置与服务发现 / AI / 分布式模式 / 消息与任务 / Webhook / OAuth2 / OpenAPI
+
+## License
+
+MIT License

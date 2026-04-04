@@ -1,0 +1,91 @@
+---
+name: i18n
+description: servex 国际化专家。当用户使用 servex 的 i18n 包进行多语言翻译、消息本地化时触发，提供 Bundle 创建、消息加载、Localizer 翻译的完整用法。
+---
+
+# servex 国际化（i18n）
+
+## Bundle -- 消息包管理
+
+```go
+import (
+    "github.com/Tsukikage7/servex/i18n"
+    "golang.org/x/text/language"
+)
+
+// 创建消息包，指定默认语言
+bundle := i18n.NewBundle(language.Chinese,
+    i18n.WithLogger(log),
+)
+
+// 方式一：从 JSON 文件加载
+// messages.zh.json: {"welcome": "欢迎 {{.Name}}", "goodbye": "再见"}
+bundle.LoadMessageFile(language.Chinese, "locales/messages.zh.json")
+bundle.LoadMessageFile(language.English, "locales/messages.en.json")
+
+// 方式二：直接注册消息映射
+bundle.LoadMessages(language.Chinese, map[string]string{
+    "welcome": "欢迎 {{.Name}}",
+    "goodbye": "再见",
+})
+bundle.LoadMessages(language.English, map[string]string{
+    "welcome": "Welcome {{.Name}}",
+    "goodbye": "Goodbye",
+})
+```
+
+**JSON 文件格式：** 扁平的 `messageID → message` 键值对，消息支持 `text/template` 模板语法。
+
+## Localizer -- 翻译消息
+
+```go
+// 创建本地化器（传入语言偏好列表）
+loc := bundle.NewLocalizer("zh-CN", "en")
+
+// 简单翻译
+msg := loc.Translate("goodbye") // "再见"
+
+// 带模板参数
+msg = loc.Translate("welcome", map[string]any{"Name": "张三"})
+// "欢迎 张三"
+
+// 指定默认消息（找不到 messageID 时使用）
+msg = loc.MustTranslate("unknown_key", "默认文案")
+// "默认文案"
+```
+
+**翻译优先级：** 匹配语言 → 默认语言 → 返回 messageID（Translate）或 defaultMsg（MustTranslate）
+
+## HTTP 集成示例
+
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+    // 从 Accept-Language 头获取语言偏好
+    langs := r.Header.Get("Accept-Language")
+    loc := bundle.NewLocalizer(langs)
+
+    msg := loc.Translate("welcome", map[string]any{
+        "Name": getUserName(r.Context()),
+    })
+    fmt.Fprint(w, msg)
+}
+```
+
+## 与 httpx/locale 配合
+
+```go
+import (
+    "github.com/Tsukikage7/servex/httpx/locale"
+    "github.com/Tsukikage7/servex/i18n"
+)
+
+// 先用 locale 中间件提取语言
+handler = locale.HTTPMiddleware()(handler)
+
+func myHandler(w http.ResponseWriter, r *http.Request) {
+    loc, _ := locale.FromContext(r.Context())
+    localizer := bundle.NewLocalizer(loc.Language)
+    msg := localizer.Translate("welcome", map[string]any{"Name": "Alice"})
+    fmt.Fprint(w, msg)
+}
+```

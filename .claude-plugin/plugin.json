@@ -1,0 +1,12 @@
+{
+  "name": "servex",
+  "version": "0.1.0",
+  "description": "servex Go 微服务工具库 — 提供模块使用指南、代码生成规范和最佳实践",
+  "author": {
+    "name": "Tsukikage7",
+    "url": "https://github.com/Tsukikage7"
+  },
+  "repository": "https://github.com/Tsukikage7/servex",
+  "license": "MIT",
+  "keywords": ["go", "microservice", "framework", "servex"]
+}
