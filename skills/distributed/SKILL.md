@@ -1,6 +1,6 @@
 ---
 name: distributed
-description: servex 分布式模式专家。当用户使用 servex 的 cqrs（命令查询分离）、outbox（事务消息）、domain（领域事件总线）、saga（分布式事务编排）时触发。
+description: servex 分布式模式专家。当用户使用 servex 的 cqrs（命令查询分离）、outbox（事务消息）、domain（领域事件总线）、saga（分布式事务编排）、eventsourcing（事件溯源）时触发。
 ---
 
 # servex 分布式模式
@@ -159,3 +159,78 @@ err := s.ExecuteWithData(ctx, data)
 - `saga.Data` — 步骤间共享数据（`Set`, `Get`, `GetString`, `GetInt`）
 - 选项：`WithStore`, `WithLogger`, `WithTimeout`, `WithRetry(count, delay)`, `WithStepHooks`
 - 状态流转：Pending → Running → Completed / Compensating → Compensated / CompensateFailed
+
+## domain/eventsourcing — 事件溯源
+
+```go
+// 1. 定义领域聚合，嵌入 BaseAggregate
+type Order struct {
+    eventsourcing.BaseAggregate
+    Status    string
+    TotalAmt  int64
+}
+
+func NewOrder(id string) *Order {
+    return &Order{BaseAggregate: eventsourcing.NewBaseAggregate(id, "Order")}
+}
+
+// 实现 Aggregate 接口：应用事件到聚合状态
+func (o *Order) ApplyEvent(event eventsourcing.Event) error {
+    switch event.EventType {
+    case "OrderCreated":
+        var data struct{ TotalAmt int64 }
+        json.Unmarshal(event.Data, &data)
+        o.Status = "created"
+        o.TotalAmt = data.TotalAmt
+    case "OrderShipped":
+        o.Status = "shipped"
+    }
+    return nil
+}
+
+// 2. 发起事件（自动序列化 data，自增版本号，调用 ApplyEvent）
+order := NewOrder("ORD-001")
+err := order.RaiseEvent(order.ApplyEvent, "OrderCreated", map[string]any{
+    "total_amt": 9900,
+})
+
+// 3. 创建事件存储和仓库
+store := eventsourcing.NewGORMEventStore(gormDB)
+
+// 可选：启用快照存储（每 50 个事件保存一次快照）
+snapshotStore := eventsourcing.NewGORMSnapshotStore(gormDB)
+repo, err := eventsourcing.NewRepository(store,
+    func() *Order { return NewOrder("") },
+    eventsourcing.WithSnapshotStore[*Order](snapshotStore),
+    eventsourcing.WithSnapshotEvery[*Order](50),
+)
+
+// 不带快照的简单仓库
+repo, err := eventsourcing.NewRepository(store,
+    func() *Order { return NewOrder("") },
+)
+
+// 4. 保存聚合（持久化未提交事件）
+if err := repo.Save(ctx, order); err != nil { ... }
+
+// 5. 加载聚合（重放所有历史事件）
+loaded, err := repo.Load(ctx, "ORD-001")
+if err != nil { ... }
+fmt.Println(loaded.Status, loaded.Version()) // "created", 1
+```
+
+**关键类型：**
+- `eventsourcing.Aggregate` — 聚合根接口（`AggregateID`, `AggregateType`, `Version`, `ApplyEvent`, `UncommittedEvents`, `ClearUncommittedEvents`）
+- `eventsourcing.BaseAggregate` — 可嵌入基础实现，提供 `RaiseEvent(applier, eventType, data)` 方法
+- `eventsourcing.Event` — 持久化事件（`ID`, `AggregateID`, `AggregateType`, `Version`, `EventType`, `Data json.RawMessage`, `CreatedAt`）
+- `eventsourcing.Snapshot` — 聚合快照（`AggregateID`, `Version`, `Data json.RawMessage`）
+- `eventsourcing.Repository[T]` — 泛型仓库（`Save(ctx, aggregate)`, `Load(ctx, aggregateID)`）
+- `eventsourcing.NewRepository(store, factory, opts...)` — 创建仓库
+- 仓库选项：`WithSnapshotStore[T](store)`, `WithSnapshotEvery[T](n)`
+- `eventsourcing.NewGORMEventStore(db)` — GORM 事件存储实现
+- 错误：`ErrAggregateNotFound`, `ErrNoEvents`, `ErrNilEventStore`, `ErrNilFactory`
+
+**注意：**
+- `RaiseEvent` 需要将 `aggregate.ApplyEvent` 作为第一个参数传入（因 Go 接口限制）
+- 事件存储使用 `(aggregate_id, aggregate_type, version)` 唯一约束，防止并发冲突（乐观锁）
+- `Repository.Load` 先尝试快照，再加载快照后的增量事件，减少重放开销

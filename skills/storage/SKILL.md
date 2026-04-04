@@ -1,6 +1,6 @@
 ---
 name: storage
-description: servex 存储模块专家。当用户使用 servex 的 storage/cache、storage/rdbms、storage/mongodb、storage/s3、storage/elasticsearch、storage/lock、storage/sqlx 时触发。
+description: servex 存储模块专家。当用户使用 servex 的 storage/cache、storage/rdbms、storage/mongodb、storage/s3、storage/elasticsearch、storage/lock、storage/sqlx、storage/migration、storage/clickhouse 时触发。
 ---
 
 # servex 存储
@@ -220,3 +220,140 @@ ni := sqlx.NullableInt64(sql.NullInt64{Int64: 42, Valid: true})
 - `sqlx.Null[T]()` — 创建 Valid=false 的 Nullable（NULL）
 - `n.ValueOr(def)` — 安全取值，NULL 时返回默认值
 - 自动实现 `json.Marshaler`、`json.Unmarshaler`、`sql.Scanner`、`driver.Valuer`
+
+## storage/migration — 数据库迁移（Go DSL）
+
+```go
+// 创建迁移注册表，链式添加迁移
+registry := migration.NewRegistry().
+    Add(migration.Migration{
+        Version:     20240101000001,
+        Description: "创建 users 表",
+        Up: func(tx *gorm.DB) error {
+            return tx.Exec(`CREATE TABLE users (
+                id BIGSERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )`).Error
+        },
+        Down: func(tx *gorm.DB) error {
+            return tx.Exec(`DROP TABLE IF EXISTS users`).Error
+        },
+    }).
+    Add(migration.Migration{
+        Version:     20240101000002,
+        Description: "添加 users.phone 列",
+        Up: func(tx *gorm.DB) error {
+            return tx.Exec(`ALTER TABLE users ADD COLUMN phone VARCHAR(20)`).Error
+        },
+        Down: func(tx *gorm.DB) error {
+            return tx.Exec(`ALTER TABLE users DROP COLUMN IF EXISTS phone`).Error
+        },
+    })
+
+// 创建执行器（需要 *gorm.DB）
+runner, err := migration.NewRunner(gormDB, registry, log)
+if err != nil { ... }
+
+// 执行所有未应用的迁移
+if err := runner.Up(ctx); err != nil { ... }
+
+// 回滚最后一次迁移
+if err := runner.Down(ctx); err != nil { ... }
+
+// 迁移到指定版本（含）
+if err := runner.UpTo(ctx, 20240101000001); err != nil { ... }
+
+// 回滚到指定版本（不含）
+if err := runner.DownTo(ctx, 20240101000001); err != nil { ... }
+
+// 查看迁移状态
+statuses, err := runner.Status(ctx)
+for _, s := range statuses {
+    fmt.Printf("版本 %d: %s — applied=%v\n", s.Version, s.Description, s.Applied)
+}
+
+// 当前版本号
+version, err := runner.CurrentVersion(ctx)
+```
+
+**关键类型：**
+- `migration.Migration` — 迁移定义（`Version int64`, `Description string`, `Up func(*gorm.DB) error`, `Down func(*gorm.DB) error`）
+- `migration.Registry` — 注册表（`NewRegistry()`, `Add(m)`, `Migrations()`）
+- `migration.Runner` — 执行器接口（`Up`, `Down`, `UpTo`, `DownTo`, `Status`, `CurrentVersion`）
+- `migration.NewRunner(db, registry, log)` — 创建执行器
+- `migration.MigrationStatus` — 状态（`Version`, `Description`, `Applied bool`, `AppliedAt *time.Time`）
+
+**注意：**
+- `Version` 通常使用时间戳格式（如 `20240101000001`），自动按升序排列执行
+- `Up`/`Down` 函数在事务中执行，失败自动回滚
+- 迁移历史记录在数据库 `schema_migrations` 表中
+
+## storage/clickhouse — ClickHouse 客户端
+
+```go
+// 创建客户端（推荐：带 logger，自动应用默认值）
+client, err := clickhouse.NewClient(&clickhouse.Config{
+    Addrs:         []string{"localhost:9000"},
+    Database:      "analytics",
+    Username:      "default",
+    Password:      "",
+    MaxOpenConns:  20,
+    MaxIdleConns:  10,
+    Compression:   "lz4",    // "lz4"、"zstd"、"none"
+    EnableTracing: true,
+}, log)
+if err != nil { ... }
+defer client.Close()
+
+// MustNewClient 失败时 panic（适合 main）
+client := clickhouse.MustNewClient(clickhouse.DefaultConfig(), log)
+
+// Exec — DDL / INSERT（不返回行）
+err = client.Exec(ctx, `
+    CREATE TABLE IF NOT EXISTS events (
+        ts       DateTime,
+        user_id  UInt64,
+        action   String
+    ) ENGINE = MergeTree()
+    ORDER BY (ts, user_id)
+`)
+
+// Query — 返回多行
+rows, err := client.Query(ctx, "SELECT ts, user_id FROM events WHERE user_id = ?", userID)
+defer rows.Close()
+for rows.Next() {
+    var ts time.Time
+    var uid uint64
+    rows.Scan(&ts, &uid)
+}
+
+// Select — 直接扫描到结构体切片
+type EventRow struct {
+    TS     time.Time `ch:"ts"`
+    UserID uint64    `ch:"user_id"`
+    Action string    `ch:"action"`
+}
+var result []EventRow
+err = client.Select(ctx, &result,
+    "SELECT ts, user_id, action FROM events WHERE action = ?", "click")
+
+// PrepareBatch — 高性能批量写入
+batch, err := client.PrepareBatch(ctx, "INSERT INTO events (ts, user_id, action)")
+if err != nil { ... }
+for _, e := range events {
+    batch.Append(e.TS, e.UserID, e.Action)
+}
+err = batch.Send()
+
+// Ping — 连接检查
+if err := client.Ping(ctx); err != nil { ... }
+```
+
+**关键类型：**
+- `clickhouse.Client` — 客户端接口（`Exec`, `Query`, `QueryRow`, `Select`, `PrepareBatch`, `Ping`, `Close`, `Conn`）
+- `clickhouse.Config` — 配置（`Addrs`, `Database`, `Username`, `Password`, `MaxOpenConns`, `MaxIdleConns`, `DialTimeout`, `Compression`, `EnableTracing`）
+- `clickhouse.DefaultConfig()` — 默认配置（localhost:9000, lz4 压缩）
+- `clickhouse.NewClient(config, log)` — 返回 `(Client, error)`
+- `clickhouse.MustNewClient(config, log)` — 失败时 panic

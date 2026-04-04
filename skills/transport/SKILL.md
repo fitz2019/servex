@@ -1,6 +1,6 @@
 ---
 name: transport
-description: servex 传输层模块专家。当用户使用 servex 的 httpserver、httpclient、grpcserver、ginserver、echoserver、hertzserver、websocket、sse、gateway、grpcclient、health、response 时触发，提供完整示例和用法。
+description: servex 传输层模块专家。当用户使用 servex 的 httpserver、httpclient、grpcserver、ginserver、echoserver、hertzserver、websocket、sse、gateway、grpcclient、health、response、graphql 时触发，提供完整示例和用法。
 ---
 
 # servex 传输层
@@ -262,3 +262,97 @@ msg := response.ExtractMessageUnsafe(err) // 完整消息（仅用于日志）
 - `response.Code` — 错误码（含 `Num`、`Message`、`HTTPStatus`、`GRPCCode`、`Key`）
 - `response.BusinessError` — 业务错误（含 `Code`、`Message`、`Cause`）
 - `response.NewCode(num, message, httpStatus, grpcCode)` — 自定义错误码
+
+## transport/graphql — GraphQL 服务器适配
+
+```go
+// 1. 定义 GraphQL Schema（使用 graphql-go/graphql）
+userType := graphql.NewObject(graphql.ObjectConfig{
+    Name: "User",
+    Fields: graphql.Fields{
+        "id":   &graphql.Field{Type: graphql.String},
+        "name": &graphql.Field{Type: graphql.String},
+    },
+})
+
+queryType := graphql.NewObject(graphql.ObjectConfig{
+    Name: "Query",
+    Fields: graphql.Fields{
+        "user": &graphql.Field{
+            Type: userType,
+            Args: graphql.FieldConfigArgument{
+                "id": &graphql.ArgumentConfig{Type: graphql.String},
+            },
+            // 使用 WrapResolve 为单个字段添加中间件
+            Resolve: gqlserver.WrapResolve(
+                func(p graphql.ResolveParams) (any, error) {
+                    id, _ := p.Args["id"].(string)
+                    return findUser(p.Context, id)
+                },
+                gqlserver.LoggingMiddleware(log),
+                gqlserver.TracingMiddleware("user-service"),
+            ),
+        },
+    },
+})
+
+schema, _ := graphql.NewSchema(graphql.SchemaConfig{Query: queryType})
+
+// 2. 创建 GraphQL 服务器
+srv := gqlserver.New(schema,
+    gqlserver.WithLogger(log),
+    gqlserver.WithConfig(&gqlserver.Config{
+        Pretty:     false,
+        Playground: true,     // 启用 GraphiQL UI
+        Path:       "/graphql",
+    }),
+    // 全局中间件（对所有 resolve 函数生效）
+    gqlserver.WithMiddleware(
+        gqlserver.RecoveryMiddleware(log),
+        gqlserver.LoggingMiddleware(log),
+        gqlserver.TracingMiddleware("my-service"),
+    ),
+)
+
+// 3. 注册路由
+mux.Handle("/graphql", srv.Handler())
+if cfg.Playground {
+    mux.Handle("/playground", srv.PlaygroundHandler())
+}
+```
+
+**内置中间件（resolve 层）：**
+
+```go
+// 日志：记录字段名和耗时
+gqlserver.LoggingMiddleware(log)
+
+// 链路追踪：为每次 resolve 创建 OTel span
+gqlserver.TracingMiddleware("service-name")
+
+// Panic 恢复：防止单个 resolve 崩溃整个服务
+gqlserver.RecoveryMiddleware(log)
+
+// 链接多个中间件
+combined := gqlserver.ChainMiddleware(
+    gqlserver.RecoveryMiddleware(log),
+    gqlserver.LoggingMiddleware(log),
+    gqlserver.TracingMiddleware("svc"),
+)
+```
+
+**关键类型：**
+- `graphql.New(schema, opts...) *Server` — 创建服务器
+- `server.Handler() http.Handler` — GraphQL 请求处理器（支持 GET/POST）
+- `server.PlaygroundHandler() http.Handler` — GraphiQL 交互式 UI
+- `graphql.Config` — 配置（`Pretty bool`, `Playground bool`, `Path string`）
+- `graphql.Middleware` — `func(ResolveFunc) ResolveFunc`，resolve 层中间件
+- `graphql.WrapResolve(fn, mw...)` — 将中间件应用到单个 resolve 函数
+- `graphql.ChainMiddleware(outer, others...)` — 链接多个中间件
+- 内置中间件：`LoggingMiddleware(log)`, `TracingMiddleware(serviceName)`, `RecoveryMiddleware(log)`
+- `graphql.ErrorHandlerFunc` — `func(ctx, []gqlerrors.FormattedError) []gqlerrors.FormattedError`，自定义错误处理
+
+**注意：**
+- Schema 定义使用 `github.com/graphql-go/graphql`，servex 提供服务器适配层
+- `WithMiddleware` 为全局中间件（所有 resolve），`WrapResolve` 为字段级中间件
+- `DefaultConfig()` 默认启用 Playground，路径为 `/graphql`
