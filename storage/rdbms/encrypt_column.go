@@ -1,0 +1,172 @@
+package rdbms
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"database/sql/driver"
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+	"io"
+
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
+)
+
+// EncryptColumn 数据库加密列类型，AES-GCM 加密 + base64 编码存储.
+// 从数据库读取后需注入 Key 才能解密（通常通过 GORM AfterFind 钩子）.
+//
+//	type User struct {
+//	    SSN EncryptColumn[string]
+//	}
+//
+//	func (u *User) AfterFind(tx *gorm.DB) error {
+//	    u.SSN.Key = getEncryptionKey()
+//	    return nil
+//	}
+type EncryptColumn[T any] struct {
+	Val        T
+	Valid      bool
+	Key        string // AES 密钥（16/24/32 字节）
+	Ciphertext string
+}
+
+func NewEncryptColumn[T any](val T, key string) EncryptColumn[T] {
+	return EncryptColumn[T]{Val: val, Valid: true, Key: key}
+}
+
+func NullEncryptColumn[T any](key string) EncryptColumn[T] {
+	return EncryptColumn[T]{Key: key}
+}
+
+func (ec EncryptColumn[T]) Value() (driver.Value, error) {
+	if !ec.Valid {
+		return nil, nil
+	}
+
+	plaintext, err := json.Marshal(ec.Val)
+	if err != nil {
+		return nil, fmt.Errorf("database: 加密列序列化失败: %w", err)
+	}
+
+	encrypted, err := aesGCMEncrypt(plaintext, []byte(ec.Key))
+	if err != nil {
+		return nil, fmt.Errorf("database: 加密失败: %w", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(encrypted), nil
+}
+
+func (ec *EncryptColumn[T]) Scan(src any) error {
+	if src == nil {
+		ec.Valid = false
+		return nil
+	}
+
+	var encoded string
+	switch v := src.(type) {
+	case []byte:
+		encoded = string(v)
+	case string:
+		encoded = v
+	default:
+		return fmt.Errorf("database: 加密列不支持类型 %T", src)
+	}
+
+	if ec.Key == "" {
+		ec.Ciphertext = encoded
+		ec.Valid = false
+		return nil
+	}
+
+	encrypted, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return fmt.Errorf("database: base64 解码失败: %w", err)
+	}
+
+	plaintext, err := aesGCMDecrypt(encrypted, []byte(ec.Key))
+	if err != nil {
+		return fmt.Errorf("database: 解密失败: %w", err)
+	}
+
+	if err := json.Unmarshal(plaintext, &ec.Val); err != nil {
+		return fmt.Errorf("database: 加密列反序列化失败: %w", err)
+	}
+	ec.Valid = true
+	return nil
+}
+
+// Decrypt 使用当前 Key 解密已保存的密文.
+// 适用于 Scan 时 Key 为空、后续注入 Key 后调用的场景.
+func (ec *EncryptColumn[T]) Decrypt() error {
+	if ec.Valid {
+		return nil
+	}
+	if ec.Key == "" {
+		return fmt.Errorf("database: 加密列 Key 为空，无法解密")
+	}
+	if ec.Ciphertext == "" {
+		return fmt.Errorf("database: 加密列无密文可解密")
+	}
+
+	encrypted, err := base64.StdEncoding.DecodeString(ec.Ciphertext)
+	if err != nil {
+		return fmt.Errorf("database: base64 解码失败: %w", err)
+	}
+
+	plaintext, err := aesGCMDecrypt(encrypted, []byte(ec.Key))
+	if err != nil {
+		return fmt.Errorf("database: 解密失败: %w", err)
+	}
+
+	if err := json.Unmarshal(plaintext, &ec.Val); err != nil {
+		return fmt.Errorf("database: 加密列反序列化失败: %w", err)
+	}
+	ec.Valid = true
+	ec.Ciphertext = ""
+	return nil
+}
+
+func (EncryptColumn[T]) GormDBDataType(_ *gorm.DB, _ *schema.Field) string {
+	return "TEXT"
+}
+
+func aesGCMEncrypt(plaintext, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+		return nil, err
+	}
+
+	return gcm.Seal(nonce, nonce, plaintext, nil), nil
+}
+
+func aesGCMDecrypt(data, key []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+
+	nonceSize := gcm.NonceSize()
+	if len(data) < nonceSize {
+		return nil, fmt.Errorf("密文过短")
+	}
+
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	return gcm.Open(nil, nonce, ciphertext, nil)
+}
