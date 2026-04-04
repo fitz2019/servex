@@ -1,0 +1,80 @@
+// openapi/openapi.go
+package openapi
+
+// Spec 表示一个 OpenAPI 3.0 文档。
+type Spec struct {
+	OpenAPI string               `json:"openapi" yaml:"openapi"`
+	Info    Info                  `json:"info" yaml:"info"`
+	Servers []Server             `json:"servers,omitzero" yaml:"servers,omitempty"`
+	Paths   map[string]*PathItem `json:"paths" yaml:"paths"`
+}
+
+type Info struct {
+	Title       string `json:"title" yaml:"title"`
+	Version     string `json:"version" yaml:"version"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+}
+
+type Server struct {
+	URL         string `json:"url" yaml:"url"`
+	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+}
+
+// PathItem 对应一个路径下的所有操作。
+type PathItem struct {
+	GET    *OperationSpec `json:"get,omitempty" yaml:"get,omitempty"`
+	POST   *OperationSpec `json:"post,omitempty" yaml:"post,omitempty"`
+	PUT    *OperationSpec `json:"put,omitempty" yaml:"put,omitempty"`
+	DELETE *OperationSpec `json:"delete,omitempty" yaml:"delete,omitempty"`
+	PATCH  *OperationSpec `json:"patch,omitempty" yaml:"patch,omitempty"`
+}
+
+// OperationSpec 对应一个 HTTP 操作的 OpenAPI 描述。
+type OperationSpec struct {
+	Summary     string               `json:"summary,omitempty" yaml:"summary,omitempty"`
+	Description string               `json:"description,omitempty" yaml:"description,omitempty"`
+	OperationID string               `json:"operationId,omitempty" yaml:"operationId,omitempty"`
+	Tags        []string             `json:"tags,omitzero" yaml:"tags,omitempty"`
+	Deprecated  bool                 `json:"deprecated,omitempty" yaml:"deprecated,omitempty"`
+	Parameters  []Parameter          `json:"parameters,omitzero" yaml:"parameters,omitempty"`
+	RequestBody *RequestBody         `json:"requestBody,omitempty" yaml:"requestBody,omitempty"`
+	Responses   map[string]*Response `json:"responses" yaml:"responses"`
+}
+
+type Parameter struct {
+	Name        string  `json:"name" yaml:"name"`
+	In          string  `json:"in" yaml:"in"` // "query", "path", "header"
+	Description string  `json:"description,omitempty" yaml:"description,omitempty"`
+	Required    bool    `json:"required,omitempty" yaml:"required,omitempty"`
+	Schema      *Schema `json:"schema,omitempty" yaml:"schema,omitempty"`
+}
+
+type RequestBody struct {
+	Description string               `json:"description,omitempty" yaml:"description,omitempty"`
+	Required    bool                 `json:"required,omitempty" yaml:"required,omitempty"`
+	Content     map[string]MediaType `json:"content" yaml:"content"`
+}
+
+type Response struct {
+	Description string               `json:"description" yaml:"description"`
+	Content     map[string]MediaType `json:"content,omitzero" yaml:"content,omitempty"`
+}
+
+type MediaType struct {
+	Schema *Schema `json:"schema,omitempty" yaml:"schema,omitempty"`
+}
+
+// Schema 表示 JSON Schema。
+type Schema struct {
+	Type        string             `json:"type,omitempty" yaml:"type,omitempty"`
+	Format      string             `json:"format,omitempty" yaml:"format,omitempty"`
+	Description string             `json:"description,omitempty" yaml:"description,omitempty"`
+	Properties  map[string]*Schema `json:"properties,omitzero" yaml:"properties,omitempty"`
+	Required    []string           `json:"required,omitzero" yaml:"required,omitempty"`
+	Items       *Schema            `json:"items,omitempty" yaml:"items,omitempty"`
+	Enum        []any              `json:"enum,omitzero" yaml:"enum,omitempty"`
+	Minimum     *float64           `json:"minimum,omitempty" yaml:"minimum,omitempty"`
+	Maximum     *float64           `json:"maximum,omitempty" yaml:"maximum,omitempty"`
+	MinLength   *int               `json:"minLength,omitempty" yaml:"minLength,omitempty"`
+	MaxLength   *int               `json:"maxLength,omitempty" yaml:"maxLength,omitempty"`
+}
