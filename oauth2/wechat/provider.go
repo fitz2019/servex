@@ -1,0 +1,140 @@
+// oauth2/wechat/provider.go
+package wechat
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"time"
+
+	"github.com/Tsukikage7/servex/oauth2"
+)
+
+const (
+	defaultAuthURL     = "https://open.weixin.qq.com/connect/qrconnect"
+	defaultTokenURL    = "https://api.weixin.qq.com/sns/oauth2/access_token"
+	defaultRefreshURL  = "https://api.weixin.qq.com/sns/oauth2/refresh_token"
+	defaultUserInfoURL = "https://api.weixin.qq.com/sns/userinfo"
+)
+
+type Provider struct {
+	opts        options
+	authBaseURL string
+	tokenURL    string
+	refreshURL  string
+	userInfoURL string
+}
+
+func NewProvider(opts ...Option) *Provider {
+	o := options{httpClient: &http.Client{Timeout: 10 * time.Second}}
+	for _, opt := range opts {
+		opt(&o)
+	}
+	return &Provider{
+		opts: o, authBaseURL: defaultAuthURL,
+		tokenURL: defaultTokenURL, refreshURL: defaultRefreshURL,
+		userInfoURL: defaultUserInfoURL,
+	}
+}
+
+func (p *Provider) AuthURL(state string, _ ...oauth2.AuthURLOption) string {
+	params := url.Values{
+		"appid":         {p.opts.appID},
+		"redirect_uri":  {p.opts.appID}, // 微信在开放平台配置
+		"response_type": {"code"},
+		"scope":         {"snsapi_login"},
+		"state":         {state},
+	}
+	return p.authBaseURL + "?" + params.Encode() + "#wechat_redirect"
+}
+
+func (p *Provider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
+	if code == "" {
+		return nil, oauth2.ErrInvalidCode
+	}
+	u := fmt.Sprintf("%s?appid=%s&secret=%s&code=%s&grant_type=authorization_code",
+		p.tokenURL, p.opts.appID, p.opts.appSecret, code)
+
+	var result map[string]any
+	if err := p.get(ctx, u, &result); err != nil {
+		return nil, errors.Join(oauth2.ErrExchangeFailed, err)
+	}
+	if _, ok := result["errcode"]; ok {
+		return nil, fmt.Errorf("%w: %v", oauth2.ErrExchangeFailed, result["errmsg"])
+	}
+
+	token := &oauth2.Token{
+		AccessToken:  getString(result, "access_token"),
+		RefreshToken: getString(result, "refresh_token"),
+		Raw:          result,
+	}
+	if exp, ok := result["expires_in"].(float64); ok {
+		token.ExpiresAt = time.Now().Add(time.Duration(exp) * time.Second)
+	}
+	return token, nil
+}
+
+func (p *Provider) Refresh(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
+	if refreshToken == "" {
+		return nil, oauth2.ErrRefreshFailed
+	}
+	u := fmt.Sprintf("%s?appid=%s&grant_type=refresh_token&refresh_token=%s",
+		p.refreshURL, p.opts.appID, refreshToken)
+
+	var result map[string]any
+	if err := p.get(ctx, u, &result); err != nil {
+		return nil, errors.Join(oauth2.ErrRefreshFailed, err)
+	}
+
+	token := &oauth2.Token{
+		AccessToken:  getString(result, "access_token"),
+		RefreshToken: getString(result, "refresh_token"),
+		Raw:          result,
+	}
+	if exp, ok := result["expires_in"].(float64); ok {
+		token.ExpiresAt = time.Now().Add(time.Duration(exp) * time.Second)
+	}
+	return token, nil
+}
+
+func (p *Provider) UserInfo(ctx context.Context, token *oauth2.Token) (*oauth2.UserInfo, error) {
+	if token == nil || token.AccessToken == "" {
+		return nil, oauth2.ErrInvalidToken
+	}
+	openid := getString(token.Raw, "openid")
+	u := fmt.Sprintf("%s?access_token=%s&openid=%s", p.userInfoURL, token.AccessToken, openid)
+
+	var result map[string]any
+	if err := p.get(ctx, u, &result); err != nil {
+		return nil, errors.Join(oauth2.ErrUserInfoFailed, err)
+	}
+
+	return &oauth2.UserInfo{
+		ProviderID: getString(result, "unionid"),
+		Provider:   "wechat",
+		Name:       getString(result, "nickname"),
+		AvatarURL:  getString(result, "headimgurl"),
+		Extra:      result,
+	}, nil
+}
+
+func (p *Provider) get(ctx context.Context, url string, result any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+	resp, err := p.opts.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return json.NewDecoder(resp.Body).Decode(result)
+}
+
+func getString(m map[string]any, key string) string {
+	v, _ := m[key].(string)
+	return v
+}
