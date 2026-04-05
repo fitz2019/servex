@@ -1,6 +1,6 @@
 ---
 name: auth
-description: servex 认证模块专家。当用户使用 servex 的 auth/jwt、auth/apikey 认证时触发。
+description: servex 认证模块专家。当用户使用 servex 的 auth/jwt、auth/apikey 认证或 auth/rbac 基于角色的访问控制时触发。
 ---
 
 # servex 认证
@@ -79,3 +79,62 @@ srv := httpserver.New(mux,
 - `apikey.New(validator)` — 构造 `*Authenticator`，不是 `NewAuthenticator`
 - `StaticValidator` — 返回 `Validator` 函数类型
 - `CacheValidator(lookupFn, ttl)` — 带内存缓存的动态验证
+
+## auth/rbac — 基于角色的访问控制
+
+```go
+// 创建管理器（内存存储适合测试，GORM 存储适合生产）
+store := rbac.NewMemoryStore()
+// store := rbac.NewGORMStore(gormDB); store.AutoMigrate(ctx)
+
+mgr := rbac.NewManager(store,
+    rbac.WithSuperAdmin("superadmin"),
+)
+
+// 创建角色（权限格式：resource:action，支持通配符 *）
+_ = mgr.CreateRole(ctx, &rbac.Role{
+    Name:        "editor",
+    Permissions: []string{"articles:read", "articles:write"},
+})
+
+// 角色继承（admin 继承 editor 的所有权限）
+_ = mgr.CreateRole(ctx, &rbac.Role{
+    Name:        "admin",
+    Permissions: []string{"users:*"},
+    ParentID:    "editor",
+})
+
+// 分配 / 撤销角色
+_ = mgr.AssignRole(ctx, "user-1", "editor")
+_ = mgr.RevokeRole(ctx, "user-1", "editor")
+
+// 权限检查
+ok, _ := mgr.HasPermission(ctx, "user-1", "articles", "read")
+
+// 获取用户所有权限
+perms, _ := mgr.GetUserPermissions(ctx, "user-1")
+```
+
+**HTTP 中间件：**
+
+```go
+// 从 auth.FromContext 取 userID，检查 resource + action
+mux.Handle("/articles", rbac.HTTPMiddleware(mgr, "articles", "write")(handler))
+```
+
+**缓存集成：**
+
+```go
+mgr := rbac.NewManager(store,
+    rbac.WithCache(func(key string, ttl time.Duration, fn func() (any, error)) (any, error) {
+        return cacheClient.GetOrSet(ctx, key, ttl, fn)
+    }),
+)
+```
+
+**关键类型：**
+- `rbac.RBAC` — 权限管理器接口
+- `rbac.Role` — 角色（ID/Name/Permissions/ParentID/Description）
+- `rbac.Store` — 存储接口（`NewMemoryStore` / `NewGORMStore`）
+- `rbac.HTTPMiddleware(mgr, resource, action)` — HTTP 鉴权中间件
+- `rbac.ParsePermission("resource:action")` — 解析权限字符串

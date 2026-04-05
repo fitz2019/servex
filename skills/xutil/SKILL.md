@@ -1,6 +1,6 @@
 ---
 name: xutil
-description: servex 工具库专家。当用户使用 servex 的 ptrx、optionx、valuex、strx、randx、iox、copier、syncx、sorting、pagination、version、crypto 工具包时触发，提供泛型工具函数的完整用法。
+description: servex 工具库专家。当用户使用 servex 的 ptrx、optionx、valuex、strx、randx、iox、copier、syncx、sorting、pagination、version、crypto、idgen 工具包时触发，提供泛型工具函数的完整用法。
 ---
 
 # servex 工具库
@@ -290,3 +290,42 @@ n64, err := crypto.GenerateRandomInt64(1, 100)
 hashed, err := crypto.HashPassword("mypassword")
 err = crypto.VerifyPassword(hashed, "mypassword") // nil = 匹配
 ```
+
+## idgen -- 分布式 ID 生成
+
+```go
+import "github.com/Tsukikage7/servex/xutil/idgen"
+
+// 便捷函数（使用默认生成器，出错时 panic）
+id := idgen.Snowflake() // "1234567890123456789"（纯数字，趋势递增）
+id  = idgen.ULID()      // "01ARZ3NDEKTSV4RRFFQ69G5FAV"（26 字符，字典序可排序）
+id  = idgen.NanoID()    // "V1StGXR8_Z5jdHi6B-myT"（21 字符，URL 安全）
+id  = idgen.UUID()      // "550e8400-e29b-41d4-a716-446655440000"
+
+// Snowflake 自定义配置
+gen, err := idgen.NewSnowflake(&idgen.SnowflakeConfig{
+    WorkerID:     1,   // 0-1023
+    DatacenterID: 0,   // 0-31
+    // Epoch 默认 2020-01-01
+})
+id, err = gen.NextID()
+
+// ULID 生成器（同毫秒内单调递增）
+gen = idgen.NewULID()
+id, err = gen.NextID()
+
+// NanoID 自定义
+gen = idgen.NewNanoID(
+    idgen.WithAlphabet("0123456789abcdef"),
+    idgen.WithSize(32),
+)
+id, err = gen.NextID()
+```
+
+**Generator 接口：** `NextID() (string, error)`，四种算法均实现此接口，可注入任意场景。
+
+**算法选择：**
+- 数据库主键 → Snowflake（纯数字，趋势递增）
+- 分布式事件 ID → ULID（字典序可排序）
+- URL slug / 短码 → NanoID（紧凑，可配置）
+- 通用唯一标识 → UUID

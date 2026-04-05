@@ -1,6 +1,6 @@
 ---
 name: storage
-description: servex 存储模块专家。当用户使用 servex 的 storage/cache、storage/rdbms、storage/mongodb、storage/s3、storage/elasticsearch、storage/lock、storage/sqlx、storage/migration、storage/clickhouse 时触发。
+description: servex 存储模块专家。当用户使用 servex 的 storage/cache、storage/rdbms、storage/mongodb、storage/s3、storage/elasticsearch、storage/lock、storage/sqlx、storage/migration、storage/clickhouse、storage/redis 时触发。
 ---
 
 # servex 存储
@@ -357,3 +357,77 @@ if err := client.Ping(ctx); err != nil { ... }
 - `clickhouse.DefaultConfig()` — 默认配置（localhost:9000, lz4 压缩）
 - `clickhouse.NewClient(config, log)` — 返回 `(Client, error)`
 - `clickhouse.MustNewClient(config, log)` — 失败时 panic
+
+## storage/redis — Redis 客户端
+
+```go
+// 创建客户端
+client, err := redis.NewClient(redis.DefaultConfig(), log)
+if err != nil { ... }
+defer client.Close()
+
+// 或使用自定义配置
+client, err = redis.NewClient(&redis.Config{
+    Addr:          "localhost:6379",
+    Password:      "",
+    DB:            0,
+    MaxRetries:    3,
+    PoolSize:      10,
+    MinIdleConns:  2,
+    DialTimeout:   5 * time.Second,
+    ReadTimeout:   3 * time.Second,
+    WriteTimeout:  3 * time.Second,
+    EnableTracing: true,
+}, log)
+
+// MustNewClient 失败时 panic
+client = redis.MustNewClient(redis.DefaultConfig(), log)
+```
+
+```go
+// String 操作
+_ = client.Set(ctx, "key", "value", time.Hour)
+val, _ := client.Get(ctx, "key")
+count, _ := client.Del(ctx, "k1", "k2")
+n, _ := client.Incr(ctx, "counter")
+
+// Hash
+client.HSet(ctx, "user:1", "name", "Alice", "age", 30)
+name, _ := client.HGet(ctx, "user:1", "name")
+all, _  := client.HGetAll(ctx, "user:1")
+
+// List（队列）
+client.RPush(ctx, "queue", "task1", "task2")
+task, _ := client.LPop(ctx, "queue")
+items, _ := client.LRange(ctx, "list", 0, -1)
+
+// Set
+client.SAdd(ctx, "tags", "go", "redis")
+ok, _ := client.SIsMember(ctx, "tags", "go") // true
+
+// Sorted Set（排行榜）
+client.ZAdd(ctx, "board", goredis.Z{Score: 100, Member: "alice"})
+top, _ := client.ZRangeWithScores(ctx, "board", 0, 9)
+
+// Pipeline 批量
+_ = client.PipelineExec(ctx, func(pipe goredis.Pipeliner) error {
+    pipe.Set(ctx, "k1", "v1", time.Minute)
+    pipe.Incr(ctx, "counter")
+    return nil
+})
+
+// Pub/Sub
+sub := client.Subscribe(ctx, "channel")
+defer sub.Close()
+for msg := range sub.Channel() { ... }
+
+// 访问底层 go-redis 客户端
+rdb := client.Underlying()
+```
+
+**关键类型：**
+- `redis.Client` — 完整操作接口
+- `redis.Config` — 配置（`Addr` 必填，其他有默认值）
+- `redis.DefaultConfig()` — 默认配置（localhost:6379，连接池 10，超时 3s）
+- `redis.NewClient(config, log)` — 返回 `(Client, error)`
+- `redis.MustNewClient(config, log)` — 失败时 panic
