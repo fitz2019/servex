@@ -2,6 +2,7 @@ package grpcserver
 
 import (
 	"context"
+	"crypto/tls"
 	"strings"
 	"time"
 
@@ -53,6 +54,9 @@ type options struct {
 	// ClientIP
 	enableClientIP  bool
 	clientIPOptions []clientip.Option
+
+	// TLS
+	tlsConfig *tls.Config
 }
 
 // defaultOptions 返回默认配置.
@@ -425,5 +429,21 @@ func WithClientIP(opts ...clientip.Option) Option {
 	return func(o *options) {
 		o.enableClientIP = true
 		o.clientIPOptions = opts
+	}
+}
+
+// WithTLS 启用 TLS.
+//
+// 传入 *tls.Config 后，服务器将通过 grpc.Creds 添加 TLS 传输凭据.
+// 可配合 transport/tls (tlsx) 包生成配置：
+//
+//	tlsCfg, _ := tlsx.NewServerTLSConfig(&tlsx.Config{
+//	    CertFile: "server.crt",
+//	    KeyFile:  "server.key",
+//	})
+//	grpcserver.New(grpcserver.WithTLS(tlsCfg))
+func WithTLS(cfg *tls.Config) Option {
+	return func(o *options) {
+		o.tlsConfig = cfg
 	}
 }

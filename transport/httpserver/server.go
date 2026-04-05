@@ -3,6 +3,7 @@ package httpserver
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 	"net/http/pprof"
 	"slices"
@@ -10,11 +11,11 @@ import (
 	"time"
 
 	"github.com/Tsukikage7/servex/auth"
-	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/httpx/clientip"
 	"github.com/Tsukikage7/servex/middleware/logging"
 	"github.com/Tsukikage7/servex/middleware/recovery"
+	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/observability/tracing"
-	"github.com/Tsukikage7/servex/httpx/clientip"
 	"github.com/Tsukikage7/servex/tenant"
 	"github.com/Tsukikage7/servex/transport"
 	"github.com/Tsukikage7/servex/transport/health"
@@ -144,6 +145,7 @@ func (s *Server) Start(ctx context.Context) error {
 		ReadTimeout:  s.opts.readTimeout,
 		WriteTimeout: s.opts.writeTimeout,
 		IdleTimeout:  s.opts.idleTimeout,
+		TLSConfig:    s.opts.tlsConfig,
 	}
 
 	s.opts.logger.With(
@@ -152,7 +154,12 @@ func (s *Server) Start(ctx context.Context) error {
 	).Info("[HTTP] 服务器启动")
 
 	errCh := make(chan error, 1)
-	go func() { errCh <- s.server.ListenAndServe() }()
+	if s.opts.tlsConfig != nil {
+		// TLS 模式：证书已通过 TLSConfig 加载，传空字符串
+		go func() { errCh <- s.server.ListenAndServeTLS("", "") }()
+	} else {
+		go func() { errCh <- s.server.ListenAndServe() }()
+	}
 
 	select {
 	case err := <-errCh:
@@ -173,9 +180,9 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *Server) Name() string          { return s.opts.name }
-func (s *Server) Addr() string          { return s.opts.addr }
-func (s *Server) Handler() http.Handler { return s.handler }
+func (s *Server) Name() string           { return s.opts.name }
+func (s *Server) Addr() string           { return s.opts.addr }
+func (s *Server) Handler() http.Handler  { return s.handler }
 func (s *Server) Health() *health.Health { return s.health }
 
 func (s *Server) HealthEndpoint() *transport.HealthEndpoint {
@@ -203,21 +210,24 @@ type options struct {
 	healthOptions []health.Option
 
 	// Middleware
-	recovery        bool
-	loggingEnabled  bool
+	recovery         bool
+	loggingEnabled   bool
 	loggingSkipPaths []string
-	traceName       string
-	clientIP        bool
-	clientIPOpts    []clientip.Option
-	authenticator   auth.Authenticator
-	authOpts        []auth.Option
-	tenantResolver  tenant.Resolver
-	tenantOpts      []tenant.Option
-	profiling       string
-	profilingAuth   func(*http.Request) bool
+	traceName        string
+	clientIP         bool
+	clientIPOpts     []clientip.Option
+	authenticator    auth.Authenticator
+	authOpts         []auth.Option
+	tenantResolver   tenant.Resolver
+	tenantOpts       []tenant.Option
+	profiling        string
+	profilingAuth    func(*http.Request) bool
 
 	// 用户自定义中间件
 	middlewares []func(http.Handler) http.Handler
+
+	// TLS
+	tlsConfig *tls.Config
 }
 
 func defaultOptions() *options {
@@ -371,6 +381,22 @@ func WithProfilingAuth(pathPrefix string, authFn func(*http.Request) bool) Optio
 	return func(o *options) {
 		o.profiling = pathPrefix
 		o.profilingAuth = authFn
+	}
+}
+
+// WithTLS 启用 TLS.
+//
+// 传入 *tls.Config 后，服务器启动时将使用 ListenAndServeTLS 而非 ListenAndServe.
+// 可配合 transport/tls (tlsx) 包生成配置：
+//
+//	tlsCfg, _ := tlsx.NewServerTLSConfig(&tlsx.Config{
+//	    CertFile: "server.crt",
+//	    KeyFile:  "server.key",
+//	})
+//	httpserver.New(mux, httpserver.WithTLS(tlsCfg))
+func WithTLS(cfg *tls.Config) Option {
+	return func(o *options) {
+		o.tlsConfig = cfg
 	}
 }
 

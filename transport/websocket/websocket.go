@@ -43,13 +43,13 @@ const (
 
 // 预定义错误.
 var (
-	ErrClientNotFound    = errors.New("websocket: client not found")
-	ErrHubClosed         = errors.New("websocket: hub is closed")
-	ErrConnectionClosed  = errors.New("websocket: connection closed")
-	ErrWriteTimeout      = errors.New("websocket: write timeout")
-	ErrMessageTooLarge   = errors.New("websocket: message too large")
-	ErrInvalidMessage    = errors.New("websocket: invalid message")
-	ErrUpgradeFailed     = errors.New("websocket: upgrade failed")
+	ErrClientNotFound   = errors.New("websocket: client not found")
+	ErrHubClosed        = errors.New("websocket: hub is closed")
+	ErrConnectionClosed = errors.New("websocket: connection closed")
+	ErrWriteTimeout     = errors.New("websocket: write timeout")
+	ErrMessageTooLarge  = errors.New("websocket: message too large")
+	ErrInvalidMessage   = errors.New("websocket: invalid message")
+	ErrUpgradeFailed    = errors.New("websocket: upgrade failed")
 )
 
 // Message WebSocket 消息.
@@ -97,7 +97,8 @@ func DefaultConfig() *Config {
 		PingInterval:      30 * time.Second,
 		PongTimeout:       60 * time.Second,
 		EnableCompression: true,
-		CheckOrigin:       func(origin string) bool { return true },
+		// CheckOrigin 默认 nil，由底层库检查 Origin 匹配 Host
+		CheckOrigin: nil,
 	}
 }
 
@@ -151,27 +152,27 @@ type Middleware func(Handler) Handler
 
 // hub Hub 实现.
 type hub struct {
-	mu         sync.RWMutex
-	clients    map[string]Client
-	register   chan Client
-	unregister chan Client
-	broadcast  chan *Message
-	handler    Handler
+	mu          sync.RWMutex
+	clients     map[string]Client
+	register    chan Client
+	unregister  chan Client
+	broadcast   chan *Message
+	handler     Handler
 	middlewares []Middleware
-	closed     bool
-	done       chan struct{}
+	closed      bool
+	done        chan struct{}
 }
 
 // NewHub 创建新的 Hub.
 func NewHub(handler Handler, middlewares ...Middleware) Hub {
 	h := &hub{
-		clients:    make(map[string]Client),
-		register:   make(chan Client, 256),
-		unregister: make(chan Client, 256),
-		broadcast:  make(chan *Message, 256),
-		handler:    handler,
+		clients:     make(map[string]Client),
+		register:    make(chan Client, 256),
+		unregister:  make(chan Client, 256),
+		broadcast:   make(chan *Message, 256),
+		handler:     handler,
 		middlewares: middlewares,
-		done:       make(chan struct{}),
+		done:        make(chan struct{}),
 	}
 
 	// 应用中间件

@@ -1,6 +1,6 @@
 ---
 name: transport
-description: servex 传输层模块专家。当用户使用 servex 的 httpserver、httpclient、grpcserver、ginserver、echoserver、hertzserver、websocket、sse、gateway、grpcclient、health、response、graphql 时触发，提供完整示例和用法。
+description: servex 传输层模块专家。当用户使用 servex 的 httpserver（含 Config 驱动）、httpclient、grpcserver、ginserver、echoserver、hertzserver、websocket、sse、gateway（gRPC+HTTP 双协议/CORS/限流/追踪/认证）、grpcclient、health、response、graphql、transport/tls (tlsx)、grpcx 时触发，提供完整示例和用法。
 ---
 
 # servex 传输层
@@ -24,6 +24,35 @@ if err := srv.Start(ctx); err != nil {
 
 完整示例：`docs/superpowers/examples/httpserver/main.go`
 
+### Config 驱动创建（推荐用于生产）
+
+```yaml
+# config.yaml
+httpserver:
+  name: api
+  addr: ":8080"
+  recovery: true
+  logging: true
+  log_skip_paths: ["/healthz"]
+  tracing: "my-service"
+  client_ip: true
+  tls:
+    cert_file: /etc/tls/server.crt
+    key_file:  /etc/tls/server.key
+```
+
+```go
+var cfg httpserver.Config
+// 通过 config 包加载后
+srv := httpserver.NewFromConfig(mux, &cfg, log,
+    // Config 无法表达的运行时选项（Auth、Tenant 等）可通过 additionalOpts 补充
+    httpserver.WithAuth(authenticator, "/api/login"),
+)
+if err := srv.Start(ctx); err != nil {
+    log.Error(ctx, "启动失败", err)
+}
+```
+
 **关键选项：**
 - `WithAddr(addr)` — 监听地址，默认 `:8080`
 - `WithLogger(log)` — logger（必须）
@@ -32,6 +61,8 @@ if err := srv.Start(ctx); err != nil {
 - `WithTrace(serviceName)` — OpenTelemetry 中间件
 - `WithAuth(authenticator, publicPaths...)` — 认证中间件，白名单外均需认证
 - `WithMiddlewares(mws...)` — 注入自定义 `func(http.Handler) http.Handler`
+- `WithClientIP()` — 提取客户端真实 IP，写入 context
+- `NewFromConfig(handler, cfg, log, additionalOpts...)` — Config 驱动工厂，Config 字段自动转换为选项
 
 ## httpclient — 带负载均衡的 HTTP 客户端
 
@@ -148,6 +179,75 @@ if err := srv.Start(ctx); err != nil { ... }
 defer srv.Stop(ctx)
 ```
 
+### 中间件选项
+
+**CORS（仅 HTTP 端）**
+
+```go
+gateway.WithCORS(
+    cors.WithAllowOrigins("https://example.com", "https://app.example.com"),
+    cors.WithAllowCredentials(true),
+)
+```
+
+**限流（双端）**
+
+```go
+// 令牌桶：100 QPS，峰值 200
+limiter := ratelimit.NewTokenBucket(100, 200)
+gateway.WithRateLimit(limiter)
+```
+
+**Metrics（双端）**
+
+```go
+collector, _ := metrics.New(metricsCfg)
+gateway.WithMetrics(collector)
+// HTTP 端：记录方法、路径、状态码、耗时
+// gRPC 端：记录方法名、状态码、耗时
+```
+
+**请求日志（双端）**
+
+```go
+// 跳过健康检查路径/方法
+gateway.WithLogging("/grpc.health.v1.Health/Check")
+```
+
+**多租户解析（双端）**
+
+```go
+gateway.WithTenant(resolver,
+    tenant.WithTokenExtractor(tenant.HeaderTokenExtractor("X-Tenant-ID")),
+)
+```
+
+**客户端 IP 提取（双端）**
+
+```go
+// HTTP 端：X-Forwarded-For / X-Real-IP / RemoteAddr
+// gRPC 端：metadata + peer 地址
+gateway.WithClientIP(clientip.WithTrustPrivateProxies())
+```
+
+**Request ID（双端）**
+
+```go
+// 自动生成或透传请求 ID，注入 context 并写入响应头/metadata
+gateway.WithRequestID()
+```
+
+**HTTP TLS**
+
+```go
+tlsCfg, _ := tlsx.NewServerTLSConfig(&tlsx.Config{
+    CertFile: "server.crt",
+    KeyFile:  "server.key",
+})
+gateway.WithHTTPTLS(tlsCfg)
+// gRPC 端 TLS 通过 WithGRPCServerOption 单独配置
+```
+
 **关键类型：**
 - `gateway.New(opts...) *Server` — 构造器
 - `gateway.Registrar` — 服务注册接口（`RegisterGRPC` + `RegisterGateway`）
@@ -155,32 +255,91 @@ defer srv.Stop(ctx)
 - 内置健康检查：`/healthz`（存活）、`/readyz`（就绪）
 - `WithConfig(transport.GatewayConfig)` — 从配置结构体设置
 
-## grpcclient — gRPC 客户端
+**拦截器执行顺序（gRPC 端）：** Recovery → Tracing → RequestID → Logging → Metrics → RateLimit → ClientIP → Tenant → Auth
+
+## grpcclient — gRPC 客户端（服务发现/重试/熔断/追踪/负载均衡）
 
 ```go
-// 创建 gRPC 客户端（通过服务发现获取地址）
+// 服务发现模式（serviceName、discovery、logger 缺少任一将 panic）
 client, err := grpcclient.New(
     grpcclient.WithName("order-client"),
     grpcclient.WithServiceName("order-service"),  // 必需
     grpcclient.WithDiscovery(disc),               // 必需
     grpcclient.WithLogger(log),                   // 必需
-    grpcclient.WithInterceptors(tracingInterceptor),
-    grpcclient.WithDialOptions(grpc.WithBlock()),
+    grpcclient.WithRetry(3, 100*time.Millisecond),  // 重试：仅 Unavailable/DeadlineExceeded
+    grpcclient.WithCircuitBreaker(cb),              // 熔断
+    grpcclient.WithLogging(),                       // 内置日志拦截器
+    grpcclient.WithTracing("order-service"),        // OTel Unary + Stream
+    grpcclient.WithMetrics(prometheusCollector),    // Prometheus Unary + Stream
+    grpcclient.WithBalancer("round_robin"),         // round_robin | pick_first
 )
 if err != nil { ... }
 defer client.Close()
 
 // 获取底层 gRPC 连接，创建 stub
 conn := client.Conn()
-orderClient := pb.NewOrderServiceClient(conn)
-resp, err := orderClient.GetOrder(ctx, &pb.GetOrderRequest{Id: "1"})
+orderSvc := pb.NewOrderServiceClient(conn)
+resp, err := orderSvc.GetOrder(ctx, &pb.GetOrderRequest{Id: "42"})
+```
+
+```go
+// Config 驱动（直连，不走服务发现）
+client, err := grpcclient.NewFromConfig(&grpcclient.Config{
+    ServiceName:   "order-service",
+    Addr:          "order-service:9090",
+    Timeout:       5 * time.Second,
+    EnableTracing: true,
+    EnableMetrics: true,
+    Balancer:      "round_robin",
+    Retry:         &grpcclient.RetryConfig{MaxAttempts: 3, Backoff: 100 * time.Millisecond},
+    Keepalive:     &grpcclient.KeepaliveConfig{Time: 60 * time.Second, Timeout: 20 * time.Second},
+    TLS: &tlsx.Config{          // 可选；nil 则 insecure
+        CAFile: "/etc/tls/ca.crt",
+    },
+})
+
+// 附带 Metrics collector
+client, err := grpcclient.NewFromConfigWithMetrics(cfg, prometheusCollector)
+
+// 附带 Metrics + 熔断器
+client, err := grpcclient.NewFromConfigWithDeps(cfg, prometheusCollector, circuitBreaker)
+```
+
+```go
+// TLS / mTLS
+import tlsx "github.com/Tsukikage7/servex/transport/tls"
+
+tlsCfg, err := tlsx.NewClientTLSConfig(&tlsx.Config{
+    CertFile: "/etc/tls/client.crt",  // mTLS 需要
+    KeyFile:  "/etc/tls/client.key",
+    CAFile:   "/etc/tls/ca.crt",
+})
+client, err := grpcclient.New(
+    grpcclient.WithServiceName("secure-service"),
+    grpcclient.WithDiscovery(disc),
+    grpcclient.WithLogger(log),
+    grpcclient.WithTLS(tlsCfg),
+)
 ```
 
 **关键类型：**
-- `grpcclient.New(opts...) (*Client, error)` — 构造器（serviceName、discovery、logger 必需，缺少会 panic）
-- `client.Conn() *grpc.ClientConn` — 获取底层连接
-- `WithInterceptors(...)` — 添加一元拦截器
-- `WithDialOptions(...)` — 额外 dial 选项
+- `grpcclient.New(opts...) (*Client, error)` — 服务发现模式，`serviceName`/`discovery`/`logger` 必需
+- `grpcclient.NewFromConfig(cfg, opts...)` — Config 驱动直连
+- `grpcclient.NewFromConfigWithMetrics(cfg, collector, opts...)` — Config + Metrics
+- `grpcclient.NewFromConfigWithDeps(cfg, collector, cb, opts...)` — Config + Metrics + 熔断
+- `client.Conn() *grpc.ClientConn` — 获取底层连接，用于创建 stub
+- `WithTLS(cfg)` — 启用 TLS/mTLS
+- `WithRetry(maxAttempts, backoff)` — 重试（仅 Unavailable/DeadlineExceeded）
+- `WithCircuitBreaker(cb)` — 熔断器
+- `WithTracing(serviceName)` — OTel Unary + Stream 拦截器
+- `WithMetrics(collector)` — Prometheus Unary + Stream 拦截器
+- `WithLogging()` — 内置日志拦截器
+- `WithBalancer(policy)` — `"round_robin"` | `"pick_first"`
+- `WithInterceptors(...)` — 自定义 Unary 拦截器
+- `WithStreamInterceptors(...)` — 自定义 Stream 拦截器
+- `WithDialOptions(...)` — 额外原生 dial 选项
+
+**拦截器顺序（Unary）：** Logging → Retry → CircuitBreaker → Tracing → Metrics → 自定义
 
 ## health — 健康检查
 
@@ -356,3 +515,179 @@ combined := gqlserver.ChainMiddleware(
 - Schema 定义使用 `github.com/graphql-go/graphql`，servex 提供服务器适配层
 - `WithMiddleware` 为全局中间件（所有 resolve），`WrapResolve` 为字段级中间件
 - `DefaultConfig()` 默认启用 Playground，路径为 `/graphql`
+
+## transport/tls — TLS 配置工具（tlsx）
+
+```go
+import tlsx "github.com/Tsukikage7/servex/transport/tls"
+```
+
+### httpserver 启用 TLS
+
+```go
+tlsCfg, err := tlsx.NewServerTLSConfig(&tlsx.Config{
+    CertFile: "/etc/tls/server.crt",
+    KeyFile:  "/etc/tls/server.key",
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+srv := httpserver.New(mux,
+    httpserver.WithAddr(":443"),
+    httpserver.WithTLS(tlsCfg),
+)
+```
+
+### grpcserver 启用 TLS
+
+```go
+tlsCfg, err := tlsx.NewServerTLSConfig(&tlsx.Config{
+    CertFile: "/etc/tls/server.crt",
+    KeyFile:  "/etc/tls/server.key",
+})
+if err != nil {
+    log.Fatal(err)
+}
+
+grpcSrv := grpcserver.New(
+    grpcserver.WithAddr(":9443"),
+    grpcserver.WithTLS(tlsCfg),
+)
+```
+
+### mTLS（双向 TLS）
+
+```go
+// 服务端：强制验证客户端证书
+serverTLS, err := tlsx.NewServerTLSConfig(&tlsx.Config{
+    CertFile:   "/etc/tls/server.crt",
+    KeyFile:    "/etc/tls/server.key",
+    CAFile:     "/etc/tls/ca.crt",       // 客户端证书的签发 CA
+    ClientAuth: "require_and_verify",     // 强制双向验证
+})
+
+// 客户端：提供客户端证书
+clientTLS, err := tlsx.NewClientTLSConfig(&tlsx.Config{
+    CertFile: "/etc/tls/client.crt",
+    KeyFile:  "/etc/tls/client.key",
+    CAFile:   "/etc/tls/ca.crt",         // 验证服务端证书
+})
+
+httpClient := &http.Client{
+    Transport: &http.Transport{TLSClientConfig: clientTLS},
+}
+```
+
+### 指定最低 TLS 版本
+
+```go
+tlsCfg, err := tlsx.NewServerTLSConfig(&tlsx.Config{
+    CertFile:   "server.crt",
+    KeyFile:    "server.key",
+    MinVersion: "1.3",  // 仅允许 TLS 1.3
+})
+```
+
+### 从配置文件加载（与 config 包集成）
+
+```yaml
+# config.yaml
+tls:
+  cert_file: /etc/tls/server.crt
+  key_file:  /etc/tls/server.key
+  ca_file:   /etc/tls/ca.crt
+  min_version: "1.2"
+  client_auth: require_and_verify
+```
+
+```go
+var cfg tlsx.Config
+// 通过 config 包加载后
+tlsCfg, err := tlsx.NewServerTLSConfig(&cfg)
+```
+
+**关键 API：**
+- `tlsx.NewServerTLSConfig(cfg)` — 服务端 TLS 配置（需要 CertFile + KeyFile）
+- `tlsx.NewClientTLSConfig(cfg)` — 客户端 TLS 配置（CertFile/KeyFile 可选，用于 mTLS）
+- `tlsx.NewTLSConfig(cfg)` — 通用，等同 NewServerTLSConfig
+- `httpserver.WithTLS(tlsCfg)` — httpserver 启用 TLS
+- `grpcserver.WithTLS(tlsCfg)` — grpcserver 启用 TLS
+
+**ClientAuth 选项：** `""` (不验证) | `"request"` | `"require"` | `"verify"` | `"require_and_verify"` (mTLS)
+
+## transport/grpcx — gRPC 工具包
+
+```go
+import "github.com/Tsukikage7/servex/transport/grpcx"
+```
+
+### 流包装（ServerStream context 替换）
+
+```go
+func myStreamInterceptor(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+    ctx := context.WithValue(ss.Context(), myKey, myValue)
+    return handler(srv, grpcx.WrapServerStream(ss, ctx))
+}
+```
+
+### Metadata 操作
+
+```go
+// 读取入站 metadata
+traceID := grpcx.GetMetadataValue(ctx, "x-trace-id")
+values := grpcx.GetMetadataValues(ctx, "x-roles")
+
+// 设置出站 metadata（客户端调用前）
+ctx = grpcx.AppendOutgoingMetadata(ctx, "x-trace-id", traceID)
+ctx = grpcx.SetOutgoingMetadata(ctx, "x-trace-id", traceID)  // 替换已有
+
+// 代理/网关场景：复制入站到出站
+ctx = grpcx.CopyIncomingToOutgoing(ctx, "x-trace-id", "x-request-id")
+```
+
+### 错误处理
+
+```go
+// 便捷构造器
+err := grpcx.NotFound("用户不存在")
+err := grpcx.InvalidArgument("参数格式错误")
+err := grpcx.PermissionDenied("权限不足")
+err := grpcx.Unauthenticated("未登录")
+err := grpcx.Internal("内部错误")
+err := grpcx.Unavailable("服务不可用")
+err := grpcx.AlreadyExists("资源已存在")
+err := grpcx.DeadlineExceeded("请求超时")
+
+// 通用构造
+err := grpcx.Error(codes.FailedPrecondition, "前置条件不满足")
+err := grpcx.Errorf(codes.InvalidArgument, "字段 %s 不合法", field)
+
+// 检查与提取
+if grpcx.IsCode(err, codes.NotFound) { ... }
+code := grpcx.Code(err)     // codes.NotFound
+msg  := grpcx.Message(err)  // "用户不存在"
+```
+
+### 健康检查
+
+```go
+// 标准 gRPC 健康检查（grpc.health.v1）
+if err := grpcx.HealthCheck(ctx, conn); err != nil {
+    log.Fatalf("服务不可用: %v", err)
+}
+
+// 等待连接就绪（带超时）
+if err := grpcx.WaitForReady(ctx, conn, 5*time.Second); err != nil {
+    log.Fatalf("连接超时: %v", err)
+}
+```
+
+**关键 API：**
+- `grpcx.WrapServerStream(stream, ctx)` — 替换 ServerStream 的 context（流式拦截器必备）
+- `grpcx.GetMetadataValue(ctx, key)` / `GetMetadataValues` — 读取入站 metadata
+- `grpcx.AppendOutgoingMetadata(ctx, kv...)` / `SetOutgoingMetadata` — 写出站 metadata
+- `grpcx.CopyIncomingToOutgoing(ctx, keys...)` — 入站 → 出站透传（代理/网关场景）
+- 错误便捷构造：`NotFound`、`InvalidArgument`、`PermissionDenied`、`Unauthenticated`、`Internal`、`Unavailable`、`AlreadyExists`、`DeadlineExceeded`
+- `grpcx.IsCode(err, code)` / `Code(err)` / `Message(err)` — 错误检查与提取
+- `grpcx.HealthCheck(ctx, conn)` / `WaitForReady(ctx, conn, timeout)` — 健康检查

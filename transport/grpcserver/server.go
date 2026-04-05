@@ -6,14 +6,15 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/Tsukikage7/servex/auth"
 	"github.com/Tsukikage7/servex/httpx/clientip"
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/middleware/logging"
 	"github.com/Tsukikage7/servex/middleware/recovery"
+	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/tenant"
 	"github.com/Tsukikage7/servex/transport"
 	"github.com/Tsukikage7/servex/transport/health"
@@ -273,6 +274,11 @@ func (s *Server) buildServerOptions() []grpc.ServerOption {
 
 	// 添加自定义选项
 	opts = append(opts, s.opts.serverOptions...)
+
+	// 添加 TLS 凭据
+	if s.opts.tlsConfig != nil {
+		opts = append(opts, grpc.Creds(credentials.NewTLS(s.opts.tlsConfig)))
+	}
 
 	return opts
 }
