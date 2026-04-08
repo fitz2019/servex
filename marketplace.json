@@ -1,0 +1,12 @@
+{
+  "name": "servex",
+  "description": "servex Go 微服务工具库插件市场",
+  "plugins": [
+    {
+      "name": "servex",
+      "version": "1.5.0",
+      "description": "servex Go 微服务工具库 — 提供模块使用指南、代码生成规范和最佳实践",
+      "source": "."
+    }
+  ]
+}

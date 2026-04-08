@@ -15,43 +15,28 @@ go get github.com/Tsukikage7/servex
 
 ## Claude Code Plugin
 
-servex 内置 [Claude Code Plugin](https://code.claude.com/docs/en/plugins.md)，为 AI 辅助开发提供 23 个专业 skill（模块使用指南、代码生成规范、最佳实践）。
+servex 内置 [Claude Code Plugin](https://code.claude.com/docs/en/plugins.md)，为 AI 辅助开发提供模块使用指南、代码生成规范和最佳实践。
 
 **安装插件：**
 
 ```bash
-claude plugin add --from https://github.com/Tsukikage7/servex
+# 1. 添加 servex marketplace
+/plugin marketplace add Tsukikage7/servex
+
+# 2. 安装插件
+/plugin install servex@servex
 ```
 
-**可用 Skills（23 个）：**
+也可以在 Claude Code 中输入 `/plugin`，在 Marketplaces 标签页手动添加。
+
+**Skills：**
 
 | Skill | 说明 |
 |-------|------|
-| `servex:servex` | 主索引 — 模块映射、代码生成规范、工作流程 |
-| `servex:transport` | 传输层（httpserver/grpcserver/httpclient/gateway/WS/SSE） |
-| `servex:middleware` | 中间件（限流/熔断/重试/恢复/超时/CORS/幂等/并发控制） |
-| `servex:auth` | 认证（JWT/API Key） |
-| `servex:storage` | 存储（Cache/RDBMS/MongoDB/Elasticsearch/S3/Lock/SQLx） |
-| `servex:observability` | 可观测性（Metrics/Tracing/Logger） |
-| `servex:config` | 配置与服务发现（File/Etcd/Consul/Env） |
-| `servex:llm` | AI（OpenAI/Anthropic/Gemini/ToolCall/Router/Embedding/Prompt） |
-| `servex:distributed` | 分布式模式（CQRS/Outbox/Saga/领域事件） |
-| `servex:pubsub` | 消息与任务（Pub/Sub/JobQueue） |
-| `servex:webhook` | Webhook 投递与接收 |
-| `servex:oauth2` | OAuth2 第三方登录（GitHub/Google/微信） |
-| `servex:openapi` | OpenAPI 文档生成 |
-| `servex:collections` | 数据结构（Deque/LRU/TreeMap/PriorityQueue/HashSet 等） |
-| `servex:xutil` | 工具包（ptrx/strx/copier/syncx/sorting/pagination 等） |
-| `servex:validation` | 输入校验（go-playground/validator 封装，中英文错误消息） |
-| `servex:httpx` | HTTP 请求分析（ClientIP/UserAgent/Locale/BotDetect 等） |
-| `servex:errors` | 统一错误处理（HTTP/gRPC 映射） |
-| `servex:i18n` | 国际化 |
-| `servex:tenant` | 多租户（中间件 + GORM Scope） |
-| `servex:notify` | 通知系统（Email/SMS/Push/Webhook 渠道） |
-| `servex:testx` | 测试工具包（NopLogger/TestLogger/Container/HTTPTest/Fixture） |
-| `servex:bizx` | 业务组件（排行榜/计数器/序号/状态机/审计/特性开关/验证码/锁/限流/分页/重试/事件总线） |
+| `servex:servex` | 主入口 -- 模块索引、代码规范、工作流，按需加载 20 个子模块参考文档 |
+| `servex:llm` | LLM 模块 -- 29 个子包（Provider/Agent/Retrieval/Processing/Safety/Serving） |
 
-安装后 Claude 会根据上下文自动触发对应 skill，也可手动调用如 `/servex:storage`。
+安装后 Claude 会根据上下文自动触发，也可手动调用 `/servex:servex` 或 `/servex:llm`。子模块详细文档由主 skill 按需读取，不会污染 skill 列表。
 
 ## 包概览
 
