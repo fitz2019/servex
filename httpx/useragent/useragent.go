@@ -61,9 +61,9 @@ type OS struct {
 
 // Device 设备信息.
 type Device struct {
-	Type   DeviceType // Desktop, Mobile, Tablet, Bot 等
-	Brand  string     // Apple, Samsung, Huawei 等
-	Model  string     // iPhone, Galaxy 等
+	Type  DeviceType // Desktop, Mobile, Tablet, Bot 等
+	Brand string     // Apple, Samsung, Huawei 等
+	Model string     // iPhone, Galaxy 等
 }
 
 // Engine 渲染引擎信息.

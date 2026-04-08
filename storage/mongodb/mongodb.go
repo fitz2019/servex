@@ -254,10 +254,10 @@ type IndexModel struct {
 
 // IndexOptions 索引选项.
 type IndexOptions struct {
-	Name       string
-	Unique     bool
-	Background bool
-	Sparse     bool
+	Name               string
+	Unique             bool
+	Background         bool
+	Sparse             bool
 	ExpireAfterSeconds int32
 }
 

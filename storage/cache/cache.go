@@ -52,4 +52,3 @@ type Cache interface {
 	Close() error
 	Client() any
 }
-

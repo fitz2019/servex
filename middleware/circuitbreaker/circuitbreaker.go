@@ -73,10 +73,10 @@ func WithIsFailure(fn func(error) bool) Option {
 type Breaker struct {
 	opts Options
 
-	mu             sync.Mutex
-	state          State
-	failureCount   int
-	successCount   int
+	mu              sync.Mutex
+	state           State
+	failureCount    int
+	successCount    int
 	lastStateChange time.Time
 }
 

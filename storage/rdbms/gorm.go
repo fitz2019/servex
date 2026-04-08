@@ -125,7 +125,6 @@ type GORMDatabase interface {
 	GORM() *gorm.DB
 }
 
-
 // AsGORM 将 Database 转换为 *gorm.DB.
 //
 // 注意: 如果启用了链路追踪，请使用 DB(ctx) 方法以确保追踪生效.

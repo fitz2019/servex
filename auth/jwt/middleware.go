@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Tsukikage7/servex/endpoint"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"github.com/Tsukikage7/servex/endpoint"
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 // ClaimsFactory 是创建 Claims 实例的工厂函数.
@@ -326,7 +328,7 @@ func StreamServerInterceptor(j *JWT) grpc.StreamServerInterceptor {
 		if c, ok := claims.(Claims); ok {
 			ctx = ContextWithClaims(ctx, c)
 			ctx = ContextWithToken(ctx, token)
-			ss = &wrappedServerStream{ServerStream: ss, ctx: ctx}
+			ss = grpcx.WrapServerStream(ss, ctx)
 		}
 
 		return handler(srv, ss)
@@ -364,22 +366,11 @@ func StreamServerInterceptorWithClaims(j *JWT, cf ClaimsFactory) grpc.StreamServ
 		if c, ok := claims.(Claims); ok {
 			ctx = ContextWithClaims(ctx, c)
 			ctx = ContextWithToken(ctx, token)
-			ss = &wrappedServerStream{ServerStream: ss, ctx: ctx}
+			ss = grpcx.WrapServerStream(ss, ctx)
 		}
 
 		return handler(srv, ss)
 	}
-}
-
-// wrappedServerStream 包装的服务端流.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-// Context 返回包装的上下文.
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }
 
 // ExtractToken 从请求中提取令牌（独立函数）.

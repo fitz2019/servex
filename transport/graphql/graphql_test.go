@@ -254,19 +254,19 @@ func TestWithOptions(t *testing.T) {
 // noopLogger 用于测试的空日志记录器，实现 logger.Logger 接口.
 type noopLogger struct{}
 
-func (n *noopLogger) Debug(_ ...any)                            {}
-func (n *noopLogger) Debugf(_ string, _ ...any)                 {}
-func (n *noopLogger) Info(_ ...any)                             {}
-func (n *noopLogger) Infof(_ string, _ ...any)                  {}
-func (n *noopLogger) Warn(_ ...any)                             {}
-func (n *noopLogger) Warnf(_ string, _ ...any)                  {}
-func (n *noopLogger) Error(_ ...any)                            {}
-func (n *noopLogger) Errorf(_ string, _ ...any)                 {}
-func (n *noopLogger) Fatal(_ ...any)                            {}
-func (n *noopLogger) Fatalf(_ string, _ ...any)                 {}
-func (n *noopLogger) Panic(_ ...any)                            {}
-func (n *noopLogger) Panicf(_ string, _ ...any)                 {}
-func (n *noopLogger) With(_ ...logger.Field) logger.Logger      { return n }
+func (n *noopLogger) Debug(_ ...any)                              {}
+func (n *noopLogger) Debugf(_ string, _ ...any)                   {}
+func (n *noopLogger) Info(_ ...any)                               {}
+func (n *noopLogger) Infof(_ string, _ ...any)                    {}
+func (n *noopLogger) Warn(_ ...any)                               {}
+func (n *noopLogger) Warnf(_ string, _ ...any)                    {}
+func (n *noopLogger) Error(_ ...any)                              {}
+func (n *noopLogger) Errorf(_ string, _ ...any)                   {}
+func (n *noopLogger) Fatal(_ ...any)                              {}
+func (n *noopLogger) Fatalf(_ string, _ ...any)                   {}
+func (n *noopLogger) Panic(_ ...any)                              {}
+func (n *noopLogger) Panicf(_ string, _ ...any)                   {}
+func (n *noopLogger) With(_ ...logger.Field) logger.Logger        { return n }
 func (n *noopLogger) WithContext(_ context.Context) logger.Logger { return n }
-func (n *noopLogger) Sync() error                               { return nil }
-func (n *noopLogger) Close() error                              { return nil }
+func (n *noopLogger) Sync() error                                 { return nil }
+func (n *noopLogger) Close() error                                { return nil }

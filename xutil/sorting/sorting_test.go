@@ -160,10 +160,10 @@ func TestSorting_Filter(t *testing.T) {
 
 func TestSorting_WithDefault(t *testing.T) {
 	tests := []struct {
-		name         string
-		input        string
-		defaultSort  string
-		expected     string
+		name        string
+		input       string
+		defaultSort string
+		expected    string
 	}{
 		{
 			name:        "空排序使用默认值",

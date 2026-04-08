@@ -4,9 +4,10 @@ package etcd
 import (
 	"context"
 
-	"github.com/Tsukikage7/servex/config"
 	mvccpb "go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
+
+	"github.com/Tsukikage7/servex/config"
 )
 
 // Source etcd KV 配置源.

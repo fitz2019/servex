@@ -1,6 +1,6 @@
 # botdetect
 
-`github.com/Tsukikage7/servex/request/botdetect`
+`github.com/Tsukikage7/servex/httpx/botdetect`
 
 机器人/爬虫检测，基于 User-Agent 模式匹配，内置已知机器人数据库，支持分类与置信度评分。
 

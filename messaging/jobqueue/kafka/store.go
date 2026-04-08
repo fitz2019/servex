@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/IBM/sarama"
+
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
@@ -62,10 +63,10 @@ func (s *Store) Dequeue(_ context.Context, _ string) (*jobqueue.Job, error) {
 	return nil, jobqueue.ErrDequeueTimeout
 }
 
-func (s *Store) MarkRunning(_ context.Context, _ string) error          { return nil }
-func (s *Store) MarkFailed(_ context.Context, _ string, _ error) error  { return nil }
-func (s *Store) MarkDead(_ context.Context, _ string) error             { return nil }
-func (s *Store) MarkDone(_ context.Context, _ string) error             { return nil }
+func (s *Store) MarkRunning(_ context.Context, _ string) error         { return nil }
+func (s *Store) MarkFailed(_ context.Context, _ string, _ error) error { return nil }
+func (s *Store) MarkDead(_ context.Context, _ string) error            { return nil }
+func (s *Store) MarkDone(_ context.Context, _ string) error            { return nil }
 func (s *Store) Requeue(ctx context.Context, job *jobqueue.Job) error {
 	return s.Enqueue(ctx, job)
 }

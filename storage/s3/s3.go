@@ -32,11 +32,11 @@ import (
 
 // 预定义错误.
 var (
-	ErrNilConfig     = errors.New("s3: config is nil")
-	ErrNilLogger     = errors.New("s3: logger is nil")
-	ErrEmptyEndpoint = errors.New("s3: endpoint is empty")
-	ErrEmptyBucket   = errors.New("s3: bucket is empty")
-	ErrEmptyKey      = errors.New("s3: key is empty")
+	ErrNilConfig      = errors.New("s3: config is nil")
+	ErrNilLogger      = errors.New("s3: logger is nil")
+	ErrEmptyEndpoint  = errors.New("s3: endpoint is empty")
+	ErrEmptyBucket    = errors.New("s3: bucket is empty")
+	ErrEmptyKey       = errors.New("s3: key is empty")
 	ErrObjectNotFound = errors.New("s3: object not found")
 )
 
@@ -176,32 +176,32 @@ type BucketInfo struct {
 
 // Object 对象.
 type Object struct {
-	Key          string
-	Body         io.ReadCloser
-	ContentType  string
+	Key           string
+	Body          io.ReadCloser
+	ContentType   string
 	ContentLength int64
-	ETag         string
-	LastModified time.Time
-	Metadata     map[string]string
+	ETag          string
+	LastModified  time.Time
+	Metadata      map[string]string
 }
 
 // ObjectInfo 对象元信息.
 type ObjectInfo struct {
-	Key           string
-	Size          int64
-	ETag          string
-	ContentType   string
-	LastModified  time.Time
-	StorageClass  string
-	Metadata      map[string]string
+	Key          string
+	Size         int64
+	ETag         string
+	ContentType  string
+	LastModified time.Time
+	StorageClass string
+	Metadata     map[string]string
 }
 
 // ListObjectsResult 列出对象结果.
 type ListObjectsResult struct {
-	Objects       []ObjectInfo
-	Prefixes      []string
-	IsTruncated   bool
-	NextMarker    string
+	Objects               []ObjectInfo
+	Prefixes              []string
+	IsTruncated           bool
+	NextMarker            string
 	NextContinuationToken string
 }
 
@@ -332,10 +332,10 @@ const (
 
 // 常用存储类型.
 const (
-	StorageClassStandard         = "STANDARD"
+	StorageClassStandard          = "STANDARD"
 	StorageClassReducedRedundancy = "REDUCED_REDUNDANCY"
-	StorageClassStandardIA       = "STANDARD_IA"
-	StorageClassOnezoneIA        = "ONEZONE_IA"
-	StorageClassGlacier          = "GLACIER"
-	StorageClassDeepArchive      = "DEEP_ARCHIVE"
+	StorageClassStandardIA        = "STANDARD_IA"
+	StorageClassOnezoneIA         = "ONEZONE_IA"
+	StorageClassGlacier           = "GLACIER"
+	StorageClassDeepArchive       = "DEEP_ARCHIVE"
 )

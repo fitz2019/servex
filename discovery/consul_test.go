@@ -7,10 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Tsukikage7/servex/testx"
 )
 
 func TestNewConsulDiscovery(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 
 	tests := []struct {
 		name    string
@@ -52,7 +54,7 @@ func TestNewConsulDiscovery(t *testing.T) {
 }
 
 func TestConsulDiscovery_Register_Validation(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -106,7 +108,7 @@ func TestConsulDiscovery_Register_Validation(t *testing.T) {
 }
 
 func TestConsulDiscovery_RegisterWithProtocol_Validation(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -165,7 +167,7 @@ func TestConsulDiscovery_RegisterWithProtocol_Validation(t *testing.T) {
 }
 
 func TestConsulDiscovery_Unregister_Validation(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -183,7 +185,7 @@ func TestConsulDiscovery_Unregister_Validation(t *testing.T) {
 }
 
 func TestConsulDiscovery_Unregister_ContextCanceled(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -202,7 +204,7 @@ func TestConsulDiscovery_Unregister_ContextCanceled(t *testing.T) {
 }
 
 func TestConsulDiscovery_Discover_Validation(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -220,7 +222,7 @@ func TestConsulDiscovery_Discover_Validation(t *testing.T) {
 }
 
 func TestConsulDiscovery_Close(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -375,7 +377,7 @@ func TestContains(t *testing.T) {
 }
 
 func TestConsulDiscovery_Unregister_Timeout(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -399,7 +401,7 @@ func TestConsulDiscovery_Unregister_Timeout(t *testing.T) {
 }
 
 func TestConsulDiscovery_AddressConversion(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -428,7 +430,7 @@ func TestConsulDiscovery_AddressConversion(t *testing.T) {
 }
 
 func TestConsulDiscovery_TagsHandling(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 
 	// 测试协议标签已存在的情况
 	config := &Config{
@@ -457,7 +459,7 @@ func TestConsulDiscovery_TagsHandling(t *testing.T) {
 }
 
 func TestConsulDiscovery_HTTPProtocol(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -479,7 +481,7 @@ func TestConsulDiscovery_HTTPProtocol(t *testing.T) {
 }
 
 func TestConsulDiscovery_Discover_NoConsul(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -504,7 +506,7 @@ func TestConsulDiscovery_Discover_NoConsul(t *testing.T) {
 }
 
 func TestConsulDiscovery_Unregister_NoConsul(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -526,7 +528,7 @@ func TestConsulDiscovery_Unregister_NoConsul(t *testing.T) {
 }
 
 func TestConsulDiscovery_Register_NoConsul(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",

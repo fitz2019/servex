@@ -344,6 +344,9 @@ func TestRelay_StartStop(t *testing.T) {
 }
 
 func TestRelay_PollAndDeliver(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping relay test in short mode")
+	}
 	store, db := setupTestStore(t)
 	producer := newMockPublisher()
 

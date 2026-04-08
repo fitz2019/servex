@@ -7,6 +7,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
+
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 // gRPC metadata 键名（小写）.
@@ -69,22 +71,8 @@ func StreamServerInterceptor(opts ...Option) grpc.StreamServerInterceptor {
 			}
 		}
 
-		wrapped := &wrappedServerStream{
-			ServerStream: ss,
-			ctx:          ctx,
-		}
-		return handler(srv, wrapped)
+		return handler(srv, grpcx.WrapServerStream(ss, ctx))
 	}
-}
-
-// wrappedServerStream 包装 ServerStream 以传递修改后的 context.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }
 
 // extractFromGRPC 从 gRPC context 中提取客户端 IP.

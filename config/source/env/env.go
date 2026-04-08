@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Tsukikage7/servex/config"
 	"github.com/fsnotify/fsnotify"
+
+	"github.com/Tsukikage7/servex/config"
 )
 
 // Source 环境变量配置源.

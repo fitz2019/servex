@@ -69,9 +69,9 @@ func CloseAndLog(c io.Closer, log func(error)) {
 
 // limitReadCloser 包装 io.ReadCloser，超出字节限制时返回错误.
 type limitReadCloser struct {
-	rc      io.ReadCloser
-	limit   int64
-	read    int64
+	rc    io.ReadCloser
+	limit int64
+	read  int64
 }
 
 // LimitReadCloser 返回一个 io.ReadCloser，当读取字节数超过 n 时返回错误.

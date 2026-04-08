@@ -5,6 +5,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 const (
@@ -58,11 +60,7 @@ func StreamServerInterceptor(opts ...GRPCOption) grpc.StreamServerInterceptor {
 		handler grpc.StreamHandler,
 	) error {
 		ctx := extractAndStore(ss.Context(), o.currentHost)
-		wrapped := &wrappedServerStream{
-			ServerStream: ss,
-			ctx:          ctx,
-		}
-		return handler(srv, wrapped)
+		return handler(srv, grpcx.WrapServerStream(ss, ctx))
 	}
 }
 
@@ -82,15 +80,4 @@ func extractAndStore(ctx context.Context, currentHost string) context.Context {
 		ref = Parse(raw)
 	}
 	return WithReferer(ctx, ref)
-}
-
-// wrappedServerStream 包装 grpc.ServerStream 以提供自定义 context.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-// Context 返回包装后的 context.
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }

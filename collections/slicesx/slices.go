@@ -677,7 +677,9 @@ func Sum[T Number](slice []T) T {
 // 示例:
 //
 //	Min([]int{3, 1, 2}) // 1, true
-func Min[T interface{ ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr | ~float32 | ~float64 | ~string }](slice []T) (T, bool) {
+func Min[T interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr | ~float32 | ~float64 | ~string
+}](slice []T) (T, bool) {
 	if len(slice) == 0 {
 		var zero T
 		return zero, false
@@ -696,7 +698,9 @@ func Min[T interface{ ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 |
 // 示例:
 //
 //	Max([]int{3, 1, 2}) // 3, true
-func Max[T interface{ ~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr | ~float32 | ~float64 | ~string }](slice []T) (T, bool) {
+func Max[T interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr | ~float32 | ~float64 | ~string
+}](slice []T) (T, bool) {
 	if len(slice) == 0 {
 		var zero T
 		return zero, false

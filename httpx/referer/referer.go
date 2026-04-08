@@ -215,21 +215,21 @@ var searchEngines = map[string]struct {
 	name       string
 	queryParam string
 }{
-	"google":        {"google", "q"},
-	"www.google":    {"google", "q"},
-	"bing":          {"bing", "q"},
-	"www.bing":      {"bing", "q"},
-	"baidu":         {"baidu", "wd"},
-	"www.baidu":     {"baidu", "wd"},
-	"sogou":         {"sogou", "query"},
-	"www.sogou":     {"sogou", "query"},
-	"so":            {"360", "q"},
-	"www.so":        {"360", "q"},
-	"yahoo":         {"yahoo", "p"},
-	"search.yahoo":  {"yahoo", "p"},
-	"duckduckgo":    {"duckduckgo", "q"},
-	"yandex":        {"yandex", "text"},
-	"naver":         {"naver", "query"},
+	"google":       {"google", "q"},
+	"www.google":   {"google", "q"},
+	"bing":         {"bing", "q"},
+	"www.bing":     {"bing", "q"},
+	"baidu":        {"baidu", "wd"},
+	"www.baidu":    {"baidu", "wd"},
+	"sogou":        {"sogou", "query"},
+	"www.sogou":    {"sogou", "query"},
+	"so":           {"360", "q"},
+	"www.so":       {"360", "q"},
+	"yahoo":        {"yahoo", "p"},
+	"search.yahoo": {"yahoo", "p"},
+	"duckduckgo":   {"duckduckgo", "q"},
+	"yandex":       {"yandex", "text"},
+	"naver":        {"naver", "query"},
 }
 
 // 社交媒体配置.

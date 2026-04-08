@@ -21,14 +21,14 @@ func (m *mockStore) Enqueue(_ context.Context, job *Job) error {
 	return nil
 }
 
-func (m *mockStore) Dequeue(_ context.Context, _ string) (*Job, error)       { return nil, nil }
-func (m *mockStore) MarkRunning(_ context.Context, _ string) error           { return nil }
-func (m *mockStore) MarkFailed(_ context.Context, _ string, _ error) error   { return nil }
-func (m *mockStore) MarkDead(_ context.Context, _ string) error              { return nil }
-func (m *mockStore) MarkDone(_ context.Context, _ string) error              { return nil }
-func (m *mockStore) Requeue(_ context.Context, _ *Job) error                 { return nil }
-func (m *mockStore) ListDead(_ context.Context, _ string) ([]*Job, error)    { return nil, nil }
-func (m *mockStore) Close() error                                            { return nil }
+func (m *mockStore) Dequeue(_ context.Context, _ string) (*Job, error)     { return nil, nil }
+func (m *mockStore) MarkRunning(_ context.Context, _ string) error         { return nil }
+func (m *mockStore) MarkFailed(_ context.Context, _ string, _ error) error { return nil }
+func (m *mockStore) MarkDead(_ context.Context, _ string) error            { return nil }
+func (m *mockStore) MarkDone(_ context.Context, _ string) error            { return nil }
+func (m *mockStore) Requeue(_ context.Context, _ *Job) error               { return nil }
+func (m *mockStore) ListDead(_ context.Context, _ string) ([]*Job, error)  { return nil, nil }
+func (m *mockStore) Close() error                                          { return nil }
 
 func TestClient_Enqueue(t *testing.T) {
 	store := &mockStore{}

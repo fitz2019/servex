@@ -275,12 +275,12 @@ mapsx.All(m, func(k string, v int) bool { return v > 0 })
 
 | 数据结构      | Get/Contains | Put/Add  | Remove   | 有序 | 线程安全 |
 | ------------- | ------------ | -------- | -------- | ---- | -------- |
-| TreeMap       | O(log n)     | O(log n) | O(log n) | ✓    | ✗        |
-| TreeSet       | O(log n)     | O(log n) | O(log n) | ✓    | ✗        |
-| HashSet       | O(1)         | O(1)     | O(1)     | ✗    | ✗        |
-| LRUCache      | O(1)         | O(1)     | O(1)     | ✗    | ✓        |
-| PriorityQueue | O(1) peek    | O(log n) | O(log n) | -    | ✗        |
-| Deque         | O(1)         | O(1)     | O(1)     | ✓    | ✗        |
+| TreeMap       | O(log n)     | O(log n) | O(log n) | Y    | N        |
+| TreeSet       | O(log n)     | O(log n) | O(log n) | Y    | N        |
+| HashSet       | O(1)         | O(1)     | O(1)     | N    | N        |
+| LRUCache      | O(1)         | O(1)     | O(1)     | N    | Y        |
+| PriorityQueue | O(1) peek    | O(log n) | O(log n) | -    | N        |
+| Deque         | O(1)         | O(1)     | O(1)     | Y    | N        |
 
 ## 测试
 

@@ -11,6 +11,6 @@ func init() { encoding.RegisterCodec(codec{}) }
 
 type codec struct{}
 
-func (codec) Marshal(v any) ([]byte, error)     { return stdxml.Marshal(v) }
+func (codec) Marshal(v any) ([]byte, error)      { return stdxml.Marshal(v) }
 func (codec) Unmarshal(data []byte, v any) error { return stdxml.Unmarshal(data, v) }
-func (codec) Name() string                      { return "xml" }
+func (codec) Name() string                       { return "xml" }

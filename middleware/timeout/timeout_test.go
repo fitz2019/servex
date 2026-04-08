@@ -252,8 +252,12 @@ func TestHTTPMiddleware(t *testing.T) {
 
 	t.Run("timeout", func(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(500 * time.Millisecond)
-			w.WriteHeader(http.StatusOK)
+			select {
+			case <-r.Context().Done():
+				return
+			case <-time.After(500 * time.Millisecond):
+				w.WriteHeader(http.StatusOK)
+			}
 		})
 
 		wrapped := HTTPMiddleware(100 * time.Millisecond)(handler)
@@ -295,9 +299,16 @@ func TestHTTPTimeoutHandler(t *testing.T) {
 	})
 
 	t.Run("timeout with message", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("skip timeout race-sensitive test in short mode")
+		}
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(500 * time.Millisecond)
-			w.WriteHeader(http.StatusOK)
+			select {
+			case <-r.Context().Done():
+				return
+			case <-time.After(500 * time.Millisecond):
+				w.WriteHeader(http.StatusOK)
+			}
 		})
 
 		wrapped := HTTPTimeoutHandler(handler, 100*time.Millisecond, "custom timeout message")

@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/messaging/pubsub"
+	"github.com/Tsukikage7/servex/observability/logger"
 )
 
 // Relay 事务发件箱中继器.
@@ -15,11 +15,11 @@ import (
 type Relay struct {
 	store     Store
 	publisher pubsub.Publisher
-	opts     *options
+	opts      *options
 
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
-	mu     sync.Mutex
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
+	mu      sync.Mutex
 	running bool
 }
 

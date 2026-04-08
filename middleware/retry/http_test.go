@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-
 func TestNewHTTPClient(t *testing.T) {
 	t.Run("使用默认配置", func(t *testing.T) {
 		client := NewHTTPClient(nil, nil)

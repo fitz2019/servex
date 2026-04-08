@@ -12,8 +12,9 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/Tsukikage7/servex/notify"
 	"github.com/google/uuid"
+
+	"github.com/Tsukikage7/servex/notify"
 )
 
 type Sender struct {

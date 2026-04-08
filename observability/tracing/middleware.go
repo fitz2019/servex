@@ -4,14 +4,15 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/Tsukikage7/servex/observability/logger"
-	"github.com/Tsukikage7/servex/endpoint"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	"go.opentelemetry.io/otel/trace"
+
+	"github.com/Tsukikage7/servex/endpoint"
+	"github.com/Tsukikage7/servex/observability/logger"
 )
 
 // TraceIDHeader 响应头中返回 traceId 的键名.

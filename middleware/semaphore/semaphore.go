@@ -59,4 +59,3 @@ type Counter interface {
 	// Expire 设置键的过期时间.
 	Expire(ctx context.Context, key string, ttl time.Duration) error
 }
-

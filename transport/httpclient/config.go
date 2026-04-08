@@ -1,10 +1,12 @@
 package httpclient
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Tsukikage7/servex/middleware/circuitbreaker"
 	"github.com/Tsukikage7/servex/middleware/retry"
+	tlsx "github.com/Tsukikage7/servex/transport/tls"
 )
 
 // Config 配置驱动的客户端创建.
@@ -15,6 +17,7 @@ type Config struct {
 	RetryDelay     time.Duration `json:"retry_delay" yaml:"retry_delay" mapstructure:"retry_delay"`
 	CircuitBreaker bool          `json:"circuit_breaker" yaml:"circuit_breaker" mapstructure:"circuit_breaker"`
 	Tracing        bool          `json:"tracing" yaml:"tracing" mapstructure:"tracing"`
+	TLS            *tlsx.Config  `json:"tls" yaml:"tls" mapstructure:"tls"`
 }
 
 // NewFromConfig 从配置创建简单客户端（不使用服务发现）.
@@ -40,6 +43,13 @@ func NewFromConfig(cfg *Config, additionalOpts ...Option) *Client {
 	}
 	if cfg.Tracing {
 		opts = append(opts, WithTracing("httpclient"))
+	}
+	if cfg.TLS != nil {
+		tlsCfg, err := tlsx.NewClientTLSConfig(cfg.TLS)
+		if err != nil {
+			panic(fmt.Sprintf("http client: failed to create TLS config: %v", err))
+		}
+		opts = append(opts, WithTLS(tlsCfg))
 	}
 
 	opts = append(opts, additionalOpts...)

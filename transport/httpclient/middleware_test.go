@@ -9,10 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/middleware/circuitbreaker"
-	"github.com/Tsukikage7/servex/middleware/retry"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Tsukikage7/servex/middleware/circuitbreaker"
+	"github.com/Tsukikage7/servex/middleware/retry"
 )
 
 // mwMockTransport 可配置的 RoundTripper mock.
@@ -174,14 +175,14 @@ func (m *mwMockCollector) RecordHTTPRequest(method, path, statusCode string, dur
 	m.duration = duration
 }
 func (m *mwMockCollector) RecordGRPCRequest(string, string, string, time.Duration) {}
-func (m *mwMockCollector) RecordPanic(string, string, string)                       {}
-func (m *mwMockCollector) UpdateGoroutineCount(int)                                 {}
-func (m *mwMockCollector) UpdateMemoryUsage(int64)                                  {}
-func (m *mwMockCollector) IncrementCounter(string, map[string]string)               {}
-func (m *mwMockCollector) ObserveHistogram(string, float64, map[string]string)      {}
-func (m *mwMockCollector) SetGauge(string, float64, map[string]string)              {}
-func (m *mwMockCollector) GetHandler() http.Handler                                 { return nil }
-func (m *mwMockCollector) GetPath() string                                          { return "" }
+func (m *mwMockCollector) RecordPanic(string, string, string)                      {}
+func (m *mwMockCollector) UpdateGoroutineCount(int)                                {}
+func (m *mwMockCollector) UpdateMemoryUsage(int64)                                 {}
+func (m *mwMockCollector) IncrementCounter(string, map[string]string)              {}
+func (m *mwMockCollector) ObserveHistogram(string, float64, map[string]string)     {}
+func (m *mwMockCollector) SetGauge(string, float64, map[string]string)             {}
+func (m *mwMockCollector) GetHandler() http.Handler                                { return nil }
+func (m *mwMockCollector) GetPath() string                                         { return "" }
 
 func TestMetricsMiddleware_RecordsRequest(t *testing.T) {
 	mc := &mwMockCollector{}

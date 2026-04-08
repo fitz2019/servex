@@ -1,37 +1,18 @@
 package discovery
 
 import (
-	"context"
 	"strings"
 	"testing"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/testx"
 )
 
-// mockLogger 测试用的模拟日志记录器.
-type mockLogger struct{}
-
-func (m *mockLogger) Debug(args ...any)                         {}
-func (m *mockLogger) Debugf(format string, args ...any)         {}
-func (m *mockLogger) Info(args ...any)                          {}
-func (m *mockLogger) Infof(format string, args ...any)          {}
-func (m *mockLogger) Warn(args ...any)                          {}
-func (m *mockLogger) Warnf(format string, args ...any)          {}
-func (m *mockLogger) Error(args ...any)                         {}
-func (m *mockLogger) Errorf(format string, args ...any)         {}
-func (m *mockLogger) Fatal(args ...any)                         {}
-func (m *mockLogger) Fatalf(format string, args ...any)         {}
-func (m *mockLogger) Panic(args ...any)                         {}
-func (m *mockLogger) Panicf(format string, args ...any)         {}
-func (m *mockLogger) With(fields ...logger.Field) logger.Logger { return m }
-func (m *mockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *mockLogger) Sync() error                               { return nil }
-func (m *mockLogger) Close() error                              { return nil }
-
 func TestNewDiscovery(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 
 	tests := []struct {
 		name    string
@@ -97,7 +78,7 @@ func TestNewDiscovery(t *testing.T) {
 }
 
 func TestMustNewDiscovery_Success(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 	config := &Config{
 		Type: TypeConsul,
 		Addr: "localhost:8500",
@@ -111,7 +92,7 @@ func TestMustNewDiscovery_Success(t *testing.T) {
 }
 
 func TestMustNewDiscovery_Panic(t *testing.T) {
-	log := &mockLogger{}
+	log := testx.NopLogger()
 
 	assert.Panics(t, func() {
 		MustNewDiscovery(nil, log)

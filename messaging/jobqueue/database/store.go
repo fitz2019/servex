@@ -7,19 +7,20 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
 type jobModel struct {
-	ID          string    `gorm:"primaryKey;size:36"`
-	Queue       string    `gorm:"index:idx_queue_sched;size:255"`
-	Type        string    `gorm:"size:255"`
+	ID          string `gorm:"primaryKey;size:36"`
+	Queue       string `gorm:"index:idx_queue_sched;size:255"`
+	Type        string `gorm:"size:255"`
 	Payload     []byte
 	Priority    int
 	MaxRetries  int
 	Retried     int
-	Status      string    `gorm:"index;size:20"`
-	LastError   string    `gorm:"type:text"`
+	Status      string `gorm:"index;size:20"`
+	LastError   string `gorm:"type:text"`
 	CreatedAt   time.Time
 	ScheduledAt time.Time `gorm:"index:idx_queue_sched"`
 	Deadline    time.Time

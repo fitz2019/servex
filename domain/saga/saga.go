@@ -43,11 +43,11 @@ import (
 
 // Saga 表示一个 Saga 事务.
 type Saga struct {
-	name    string
-	steps   []Step
-	opts    *options
-	mu      sync.Mutex
-	idGen   func() string
+	name  string
+	steps []Step
+	opts  *options
+	mu    sync.Mutex
+	idGen func() string
 }
 
 // Builder Saga 构建器.

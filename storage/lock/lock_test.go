@@ -9,32 +9,12 @@ import (
 	"time"
 
 	"github.com/Tsukikage7/servex/storage/cache"
-	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/testx"
 )
-
-// testLogger 用于测试的模拟日志器.
-type testLogger struct{}
-
-func (m *testLogger) Debug(args ...any)                             {}
-func (m *testLogger) Debugf(format string, args ...any)             {}
-func (m *testLogger) Info(args ...any)                              {}
-func (m *testLogger) Infof(format string, args ...any)              {}
-func (m *testLogger) Warn(args ...any)                              {}
-func (m *testLogger) Warnf(format string, args ...any)              {}
-func (m *testLogger) Error(args ...any)                             {}
-func (m *testLogger) Errorf(format string, args ...any)             {}
-func (m *testLogger) Fatal(args ...any)                             {}
-func (m *testLogger) Fatalf(format string, args ...any)             {}
-func (m *testLogger) Panic(args ...any)                             {}
-func (m *testLogger) Panicf(format string, args ...any)             {}
-func (m *testLogger) With(fields ...logger.Field) logger.Logger     { return m }
-func (m *testLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *testLogger) Sync() error                                   { return nil }
-func (m *testLogger) Close() error                                  { return nil }
 
 // newTestLocker 创建测试用的锁.
 func newTestLocker(opts ...RedisOption) (*Redis, cache.Cache) {
-	memCache, _ := cache.NewMemoryCache(nil, &testLogger{})
+	memCache, _ := cache.NewMemoryCache(nil, testx.NopLogger())
 	return NewRedis(memCache, opts...), memCache
 }
 

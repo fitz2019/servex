@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"io"
 	"net/http"
@@ -10,29 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/testx"
 	"github.com/Tsukikage7/servex/transport"
 )
-
-// mockLogger 测试用 mock logger.
-type mockLogger struct{}
-
-func (m *mockLogger) Debug(args ...any)                 {}
-func (m *mockLogger) Debugf(format string, args ...any) {}
-func (m *mockLogger) Info(args ...any)                  {}
-func (m *mockLogger) Infof(format string, args ...any)  {}
-func (m *mockLogger) Warn(args ...any)                  {}
-func (m *mockLogger) Warnf(format string, args ...any)  {}
-func (m *mockLogger) Error(args ...any)                 {}
-func (m *mockLogger) Errorf(format string, args ...any) {}
-func (m *mockLogger) Fatal(args ...any)                 {}
-func (m *mockLogger) Fatalf(format string, args ...any) {}
-func (m *mockLogger) Panic(args ...any)                             {}
-func (m *mockLogger) Panicf(format string, args ...any)             {}
-func (m *mockLogger) With(fields ...logger.Field) logger.Logger     { return m }
-func (m *mockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *mockLogger) Sync() error                                   { return nil }
-func (m *mockLogger) Close() error                                  { return nil }
 
 // mockDiscovery 测试用 mock discovery.
 type mockDiscovery struct {
@@ -62,7 +43,7 @@ func TestNew(t *testing.T) {
 			WithName("test-client"),
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -84,7 +65,7 @@ func TestNew(t *testing.T) {
 		}()
 		New(
 			WithDiscovery(&mockDiscovery{addrs: []string{"localhost:8080"}}),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 	})
 
@@ -96,7 +77,7 @@ func TestNew(t *testing.T) {
 		}()
 		New(
 			WithServiceName("test-service"),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 	})
 
@@ -117,7 +98,7 @@ func TestNew(t *testing.T) {
 		_, err := New(
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err == nil {
 			t.Error("expected error when discovery fails")
@@ -132,7 +113,7 @@ func TestNew(t *testing.T) {
 		_, err := New(
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err == nil {
 			t.Error("expected error when no service found")
@@ -168,7 +149,7 @@ func TestClient_HTTPMethods(t *testing.T) {
 	client, err := New(
 		WithServiceName("test-service"),
 		WithDiscovery(disc),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 	)
 	if err != nil {
 		t.Fatalf("failed to create client: %v", err)
@@ -244,7 +225,7 @@ func TestClient_Headers(t *testing.T) {
 	client, err := New(
 		WithServiceName("test-service"),
 		WithDiscovery(disc),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 		WithHeader("X-Custom-Header", "custom-value"),
 		WithHeaders(map[string]string{
 			"X-Another-Header": "another-value",
@@ -312,6 +293,74 @@ func TestClientOptions(t *testing.T) {
 		}
 		if opts.timeout != 30*time.Second {
 			t.Errorf("expected default timeout 30s, got %v", opts.timeout)
+		}
+	})
+}
+
+func TestWithTLS_Option(t *testing.T) {
+	t.Run("WithTLS设置TLS配置", func(t *testing.T) {
+		opts := defaultOptions()
+		tlsCfg := &tls.Config{InsecureSkipVerify: true}
+		WithTLS(tlsCfg)(opts)
+		if opts.tlsConfig == nil {
+			t.Fatal("TLS config should not be nil")
+		}
+		if !opts.tlsConfig.InsecureSkipVerify {
+			t.Error("TLS config should have InsecureSkipVerify=true")
+		}
+	})
+
+	t.Run("WithTLS应用到TLS测试服务器", func(t *testing.T) {
+		srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(200)
+			w.Write([]byte("ok"))
+		}))
+		defer srv.Close()
+
+		// Use the test server's client TLS config (trusts the test CA)
+		srvTransport := srv.Client().Transport.(*http.Transport)
+		clientTLSCfg := srvTransport.TLSClientConfig
+
+		c := NewSimple(
+			WithBaseURL(srv.URL),
+			WithTLS(clientTLSCfg),
+		)
+
+		resp, err := c.DoRequest(t.Context(), &Request{Method: http.MethodGet, Path: "/test"})
+		if err != nil {
+			t.Fatalf("request error: %v", err)
+		}
+		if resp.StatusCode != 200 {
+			t.Errorf("expected status 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("applyTLSConfig_with_existing_transport", func(t *testing.T) {
+		original := &http.Transport{MaxIdleConns: 10}
+		tlsCfg := &tls.Config{InsecureSkipVerify: true}
+		rt := applyTLSConfig(original, tlsCfg)
+
+		tr, ok := rt.(*http.Transport)
+		if !ok {
+			t.Fatal("expected *http.Transport")
+		}
+		if tr.TLSClientConfig == nil {
+			t.Fatal("TLS config should be set")
+		}
+		if !tr.TLSClientConfig.InsecureSkipVerify {
+			t.Error("InsecureSkipVerify should be true")
+		}
+		// Clone returns a new transport; original should not have our custom TLS config
+		if original.TLSClientConfig != nil && original.TLSClientConfig.InsecureSkipVerify {
+			t.Error("original transport should not have InsecureSkipVerify")
+		}
+	})
+
+	t.Run("applyTLSConfig_nil_config", func(t *testing.T) {
+		original := http.DefaultTransport
+		rt := applyTLSConfig(original, nil)
+		if rt != original {
+			t.Error("should return original transport when TLS config is nil")
 		}
 	})
 }

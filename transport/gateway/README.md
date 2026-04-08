@@ -8,6 +8,9 @@
 - 单次注册同时暴露 gRPC 和 HTTP/JSON 端点
 - 内置健康检查（同时支持 HTTP 和 gRPC 协议）
 - 支持链路追踪、panic 恢复、认证（gRPC + HTTP 双端）
+- 支持 CORS、限流、指标采集、请求日志、Request ID（gRPC + HTTP 双端）
+- 支持客户端 IP 提取、多租户解析（gRPC + HTTP 双端）
+- 支持 HTTP 端 TLS
 - 支持统一响应格式
 - 支持 proto option 自动发现公开方法
 - 可自定义 protojson 序列化选项和 ServeMux 选项
@@ -74,6 +77,14 @@ type Registrar interface {
 | `WithAuth`              | -                | 启用认证                       |
 | `WithPublicMethods`     | -                | 设置公开方法（无需认证）       |
 | `WithAutoDiscovery`     | -                | 启用 proto option 自动发现     |
+| `WithCORS`              | -                | 启用 CORS（仅 HTTP 端）        |
+| `WithRateLimit`         | -                | 启用限流（gRPC + HTTP）        |
+| `WithMetrics`           | -                | 启用指标采集（gRPC + HTTP）    |
+| `WithLogging`           | -                | 启用请求日志（gRPC + HTTP）    |
+| `WithRequestID`         | -                | 启用 Request ID（gRPC + HTTP） |
+| `WithClientIP`          | -                | 启用客户端 IP 提取（gRPC + HTTP）|
+| `WithTenant`            | -                | 启用多租户解析（gRPC + HTTP）  |
+| `WithHTTPTLS`           | -                | 启用 HTTP 端 TLS               |
 
 ### 认证与公开方法
 
@@ -87,6 +98,45 @@ srv := gateway.New(
         "/api.user.v1.AuthService/*",
     ),
     gateway.WithAutoDiscovery(),
+)
+```
+
+### 中间件执行顺序
+
+Gateway 对 HTTP 和 gRPC 请求分别应用中间件，执行顺序如下：
+
+1. Recovery（HTTP + gRPC）
+2. RequestID（HTTP + gRPC）
+3. Logging（HTTP + gRPC）
+4. Tracing（HTTP + gRPC）
+5. Metrics（HTTP + gRPC）
+6. CORS（仅 HTTP）
+7. RateLimit（HTTP + gRPC）
+8. ClientIP（HTTP + gRPC）
+9. Tenant（HTTP + gRPC）
+10. Auth（gRPC 拦截器，HTTP 请求通过 gRPC 代理自动受保护）
+11. Health（HTTP）
+
+### 完整配置示例
+
+```go
+srv := gateway.New(
+    gateway.WithLogger(log),
+    gateway.WithName("api-gateway"),
+    gateway.WithGRPCAddr(":9090"),
+    gateway.WithHTTPAddr(":8080"),
+    gateway.WithRecovery(),
+    gateway.WithRequestID(),
+    gateway.WithLogging("/grpc.health.v1.Health/Check"),
+    gateway.WithTrace("api-gateway"),
+    gateway.WithMetrics(collector),
+    gateway.WithCORS(cors.WithAllowOrigins("https://example.com")),
+    gateway.WithRateLimit(limiter),
+    gateway.WithClientIP(),
+    gateway.WithTenant(resolver),
+    gateway.WithAuth(authenticator),
+    gateway.WithPublicMethods("/api.auth.v1.AuthService/*"),
+    gateway.WithResponse(),
 )
 ```
 

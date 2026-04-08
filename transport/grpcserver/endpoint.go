@@ -3,9 +3,10 @@ package grpcserver
 import (
 	"context"
 
+	"google.golang.org/grpc/metadata"
+
 	"github.com/Tsukikage7/servex/endpoint"
 	"github.com/Tsukikage7/servex/transport/response"
-	"google.golang.org/grpc/metadata"
 )
 
 // DecodeRequestFunc 从 gRPC 请求解码为业务请求对象.

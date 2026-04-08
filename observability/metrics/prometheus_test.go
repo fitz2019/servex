@@ -72,7 +72,7 @@ func TestPrometheusCollector_RecordHTTPRequest(t *testing.T) {
 
 func TestPrometheusCollector_RecordGRPCRequest(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 	}
 
@@ -99,7 +99,7 @@ func TestPrometheusCollector_RecordGRPCRequest(t *testing.T) {
 
 func TestPrometheusCollector_RecordPanic(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 	}
 
@@ -124,7 +124,7 @@ func TestPrometheusCollector_RecordPanic(t *testing.T) {
 
 func TestPrometheusCollector_UpdateGoroutineCount(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 	}
 
@@ -150,7 +150,7 @@ func TestPrometheusCollector_UpdateGoroutineCount(t *testing.T) {
 
 func TestPrometheusCollector_UpdateMemoryUsage(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 	}
 
@@ -249,7 +249,7 @@ func TestPrometheusCollector_Gauge(t *testing.T) {
 
 func TestPrometheusCollector_GetPath_Default(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 		Path:      "",
 	}
@@ -262,7 +262,7 @@ func TestPrometheusCollector_GetPath_Default(t *testing.T) {
 
 func TestPrometheusCollector_GetPath_Custom(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 		Path:      "/custom/metrics",
 	}
@@ -275,7 +275,7 @@ func TestPrometheusCollector_GetPath_Custom(t *testing.T) {
 
 func TestPrometheusCollector_GetHandler(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 	}
 
@@ -298,7 +298,7 @@ func TestPrometheusCollector_GetHandler(t *testing.T) {
 
 func TestPrometheusCollector_ConcurrentAccess(t *testing.T) {
 	cfg := &Config{
-		
+
 		Namespace: "test",
 	}
 

@@ -1,6 +1,6 @@
 # useragent
 
-`github.com/Tsukikage7/servex/request/useragent`
+`github.com/Tsukikage7/servex/httpx/useragent`
 
 User-Agent 字符串解析，提取浏览器、操作系统、设备类型和渲染引擎等信息。
 

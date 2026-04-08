@@ -4,9 +4,9 @@ package redis
 import "github.com/Tsukikage7/servex/observability/logger"
 
 type publisherOptions struct {
-	logger   logger.Logger
-	maxLen   int64 // stream max length (0 = unlimited)
-	approx   bool  // use MAXLEN ~ (approximate trimming)
+	logger logger.Logger
+	maxLen int64 // stream max length (0 = unlimited)
+	approx bool  // use MAXLEN ~ (approximate trimming)
 }
 
 // PublisherOption 配置 Redis Streams Publisher。

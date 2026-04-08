@@ -118,3 +118,55 @@ func TestApplyQueryHandler_SliceResult(t *testing.T) {
 	assert.Equal(t, "ORD-1", result[0].ID)
 	assert.Equal(t, "ORD-2", result[1].ID)
 }
+
+func TestChainQuery(t *testing.T) {
+	var order []string
+
+	mw1 := func(next QueryHandler[GetOrderQuery, OrderDTO]) QueryHandler[GetOrderQuery, OrderDTO] {
+		return &queryHandlerFunc[GetOrderQuery, OrderDTO]{
+			fn: func(ctx context.Context, query GetOrderQuery) (OrderDTO, error) {
+				order = append(order, "mw1:before")
+				result, err := next.Handle(ctx, query)
+				order = append(order, "mw1:after")
+				return result, err
+			},
+		}
+	}
+
+	mw2 := func(next QueryHandler[GetOrderQuery, OrderDTO]) QueryHandler[GetOrderQuery, OrderDTO] {
+		return &queryHandlerFunc[GetOrderQuery, OrderDTO]{
+			fn: func(ctx context.Context, query GetOrderQuery) (OrderDTO, error) {
+				order = append(order, "mw2:before")
+				result, err := next.Handle(ctx, query)
+				order = append(order, "mw2:after")
+				return result, err
+			},
+		}
+	}
+
+	handler := &getOrderHandler{}
+	chained := ChainQuery[GetOrderQuery, OrderDTO](handler, mw1, mw2)
+
+	result, err := chained.Handle(t.Context(), GetOrderQuery{OrderID: "ORD-123"})
+
+	require.NoError(t, err)
+	assert.Equal(t, "ORD-123", result.ID)
+	assert.Equal(t, []string{"mw1:before", "mw2:before", "mw2:after", "mw1:after"}, order)
+}
+
+func TestChainQuery_ErrorPropagation(t *testing.T) {
+	mw := func(next QueryHandler[GetOrderQuery, OrderDTO]) QueryHandler[GetOrderQuery, OrderDTO] {
+		return &queryHandlerFunc[GetOrderQuery, OrderDTO]{
+			fn: func(ctx context.Context, query GetOrderQuery) (OrderDTO, error) {
+				return next.Handle(ctx, query)
+			},
+		}
+	}
+
+	handler := &getOrderHandler{shouldFail: true}
+	chained := ChainQuery[GetOrderQuery, OrderDTO](handler, mw)
+
+	_, err := chained.Handle(t.Context(), GetOrderQuery{OrderID: "ORD-123"})
+	require.Error(t, err)
+	assert.Equal(t, "order not found", err.Error())
+}

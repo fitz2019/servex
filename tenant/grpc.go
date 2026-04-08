@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器租户拦截器.
@@ -142,17 +143,6 @@ func StreamServerInterceptor(resolver Resolver, opts ...Option) grpc.StreamServe
 		}
 
 		ctx = WithTenant(ctx, t)
-		wrapped := &wrappedServerStream{ServerStream: ss, ctx: ctx}
-		return handler(srv, wrapped)
+		return handler(srv, grpcx.WrapServerStream(ss, ctx))
 	}
-}
-
-// wrappedServerStream 包装 grpc.ServerStream 以替换 context.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }

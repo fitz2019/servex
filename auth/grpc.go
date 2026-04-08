@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器认证拦截器.
@@ -159,19 +160,9 @@ func StreamServerInterceptor(authenticator Authenticator, opts ...Option) grpc.S
 			}
 		}
 
-		wrapped := &wrappedServerStream{ServerStream: ss, ctx: ctx}
+		wrapped := grpcx.WrapServerStream(ss, ctx)
 		return handler(srv, wrapped)
 	}
-}
-
-// wrappedServerStream 包装 grpc.ServerStream 以替换 context.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }
 
 // DefaultGRPCCredentialsExtractor 默认的 gRPC 凭据提取器.

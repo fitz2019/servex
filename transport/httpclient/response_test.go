@@ -4,8 +4,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	servexerrors "github.com/Tsukikage7/servex/errors"
 	stderrors "errors"
+
+	servexerrors "github.com/Tsukikage7/servex/errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

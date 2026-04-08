@@ -6,9 +6,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Tsukikage7/servex/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Tsukikage7/servex/config"
 )
 
 func TestSource_Load_NoPrefix(t *testing.T) {

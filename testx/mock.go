@@ -12,22 +12,22 @@ import (
 // nopLogger 空操作日志记录器，丢弃所有日志输出.
 type nopLogger struct{}
 
-func (n *nopLogger) Debug(_ ...any)                                  {}
-func (n *nopLogger) Debugf(_ string, _ ...any)                       {}
-func (n *nopLogger) Info(_ ...any)                                   {}
-func (n *nopLogger) Infof(_ string, _ ...any)                        {}
-func (n *nopLogger) Warn(_ ...any)                                   {}
-func (n *nopLogger) Warnf(_ string, _ ...any)                        {}
-func (n *nopLogger) Error(_ ...any)                                  {}
-func (n *nopLogger) Errorf(_ string, _ ...any)                       {}
-func (n *nopLogger) Fatal(_ ...any)                                  {}
-func (n *nopLogger) Fatalf(_ string, _ ...any)                       {}
-func (n *nopLogger) Panic(_ ...any)                                  {}
-func (n *nopLogger) Panicf(_ string, _ ...any)                       {}
-func (n *nopLogger) With(_ ...logger.Field) logger.Logger            { return n }
-func (n *nopLogger) WithContext(_ context.Context) logger.Logger     { return n }
-func (n *nopLogger) Sync() error                                     { return nil }
-func (n *nopLogger) Close() error                                    { return nil }
+func (n *nopLogger) Debug(_ ...any)                              {}
+func (n *nopLogger) Debugf(_ string, _ ...any)                   {}
+func (n *nopLogger) Info(_ ...any)                               {}
+func (n *nopLogger) Infof(_ string, _ ...any)                    {}
+func (n *nopLogger) Warn(_ ...any)                               {}
+func (n *nopLogger) Warnf(_ string, _ ...any)                    {}
+func (n *nopLogger) Error(_ ...any)                              {}
+func (n *nopLogger) Errorf(_ string, _ ...any)                   {}
+func (n *nopLogger) Fatal(_ ...any)                              {}
+func (n *nopLogger) Fatalf(_ string, _ ...any)                   {}
+func (n *nopLogger) Panic(_ ...any)                              {}
+func (n *nopLogger) Panicf(_ string, _ ...any)                   {}
+func (n *nopLogger) With(_ ...logger.Field) logger.Logger        { return n }
+func (n *nopLogger) WithContext(_ context.Context) logger.Logger { return n }
+func (n *nopLogger) Sync() error                                 { return nil }
+func (n *nopLogger) Close() error                                { return nil }
 
 // NopLogger 返回一个空操作日志记录器，实现了 logger.Logger 的所有方法但不产生任何输出.
 func NopLogger() logger.Logger {
@@ -66,18 +66,30 @@ func (l *testLogger) fieldPrefix() string {
 	return s
 }
 
-func (l *testLogger) Debug(args ...any)                 { l.t.Helper(); l.log("DEBUG", args...) }
-func (l *testLogger) Debugf(format string, args ...any) { l.t.Helper(); l.logf("DEBUG", format, args...) }
-func (l *testLogger) Info(args ...any)                  { l.t.Helper(); l.log("INFO", args...) }
-func (l *testLogger) Infof(format string, args ...any)  { l.t.Helper(); l.logf("INFO", format, args...) }
-func (l *testLogger) Warn(args ...any)                  { l.t.Helper(); l.log("WARN", args...) }
-func (l *testLogger) Warnf(format string, args ...any)  { l.t.Helper(); l.logf("WARN", format, args...) }
-func (l *testLogger) Error(args ...any)                 { l.t.Helper(); l.log("ERROR", args...) }
-func (l *testLogger) Errorf(format string, args ...any) { l.t.Helper(); l.logf("ERROR", format, args...) }
-func (l *testLogger) Fatal(args ...any)                 { l.t.Helper(); l.log("FATAL", args...) }
-func (l *testLogger) Fatalf(format string, args ...any) { l.t.Helper(); l.logf("FATAL", format, args...) }
-func (l *testLogger) Panic(args ...any)                 { l.t.Helper(); l.log("PANIC", args...) }
-func (l *testLogger) Panicf(format string, args ...any) { l.t.Helper(); l.logf("PANIC", format, args...) }
+func (l *testLogger) Debug(args ...any) { l.t.Helper(); l.log("DEBUG", args...) }
+func (l *testLogger) Debugf(format string, args ...any) {
+	l.t.Helper()
+	l.logf("DEBUG", format, args...)
+}
+func (l *testLogger) Info(args ...any)                 { l.t.Helper(); l.log("INFO", args...) }
+func (l *testLogger) Infof(format string, args ...any) { l.t.Helper(); l.logf("INFO", format, args...) }
+func (l *testLogger) Warn(args ...any)                 { l.t.Helper(); l.log("WARN", args...) }
+func (l *testLogger) Warnf(format string, args ...any) { l.t.Helper(); l.logf("WARN", format, args...) }
+func (l *testLogger) Error(args ...any)                { l.t.Helper(); l.log("ERROR", args...) }
+func (l *testLogger) Errorf(format string, args ...any) {
+	l.t.Helper()
+	l.logf("ERROR", format, args...)
+}
+func (l *testLogger) Fatal(args ...any) { l.t.Helper(); l.log("FATAL", args...) }
+func (l *testLogger) Fatalf(format string, args ...any) {
+	l.t.Helper()
+	l.logf("FATAL", format, args...)
+}
+func (l *testLogger) Panic(args ...any) { l.t.Helper(); l.log("PANIC", args...) }
+func (l *testLogger) Panicf(format string, args ...any) {
+	l.t.Helper()
+	l.logf("PANIC", format, args...)
+}
 
 func (l *testLogger) With(fields ...logger.Field) logger.Logger {
 	merged := make([]logger.Field, len(l.fields)+len(fields))

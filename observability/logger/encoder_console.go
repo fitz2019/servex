@@ -354,26 +354,40 @@ type primitiveEncoder struct {
 	buf *buffer.Buffer
 }
 
-func (e *primitiveEncoder) AppendString(v string)                        { e.buf.AppendString(v) }
-func (e *primitiveEncoder) AppendBool(v bool)                            { e.buf.AppendString(strconv.FormatBool(v)) }
-func (e *primitiveEncoder) AppendByteString(v []byte)                    { e.buf.AppendString(string(v)) }
-func (e *primitiveEncoder) AppendInt(v int)                              { e.buf.AppendString(strconv.Itoa(v)) }
-func (e *primitiveEncoder) AppendInt64(v int64)                          { e.buf.AppendString(strconv.FormatInt(v, 10)) }
-func (e *primitiveEncoder) AppendInt32(v int32)                          { e.buf.AppendString(strconv.FormatInt(int64(v), 10)) }
-func (e *primitiveEncoder) AppendInt16(v int16)                          { e.buf.AppendString(strconv.FormatInt(int64(v), 10)) }
-func (e *primitiveEncoder) AppendInt8(v int8)                            { e.buf.AppendString(strconv.FormatInt(int64(v), 10)) }
-func (e *primitiveEncoder) AppendUint(v uint)                            { e.buf.AppendString(strconv.FormatUint(uint64(v), 10)) }
-func (e *primitiveEncoder) AppendUint64(v uint64)                        { e.buf.AppendString(strconv.FormatUint(v, 10)) }
-func (e *primitiveEncoder) AppendUint32(v uint32)                        { e.buf.AppendString(strconv.FormatUint(uint64(v), 10)) }
-func (e *primitiveEncoder) AppendUint16(v uint16)                        { e.buf.AppendString(strconv.FormatUint(uint64(v), 10)) }
-func (e *primitiveEncoder) AppendUint8(v uint8)                          { e.buf.AppendString(strconv.FormatUint(uint64(v), 10)) }
-func (e *primitiveEncoder) AppendUintptr(v uintptr)                      { e.buf.AppendString(strconv.FormatUint(uint64(v), 10)) }
-func (e *primitiveEncoder) AppendFloat64(v float64)                      { e.buf.AppendString(strconv.FormatFloat(v, 'g', -1, 64)) }
-func (e *primitiveEncoder) AppendFloat32(v float32)                      { e.buf.AppendString(strconv.FormatFloat(float64(v), 'g', -1, 32)) }
-func (e *primitiveEncoder) AppendComplex128(_ complex128)                {}
-func (e *primitiveEncoder) AppendComplex64(_ complex64)                  {}
-func (e *primitiveEncoder) AppendDuration(v time.Duration)               { e.buf.AppendString(v.String()) }
-func (e *primitiveEncoder) AppendTime(v time.Time)                       { e.buf.AppendString(v.Format("2006-01-02 15:04:05")) }
+func (e *primitiveEncoder) AppendString(v string)     { e.buf.AppendString(v) }
+func (e *primitiveEncoder) AppendBool(v bool)         { e.buf.AppendString(strconv.FormatBool(v)) }
+func (e *primitiveEncoder) AppendByteString(v []byte) { e.buf.AppendString(string(v)) }
+func (e *primitiveEncoder) AppendInt(v int)           { e.buf.AppendString(strconv.Itoa(v)) }
+func (e *primitiveEncoder) AppendInt64(v int64)       { e.buf.AppendString(strconv.FormatInt(v, 10)) }
+func (e *primitiveEncoder) AppendInt32(v int32)       { e.buf.AppendString(strconv.FormatInt(int64(v), 10)) }
+func (e *primitiveEncoder) AppendInt16(v int16)       { e.buf.AppendString(strconv.FormatInt(int64(v), 10)) }
+func (e *primitiveEncoder) AppendInt8(v int8)         { e.buf.AppendString(strconv.FormatInt(int64(v), 10)) }
+func (e *primitiveEncoder) AppendUint(v uint)         { e.buf.AppendString(strconv.FormatUint(uint64(v), 10)) }
+func (e *primitiveEncoder) AppendUint64(v uint64)     { e.buf.AppendString(strconv.FormatUint(v, 10)) }
+func (e *primitiveEncoder) AppendUint32(v uint32) {
+	e.buf.AppendString(strconv.FormatUint(uint64(v), 10))
+}
+func (e *primitiveEncoder) AppendUint16(v uint16) {
+	e.buf.AppendString(strconv.FormatUint(uint64(v), 10))
+}
+func (e *primitiveEncoder) AppendUint8(v uint8) {
+	e.buf.AppendString(strconv.FormatUint(uint64(v), 10))
+}
+func (e *primitiveEncoder) AppendUintptr(v uintptr) {
+	e.buf.AppendString(strconv.FormatUint(uint64(v), 10))
+}
+func (e *primitiveEncoder) AppendFloat64(v float64) {
+	e.buf.AppendString(strconv.FormatFloat(v, 'g', -1, 64))
+}
+func (e *primitiveEncoder) AppendFloat32(v float32) {
+	e.buf.AppendString(strconv.FormatFloat(float64(v), 'g', -1, 32))
+}
+func (e *primitiveEncoder) AppendComplex128(_ complex128)  {}
+func (e *primitiveEncoder) AppendComplex64(_ complex64)    {}
+func (e *primitiveEncoder) AppendDuration(v time.Duration) { e.buf.AppendString(v.String()) }
+func (e *primitiveEncoder) AppendTime(v time.Time) {
+	e.buf.AppendString(v.Format("2006-01-02 15:04:05"))
+}
 func (e *primitiveEncoder) AppendArray(_ zapcore.ArrayMarshaler) error   { return nil }
 func (e *primitiveEncoder) AppendObject(_ zapcore.ObjectMarshaler) error { return nil }
 func (e *primitiveEncoder) AppendReflected(v any) error {

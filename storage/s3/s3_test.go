@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/storage/s3"
+	"github.com/Tsukikage7/servex/testx"
 )
 
 // 默认指向本地 MinIO 实例.
@@ -23,46 +23,6 @@ var (
 	// s3Available 由 TestMain 探测，避免每个测试重复连接.
 	s3Available bool
 )
-
-// testLog 简单 logger 实现.
-type testLog struct{ t *testing.T }
-
-func (l *testLog) Debug(args ...any)                             {}
-func (l *testLog) Debugf(fmt string, args ...any)               {}
-func (l *testLog) Info(args ...any)                             {}
-func (l *testLog) Infof(fmt string, args ...any)                {}
-func (l *testLog) Warn(args ...any)                             {}
-func (l *testLog) Warnf(fmt string, args ...any)                {}
-func (l *testLog) Error(args ...any)                            {}
-func (l *testLog) Errorf(fmt string, args ...any)               {}
-func (l *testLog) Fatal(args ...any)                            {}
-func (l *testLog) Fatalf(fmt string, args ...any)               {}
-func (l *testLog) Panic(args ...any)                            {}
-func (l *testLog) Panicf(fmt string, args ...any)               {}
-func (l *testLog) With(...logger.Field) logger.Logger           { return l }
-func (l *testLog) WithContext(context.Context) logger.Logger    { return l }
-func (l *testLog) Sync() error                                  { return nil }
-func (l *testLog) Close() error                                 { return nil }
-
-// nopLog 无 t 的 nop logger，供 TestMain 使用.
-type nopLog struct{}
-
-func (l *nopLog) Debug(args ...any)                             {}
-func (l *nopLog) Debugf(fmt string, args ...any)               {}
-func (l *nopLog) Info(args ...any)                             {}
-func (l *nopLog) Infof(fmt string, args ...any)                {}
-func (l *nopLog) Warn(args ...any)                             {}
-func (l *nopLog) Warnf(fmt string, args ...any)                {}
-func (l *nopLog) Error(args ...any)                            {}
-func (l *nopLog) Errorf(fmt string, args ...any)               {}
-func (l *nopLog) Fatal(args ...any)                            {}
-func (l *nopLog) Fatalf(fmt string, args ...any)               {}
-func (l *nopLog) Panic(args ...any)                            {}
-func (l *nopLog) Panicf(fmt string, args ...any)               {}
-func (l *nopLog) With(...logger.Field) logger.Logger           { return l }
-func (l *nopLog) WithContext(context.Context) logger.Logger    { return l }
-func (l *nopLog) Sync() error                                  { return nil }
-func (l *nopLog) Close() error                                 { return nil }
 
 func TestMain(m *testing.M) {
 	if ep := os.Getenv("S3_ENDPOINT"); ep != "" {
@@ -97,7 +57,7 @@ func probeS3() bool {
 		RequestTimeout: 2 * time.Second,
 		MaxRetries:     0,
 	}
-	client, err := s3.NewClient(cfg, &nopLog{})
+	client, err := s3.NewClient(cfg, testx.NopLogger())
 	if err != nil {
 		return false
 	}
@@ -131,7 +91,7 @@ func newTestClient(t *testing.T) s3.Client {
 		RequestTimeout: 10 * time.Second,
 	}
 
-	client, err := s3.NewClient(cfg, &testLog{t: t})
+	client, err := s3.NewClient(cfg, testx.NopLogger())
 	if err != nil {
 		t.Fatalf("创建 S3 客户端失败: %v", err)
 	}
@@ -141,7 +101,7 @@ func newTestClient(t *testing.T) s3.Client {
 // ---- 单元测试（不需要服务）----
 
 func TestNewClient_NilConfig(t *testing.T) {
-	_, err := s3.NewClient(nil, &nopLog{})
+	_, err := s3.NewClient(nil, testx.NopLogger())
 	if err != s3.ErrNilConfig {
 		t.Errorf("期望 ErrNilConfig，得到 %v", err)
 	}
@@ -157,7 +117,7 @@ func TestNewClient_NilLogger(t *testing.T) {
 
 func TestNewClient_EmptyEndpoint(t *testing.T) {
 	cfg := &s3.Config{Bucket: "test"}
-	_, err := s3.NewClient(cfg, &nopLog{})
+	_, err := s3.NewClient(cfg, testx.NopLogger())
 	if err != s3.ErrEmptyEndpoint {
 		t.Errorf("期望 ErrEmptyEndpoint，得到 %v", err)
 	}
@@ -165,7 +125,7 @@ func TestNewClient_EmptyEndpoint(t *testing.T) {
 
 func TestNewClient_EmptyBucket(t *testing.T) {
 	cfg := &s3.Config{Endpoint: "http://localhost:9000"}
-	_, err := s3.NewClient(cfg, &nopLog{})
+	_, err := s3.NewClient(cfg, testx.NopLogger())
 	if err != s3.ErrEmptyBucket {
 		t.Errorf("期望 ErrEmptyBucket，得到 %v", err)
 	}

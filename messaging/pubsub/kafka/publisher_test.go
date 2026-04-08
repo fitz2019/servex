@@ -7,6 +7,7 @@ import (
 
 	"github.com/IBM/sarama"
 	"github.com/IBM/sarama/mocks"
+
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 

@@ -7,9 +7,10 @@ import (
 	"sync"
 	"time"
 
+	clientv3 "go.etcd.io/etcd/client/v3"
+
 	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/transport"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 const (

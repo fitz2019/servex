@@ -9,6 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器超时拦截器.
@@ -102,10 +103,7 @@ func StreamServerInterceptor(timeout time.Duration, opts ...Option) grpc.StreamS
 		defer cancel()
 
 		// 包装 ServerStream 以使用新的 context
-		wrapped := &wrappedServerStream{
-			ServerStream: ss,
-			ctx:          ctx,
-		}
+		wrapped := grpcx.WrapServerStream(ss, ctx)
 
 		type result struct {
 			err error
@@ -135,16 +133,6 @@ func StreamServerInterceptor(timeout time.Duration, opts ...Option) grpc.StreamS
 			return r.err
 		}
 	}
-}
-
-// wrappedServerStream 包装 grpc.ServerStream 以替换 context.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }
 
 // UnaryClientInterceptor 返回 gRPC 一元客户端超时拦截器.

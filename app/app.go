@@ -2,10 +2,10 @@
 package app
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"os"
-	"cmp"
 	"os/signal"
 	"slices"
 	"sync"

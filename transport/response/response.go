@@ -23,8 +23,8 @@ type Envelope interface {
 //	    "data": { ... }
 //	}
 type Response[T any] struct {
-	Code    int    `json:"code"`           // 业务状态码
-	Message string `json:"message"`        // 响应消息
+	Code    int    `json:"code"`          // 业务状态码
+	Message string `json:"message"`       // 响应消息
 	Data    T      `json:"data,omitzero"` // 业务数据
 }
 
@@ -39,8 +39,8 @@ type Response[T any] struct {
 //	    "pagination": { ... }
 //	}
 type PagedResponse[T any] struct {
-	Code       int       `json:"code"`                 // 业务状态码
-	Message    string    `json:"message"`              // 响应消息
+	Code       int       `json:"code"`                // 业务状态码
+	Message    string    `json:"message"`             // 响应消息
 	Data       []T       `json:"data,omitzero"`       // 业务数据列表
 	Pagination *PageInfo `json:"pagination,omitzero"` // 分页信息
 }

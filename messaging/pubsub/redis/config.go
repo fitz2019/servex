@@ -2,8 +2,9 @@
 package redis
 
 import (
-	"github.com/Tsukikage7/servex/observability/logger"
 	goredis "github.com/redis/go-redis/v9"
+
+	"github.com/Tsukikage7/servex/observability/logger"
 )
 
 // NewPublisherFromConfig 根据连接参数创建 Publisher，内部自动创建 redis.Client。

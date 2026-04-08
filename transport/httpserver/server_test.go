@@ -2,33 +2,15 @@ package httpserver
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/testx"
 )
-
-// mockLogger 测试用 mock logger.
-type mockLogger struct{}
-
-func (m *mockLogger) Debug(args ...any)                             {}
-func (m *mockLogger) Debugf(format string, args ...any)             {}
-func (m *mockLogger) Info(args ...any)                              {}
-func (m *mockLogger) Infof(format string, args ...any)              {}
-func (m *mockLogger) Warn(args ...any)                              {}
-func (m *mockLogger) Warnf(format string, args ...any)              {}
-func (m *mockLogger) Error(args ...any)                             {}
-func (m *mockLogger) Errorf(format string, args ...any)             {}
-func (m *mockLogger) Fatal(args ...any)                             {}
-func (m *mockLogger) Fatalf(format string, args ...any)             {}
-func (m *mockLogger) Panic(args ...any)                             {}
-func (m *mockLogger) Panicf(format string, args ...any)             {}
-func (m *mockLogger) With(fields ...logger.Field) logger.Logger     { return m }
-func (m *mockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *mockLogger) Sync() error                                   { return nil }
-func (m *mockLogger) Close() error                                  { return nil }
 
 func getAvailablePort(t *testing.T) string {
 	l, err := net.Listen("tcp", ":0")
@@ -46,7 +28,7 @@ func TestNew(t *testing.T) {
 		srv := New(mux,
 			WithName("test-http"),
 			WithAddr(":8080"),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 
 		if srv.Name() != "test-http" {
@@ -75,7 +57,7 @@ func TestNew(t *testing.T) {
 	})
 
 	t.Run("默认值", func(t *testing.T) {
-		srv := New(mux, WithLogger(&mockLogger{}))
+		srv := New(mux, WithLogger(testx.NopLogger()))
 
 		if srv.Name() != "HTTP" {
 			t.Errorf("expected default name 'HTTP', got '%s'", srv.Name())
@@ -95,7 +77,7 @@ func TestServer_StartAndStop(t *testing.T) {
 
 	srv := New(mux,
 		WithAddr(addr),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 	)
 
 	ctx, cancel := context.WithCancel(t.Context())
@@ -141,7 +123,7 @@ func TestServer_StartAndStop(t *testing.T) {
 
 func TestServer_StopNotStarted(t *testing.T) {
 	mux := http.NewServeMux()
-	srv := New(mux, WithLogger(&mockLogger{}))
+	srv := New(mux, WithLogger(testx.NopLogger()))
 
 	err := srv.Stop(t.Context())
 	if err != nil {
@@ -154,7 +136,7 @@ func TestServerOptions(t *testing.T) {
 
 	t.Run("ReadTimeout", func(t *testing.T) {
 		srv := New(mux,
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithTimeout(10*time.Second, 0, 0),
 		)
 		if srv.opts.readTimeout != 10*time.Second {
@@ -164,7 +146,7 @@ func TestServerOptions(t *testing.T) {
 
 	t.Run("WriteTimeout", func(t *testing.T) {
 		srv := New(mux,
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithTimeout(0, 15*time.Second, 0),
 		)
 		if srv.opts.writeTimeout != 15*time.Second {
@@ -174,7 +156,7 @@ func TestServerOptions(t *testing.T) {
 
 	t.Run("IdleTimeout", func(t *testing.T) {
 		srv := New(mux,
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithTimeout(0, 0, 60*time.Second),
 		)
 		if srv.opts.idleTimeout != 60*time.Second {
@@ -183,7 +165,7 @@ func TestServerOptions(t *testing.T) {
 	})
 
 	t.Run("默认超时值", func(t *testing.T) {
-		srv := New(mux, WithLogger(&mockLogger{}))
+		srv := New(mux, WithLogger(testx.NopLogger()))
 
 		if srv.opts.readTimeout != 30*time.Second {
 			t.Errorf("expected default read timeout 30s, got %v", srv.opts.readTimeout)
@@ -193,6 +175,218 @@ func TestServerOptions(t *testing.T) {
 		}
 		if srv.opts.idleTimeout != 120*time.Second {
 			t.Errorf("expected default idle timeout 120s, got %v", srv.opts.idleTimeout)
+		}
+	})
+}
+
+func TestEndpointHandler(t *testing.T) {
+	t.Run("basic endpoint", func(t *testing.T) {
+		ep := func(ctx context.Context, req any) (any, error) {
+			return map[string]string{"msg": "hello"}, nil
+		}
+		dec := func(ctx context.Context, r *http.Request) (any, error) {
+			return nil, nil
+		}
+
+		handler := NewEndpointHandler(ep, dec, EncodeJSONResponse)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("expected 200, got %d", rec.Code)
+		}
+		if rec.Header().Get("Content-Type") != "application/json; charset=utf-8" {
+			t.Errorf("unexpected content-type: %s", rec.Header().Get("Content-Type"))
+		}
+	})
+
+	t.Run("decode error", func(t *testing.T) {
+		ep := func(ctx context.Context, req any) (any, error) {
+			return nil, nil
+		}
+		dec := func(ctx context.Context, r *http.Request) (any, error) {
+			return nil, errors.New("decode error")
+		}
+
+		handler := NewEndpointHandler(ep, dec, EncodeJSONResponse)
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Errorf("expected 500, got %d", rec.Code)
+		}
+	})
+
+	t.Run("endpoint error", func(t *testing.T) {
+		ep := func(ctx context.Context, req any) (any, error) {
+			return nil, errors.New("endpoint error")
+		}
+		dec := func(ctx context.Context, r *http.Request) (any, error) {
+			return nil, nil
+		}
+
+		handler := NewEndpointHandler(ep, dec, EncodeJSONResponse)
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusInternalServerError {
+			t.Errorf("expected 500, got %d", rec.Code)
+		}
+	})
+
+	t.Run("with before func", func(t *testing.T) {
+		var beforeCalled bool
+		ep := func(ctx context.Context, req any) (any, error) {
+			return "ok", nil
+		}
+		dec := func(ctx context.Context, r *http.Request) (any, error) {
+			return nil, nil
+		}
+
+		handler := NewEndpointHandler(ep, dec, EncodeJSONResponse,
+			WithBefore(func(ctx context.Context, r *http.Request) context.Context {
+				beforeCalled = true
+				return ctx
+			}),
+		)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if !beforeCalled {
+			t.Error("before func should be called")
+		}
+	})
+
+	t.Run("with after func", func(t *testing.T) {
+		var afterCalled bool
+		ep := func(ctx context.Context, req any) (any, error) {
+			return "ok", nil
+		}
+		dec := func(ctx context.Context, r *http.Request) (any, error) {
+			return nil, nil
+		}
+
+		handler := NewEndpointHandler(ep, dec, EncodeJSONResponse,
+			WithAfter(func(ctx context.Context, w http.ResponseWriter) context.Context {
+				afterCalled = true
+				return ctx
+			}),
+		)
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if !afterCalled {
+			t.Error("after func should be called")
+		}
+	})
+}
+
+func TestRouter(t *testing.T) {
+	t.Run("basic routing", func(t *testing.T) {
+		router := NewRouter()
+		router.GET("/hello", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("hello"))
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/hello", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		if rec.Body.String() != "hello" {
+			t.Errorf("expected 'hello', got %q", rec.Body.String())
+		}
+	})
+
+	t.Run("group prefix", func(t *testing.T) {
+		router := NewRouter()
+		api := router.Group("/api/v1")
+		api.GET("/users", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("users"))
+		}))
+
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/users", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		if rec.Body.String() != "users" {
+			t.Errorf("expected 'users', got %q", rec.Body.String())
+		}
+	})
+
+	t.Run("middleware execution order", func(t *testing.T) {
+		var order []string
+		mw := func(name string) Middleware {
+			return func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					order = append(order, name)
+					next.ServeHTTP(w, r)
+				})
+			}
+		}
+
+		router := NewRouter(mw("global"))
+		router.GET("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			order = append(order, "handler")
+		}), mw("route"))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		rec := httptest.NewRecorder()
+		router.ServeHTTP(rec, req)
+
+		expected := []string{"global", "route", "handler"}
+		if len(order) != len(expected) {
+			t.Fatalf("expected %v, got %v", expected, order)
+		}
+		for i, v := range expected {
+			if order[i] != v {
+				t.Errorf("order[%d]: expected %q, got %q", i, v, order[i])
+			}
+		}
+	})
+
+	t.Run("Use adds middleware", func(t *testing.T) {
+		var useCalled bool
+		router := NewRouter()
+		router.Use(func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				useCalled = true
+				next.ServeHTTP(w, r)
+			})
+		})
+		router.GET("/test", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		router.ServeHTTP(httptest.NewRecorder(), req)
+
+		if !useCalled {
+			t.Error("Use middleware should be called")
+		}
+	})
+
+	t.Run("all HTTP methods", func(t *testing.T) {
+		router := NewRouter()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+		router.POST("/res", handler)
+		router.PUT("/res", handler)
+		router.PATCH("/res", handler)
+		router.DELETE("/res", handler)
+		router.Handle("OPTIONS /res", handler)
+
+		for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions} {
+			req := httptest.NewRequest(method, "/res", nil)
+			rec := httptest.NewRecorder()
+			router.ServeHTTP(rec, req)
+			if rec.Code != http.StatusOK {
+				t.Errorf("%s /res: expected 200, got %d", method, rec.Code)
+			}
 		}
 	})
 }

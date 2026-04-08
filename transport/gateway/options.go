@@ -2,6 +2,8 @@ package gateway
 
 import (
 	"context"
+	"crypto/tls"
+	"net/http"
 	"strings"
 	"time"
 
@@ -10,9 +12,16 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Tsukikage7/servex/auth"
-	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/httpx/clientip"
+	"github.com/Tsukikage7/servex/middleware/cors"
+	"github.com/Tsukikage7/servex/middleware/logging"
+	"github.com/Tsukikage7/servex/middleware/ratelimit"
 	"github.com/Tsukikage7/servex/middleware/recovery"
+	"github.com/Tsukikage7/servex/middleware/requestid"
+	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/observability/metrics"
 	"github.com/Tsukikage7/servex/observability/tracing"
+	"github.com/Tsukikage7/servex/tenant"
 	"github.com/Tsukikage7/servex/transport"
 	"github.com/Tsukikage7/servex/transport/health"
 	"github.com/Tsukikage7/servex/transport/response"
@@ -50,6 +59,9 @@ type options struct {
 	healthTimeout time.Duration
 	healthOptions []health.Option
 
+	// HTTP 中间件链（按添加顺序从外到内包装）
+	httpMiddlewares []func(http.Handler) http.Handler
+
 	// Trace
 	tracerName string // 链路追踪服务名，为空则不启用
 
@@ -59,12 +71,41 @@ type options struct {
 	// Recovery
 	enableRecovery bool // 是否启用 panic 恢复
 
+	// CORS（仅 HTTP）
+	corsOpts   []cors.Option
+	enableCORS bool
+
+	// RequestID
+	enableRequestID bool
+	requestIDOpts   []requestid.Option
+
+	// Logging
+	enableLogging    bool
+	loggingSkipPaths []string
+
+	// Metrics
+	metricsCollector *metrics.PrometheusCollector
+
+	// RateLimit
+	rateLimiter ratelimit.Limiter
+
+	// ClientIP
+	enableClientIP bool
+	clientIPOpts   []clientip.Option
+
+	// Tenant
+	tenantResolver tenant.Resolver
+	tenantOpts     []tenant.Option
+
+	// HTTP TLS
+	httpTLSConfig *tls.Config
+
 	// Auth
 	authenticator       auth.Authenticator
 	authOptions         []auth.Option
-	publicMethods       []string          // 公开方法（无需认证）
-	enableAutoDiscovery bool              // 启用 proto option 自动发现
-	discoveredMethods   map[string]bool   // 自动发现的公开方法（延迟填充）
+	publicMethods       []string        // 公开方法（无需认证）
+	enableAutoDiscovery bool            // 启用 proto option 自动发现
+	discoveredMethods   map[string]bool // 自动发现的公开方法（延迟填充）
 
 	logger logger.Logger
 }
@@ -332,6 +373,183 @@ func WithPublicMethods(methods ...string) Option {
 func WithAutoDiscovery() Option {
 	return func(o *options) {
 		o.enableAutoDiscovery = true
+	}
+}
+
+// WithCORS 启用 CORS 中间件（仅 HTTP 端）.
+//
+// CORS 处理仅在 HTTP 层进行，gRPC 端不需要 CORS 支持.
+//
+// 示例:
+//
+//	gateway.WithCORS(
+//	    cors.WithAllowOrigins("https://example.com"),
+//	    cors.WithAllowCredentials(true),
+//	)
+func WithCORS(opts ...cors.Option) Option {
+	return func(o *options) {
+		o.enableCORS = true
+		o.corsOpts = opts
+	}
+}
+
+// WithRateLimit 启用限流（gRPC + HTTP 双端）.
+//
+// HTTP 端使用 ratelimit.HTTPMiddleware 返回 429 状态码；
+// gRPC 端使用一元和流拦截器返回 ResourceExhausted 错误.
+//
+// 示例:
+//
+//	limiter := ratelimit.NewTokenBucket(100, 200)
+//	gateway.WithRateLimit(limiter)
+func WithRateLimit(limiter ratelimit.Limiter) Option {
+	return func(o *options) {
+		o.rateLimiter = limiter
+	}
+}
+
+// WithMetrics 启用指标采集（gRPC + HTTP 双端）.
+//
+// HTTP 端记录请求方法、路径、状态码和耗时；
+// gRPC 端记录方法名、状态码和耗时.
+//
+// 示例:
+//
+//	collector, _ := metrics.New(metricsCfg)
+//	gateway.WithMetrics(collector)
+func WithMetrics(collector *metrics.PrometheusCollector) Option {
+	return func(o *options) {
+		o.metricsCollector = collector
+	}
+}
+
+// WithLogging 启用请求日志（gRPC + HTTP 双端）.
+//
+// HTTP 端记录方法、路径、状态码和耗时；
+// gRPC 端记录方法名、状态码和耗时.
+// 可通过 skipMethods 跳过不需要记录的 gRPC 方法或 HTTP 路径.
+//
+// 示例:
+//
+//	gateway.WithLogging("/grpc.health.v1.Health/Check")
+func WithLogging(skipMethods ...string) Option {
+	return func(o *options) {
+		o.enableLogging = true
+		o.loggingSkipPaths = skipMethods
+	}
+}
+
+// WithTenant 启用多租户解析（gRPC + HTTP 双端）.
+//
+// HTTP 端和 gRPC 端分别使用对应的租户中间件和拦截器.
+//
+// 示例:
+//
+//	gateway.WithTenant(resolver,
+//	    tenant.WithTokenExtractor(tenant.HeaderTokenExtractor("X-Tenant-ID")),
+//	)
+func WithTenant(resolver tenant.Resolver, opts ...tenant.Option) Option {
+	return func(o *options) {
+		o.tenantResolver = resolver
+		o.tenantOpts = opts
+	}
+}
+
+// WithClientIP 启用客户端 IP 提取（gRPC + HTTP 双端）.
+//
+// HTTP 端从 X-Forwarded-For / X-Real-IP / RemoteAddr 提取；
+// gRPC 端从 metadata 和 peer 地址提取.
+//
+// 示例:
+//
+//	gateway.WithClientIP(clientip.WithTrustPrivateProxies())
+func WithClientIP(opts ...clientip.Option) Option {
+	return func(o *options) {
+		o.enableClientIP = true
+		o.clientIPOpts = opts
+	}
+}
+
+// WithRequestID 启用 Request ID（gRPC + HTTP 双端）.
+//
+// 自动生成或透传请求 ID，注入 context 并写入响应头/metadata.
+//
+// 示例:
+//
+//	gateway.WithRequestID()
+func WithRequestID() Option {
+	return func(o *options) {
+		o.enableRequestID = true
+	}
+}
+
+// WithHTTPTLS 启用 HTTP 端 TLS.
+//
+// 传入 *tls.Config 后，HTTP 服务器启动时将使用 ListenAndServeTLS.
+// gRPC 端的 TLS 需要通过 gRPC DialOption 或 ServerOption 单独配置.
+//
+// 示例:
+//
+//	tlsCfg, _ := tlsx.NewServerTLSConfig(&tlsx.Config{
+//	    CertFile: "server.crt",
+//	    KeyFile:  "server.key",
+//	})
+//	gateway.WithHTTPTLS(tlsCfg)
+func WithHTTPTLS(cfg *tls.Config) Option {
+	return func(o *options) {
+		o.httpTLSConfig = cfg
+	}
+}
+
+// applyNewInterceptors 按照正确的顺序应用新增的 gRPC 拦截器.
+//
+// 拦截器按追加顺序执行，因此先添加的先执行:
+// RequestID → Logging → Metrics → RateLimit → ClientIP → Tenant
+// （Recovery 和 Auth 由各自的 apply 函数处理，Tracing 在 WithTrace 中直接添加）
+func applyNewInterceptors(o *options) {
+	// RequestID
+	if o.enableRequestID {
+		o.unaryInterceptors = append(o.unaryInterceptors, requestid.UnaryServerInterceptor(o.requestIDOpts...))
+	}
+
+	// Logging
+	if o.enableLogging && o.logger != nil {
+		loggingOpts := []logging.Option{
+			logging.WithLogger(o.logger),
+		}
+		if len(o.loggingSkipPaths) > 0 {
+			loggingOpts = append(loggingOpts, logging.WithSkipPaths(o.loggingSkipPaths...))
+		}
+		o.unaryInterceptors = append(o.unaryInterceptors, logging.UnaryServerInterceptor(loggingOpts...))
+		o.streamInterceptors = append(o.streamInterceptors, logging.StreamServerInterceptor(loggingOpts...))
+	}
+
+	// Metrics
+	if o.metricsCollector != nil {
+		o.unaryInterceptors = append(o.unaryInterceptors, metrics.UnaryServerInterceptor(o.metricsCollector))
+		o.streamInterceptors = append(o.streamInterceptors, metrics.StreamServerInterceptor(o.metricsCollector))
+	}
+
+	// RateLimit
+	if o.rateLimiter != nil {
+		o.unaryInterceptors = append(o.unaryInterceptors, ratelimit.UnaryServerInterceptor(o.rateLimiter))
+		o.streamInterceptors = append(o.streamInterceptors, ratelimit.StreamServerInterceptor(o.rateLimiter))
+	}
+
+	// ClientIP
+	if o.enableClientIP {
+		o.unaryInterceptors = append(o.unaryInterceptors, clientip.UnaryServerInterceptor(o.clientIPOpts...))
+		o.streamInterceptors = append(o.streamInterceptors, clientip.StreamServerInterceptor(o.clientIPOpts...))
+	}
+
+	// Tenant
+	if o.tenantResolver != nil {
+		tenantOpts := o.tenantOpts
+		if o.logger != nil {
+			tenantOpts = append(tenantOpts, tenant.WithLogger(o.logger))
+		}
+		o.unaryInterceptors = append(o.unaryInterceptors, tenant.UnaryServerInterceptor(o.tenantResolver, tenantOpts...))
+		o.streamInterceptors = append(o.streamInterceptors, tenant.StreamServerInterceptor(o.tenantResolver, tenantOpts...))
 	}
 }
 

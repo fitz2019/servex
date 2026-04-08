@@ -449,6 +449,105 @@ func TestGeoInfoContext(t *testing.T) {
 	}
 }
 
+func TestIPString(t *testing.T) {
+	t.Run("nil IP", func(t *testing.T) {
+		var ip *IP
+		if ip.String() != "" {
+			t.Error("nil IP should return empty string")
+		}
+	})
+
+	t.Run("non-nil IP", func(t *testing.T) {
+		ip := &IP{Address: "1.2.3.4"}
+		if ip.String() != "1.2.3.4" {
+			t.Errorf("expected '1.2.3.4', got %q", ip.String())
+		}
+	})
+}
+
+func TestMustFromContext_Panic(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("should panic")
+		}
+	}()
+	MustFromContext(t.Context())
+}
+
+func TestACL_Check(t *testing.T) {
+	acl := NewACL(WithDenyList("10.0.0.1"))
+
+	if err := acl.Check("192.168.1.1"); err != nil {
+		t.Error("allowed IP should not error")
+	}
+	if err := acl.Check("10.0.0.1"); err != ErrIPDenied {
+		t.Errorf("denied IP should return ErrIPDenied, got %v", err)
+	}
+	if err := acl.Check("not-an-ip"); err != ErrIPDenied {
+		t.Error("invalid IP should be denied")
+	}
+}
+
+func TestACL_DynamicAdd(t *testing.T) {
+	acl := NewACL()
+	if !acl.IsAllowed("10.0.0.1") {
+		t.Error("should be allowed before adding to deny list")
+	}
+
+	acl.AddToDenyList("10.0.0.1")
+	if acl.IsAllowed("10.0.0.1") {
+		t.Error("should be denied after adding to deny list")
+	}
+
+	acl2 := NewACL(WithACLMode(ACLModeDenyAll))
+	if acl2.IsAllowed("1.2.3.4") {
+		t.Error("should be denied in deny-all mode")
+	}
+	acl2.AddToAllowList("1.2.3.4")
+	if !acl2.IsAllowed("1.2.3.4") {
+		t.Error("should be allowed after adding to allow list")
+	}
+}
+
+func TestCountryACL_Check(t *testing.T) {
+	t.Run("no geo info in context", func(t *testing.T) {
+		acl := NewCountryACL(WithCountryACLMode(ACLModeDenyAll))
+		err := acl.Check(t.Context())
+		if err != ErrIPDenied {
+			t.Error("deny-all with no geo info should deny")
+		}
+	})
+
+	t.Run("no geo info allow all", func(t *testing.T) {
+		acl := NewCountryACL()
+		err := acl.Check(t.Context())
+		if err != nil {
+			t.Error("allow-all with no geo info should allow")
+		}
+	})
+
+	t.Run("with geo info denied", func(t *testing.T) {
+		acl := NewCountryACL(WithDenyCountries("XX"))
+		ctx := WithGeoInfo(t.Context(), &GeoInfo{Country: "XX"})
+		err := acl.Check(ctx)
+		if err != ErrIPDenied {
+			t.Error("denied country should return error")
+		}
+	})
+}
+
+func TestHTTPKeyFunc(t *testing.T) {
+	keyFn := HTTPKeyFunc()
+	ip := &IP{Address: "1.2.3.4"}
+	ctx := WithIP(t.Context(), ip)
+	req := httptest.NewRequest("GET", "/", nil)
+	req = req.WithContext(ctx)
+	key := keyFn(req)
+	if key != "1.2.3.4" {
+		t.Errorf("expected '1.2.3.4', got %q", key)
+	}
+}
+
 func TestCountryACL(t *testing.T) {
 	tests := []struct {
 		name    string

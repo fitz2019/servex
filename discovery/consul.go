@@ -6,9 +6,10 @@ import (
 	"net"
 	"strconv"
 
+	"github.com/hashicorp/consul/api"
+
 	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/transport"
-	"github.com/hashicorp/consul/api"
 )
 
 // consulDiscovery 是 Consul 服务发现实现.

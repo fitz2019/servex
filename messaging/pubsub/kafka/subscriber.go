@@ -8,6 +8,7 @@ import (
 	"sync/atomic"
 
 	"github.com/IBM/sarama"
+
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 

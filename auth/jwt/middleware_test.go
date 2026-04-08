@@ -7,32 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/Tsukikage7/servex/testx"
 )
-
-// mockLogger 测试用日志记录器（完整实现 Logger 接口）.
-type mockLogger struct{}
-
-func (m *mockLogger) Debug(args ...any)                          {}
-func (m *mockLogger) Debugf(format string, args ...any)          {}
-func (m *mockLogger) Info(args ...any)                           {}
-func (m *mockLogger) Infof(format string, args ...any)           {}
-func (m *mockLogger) Warn(args ...any)                           {}
-func (m *mockLogger) Warnf(format string, args ...any)           {}
-func (m *mockLogger) Error(args ...any)                          {}
-func (m *mockLogger) Errorf(format string, args ...any)          {}
-func (m *mockLogger) Fatal(args ...any)                          {}
-func (m *mockLogger) Fatalf(format string, args ...any)          {}
-func (m *mockLogger) Panic(args ...any)                          {}
-func (m *mockLogger) Panicf(format string, args ...any)          {}
-func (m *mockLogger) With(fields ...logger.Field) logger.Logger  { return m }
-func (m *mockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *mockLogger) Sync() error                                { return nil }
-func (m *mockLogger) Close() error                               { return nil }
 
 // testClaims 测试用 Claims.
 type testClaims struct {
@@ -45,7 +26,7 @@ type testClaims struct {
 func newTestJWT() *JWT {
 	return NewJWT(
 		WithSecretKey("test-secret-key-for-testing"),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 		WithIssuer("test-issuer"),
 	)
 }
@@ -266,7 +247,7 @@ func TestNewParser_Whitelist(t *testing.T) {
 
 	j := NewJWT(
 		WithSecretKey("test-secret-key"),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 		WithWhitelist(whitelist),
 	)
 
@@ -446,7 +427,7 @@ func TestHTTPMiddleware_Whitelist(t *testing.T) {
 
 	j := NewJWT(
 		WithSecretKey("test-secret-key"),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 		WithWhitelist(whitelist),
 	)
 
@@ -539,6 +520,121 @@ func TestExtractTokenFromHeader(t *testing.T) {
 			assert.Equal(t, tc.expected, result)
 		})
 	}
+}
+
+func TestJWT_GenerateValidateRefresh(t *testing.T) {
+	j := newTestJWT()
+
+	t.Run("generate and validate", func(t *testing.T) {
+		claims := &StandardClaims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Subject:   "user-100",
+				Issuer:    "test-issuer",
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+			},
+		}
+
+		token, err := j.Generate(claims)
+		require.NoError(t, err)
+		assert.NotEmpty(t, token)
+
+		validated, err := j.Validate(token)
+		require.NoError(t, err)
+		sub, _ := validated.GetSubject()
+		assert.Equal(t, "user-100", sub)
+	})
+
+	t.Run("validate empty token", func(t *testing.T) {
+		_, err := j.Validate("")
+		assert.ErrorIs(t, err, ErrTokenEmpty)
+	})
+
+	t.Run("validate invalid token", func(t *testing.T) {
+		_, err := j.Validate("Bearer invalid.token.here")
+		assert.Error(t, err)
+	})
+
+	t.Run("refresh valid token", func(t *testing.T) {
+		oldClaims := &StandardClaims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Subject:   "user-200",
+				Issuer:    "test-issuer",
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour)),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+			},
+		}
+		token, err := j.Generate(oldClaims)
+		require.NoError(t, err)
+
+		newClaims := &StandardClaims{
+			RegisteredClaims: jwt.RegisteredClaims{
+				Subject:   "user-200",
+				Issuer:    "test-issuer",
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
+				IssuedAt:  jwt.NewNumericDate(time.Now()),
+			},
+		}
+		newToken, err := j.Refresh(token, newClaims)
+		require.NoError(t, err)
+		assert.NotEmpty(t, newToken)
+		assert.NotEqual(t, token, newToken)
+	})
+}
+
+func TestJWT_Accessors(t *testing.T) {
+	j := newTestJWT()
+	assert.Equal(t, "test-issuer", j.Issuer())
+	assert.Equal(t, "JWT", j.Name())
+	assert.Equal(t, 2*time.Hour, j.AccessDuration())
+	assert.Equal(t, 7*24*time.Hour, j.RefreshDuration())
+}
+
+func TestWhitelist(t *testing.T) {
+	t.Run("nil whitelist", func(t *testing.T) {
+		var w *Whitelist
+		assert.False(t, w.IsWhitelisted(t.Context(), nil))
+	})
+
+	t.Run("HTTP path matching", func(t *testing.T) {
+		w := NewWhitelist().AddHTTPPaths("/health", "/public/")
+		req := httptest.NewRequest(http.MethodGet, "/health", nil)
+		assert.True(t, w.IsWhitelisted(t.Context(), req))
+
+		req2 := httptest.NewRequest(http.MethodGet, "/public/images/logo.png", nil)
+		assert.True(t, w.IsWhitelisted(t.Context(), req2))
+
+		req3 := httptest.NewRequest(http.MethodGet, "/api/private", nil)
+		assert.False(t, w.IsWhitelisted(t.Context(), req3))
+	})
+
+	t.Run("gRPC method via metadata", func(t *testing.T) {
+		w := NewWhitelist().AddGRPCMethods("/api.v1.Auth/")
+		ctx := metadata.NewIncomingContext(t.Context(),
+			metadata.Pairs(":path", "/api.v1.Auth/Login"))
+		assert.True(t, w.IsWhitelisted(ctx, nil))
+	})
+
+	t.Run("custom internal service header", func(t *testing.T) {
+		w := NewWhitelist().SetInternalServiceHeader("x-internal")
+		ctx := metadata.NewIncomingContext(t.Context(),
+			metadata.Pairs("x-internal", "service-a"))
+		assert.True(t, w.IsWhitelisted(ctx, nil))
+	})
+}
+
+func TestNewJWT_Panics(t *testing.T) {
+	t.Run("no secret key", func(t *testing.T) {
+		assert.Panics(t, func() {
+			NewJWT(WithLogger(testx.NopLogger()))
+		})
+	})
+
+	t.Run("no logger", func(t *testing.T) {
+		assert.Panics(t, func() {
+			NewJWT(WithSecretKey("secret"))
+		})
+	})
 }
 
 func TestContextFunctions(t *testing.T) {

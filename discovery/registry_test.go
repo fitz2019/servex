@@ -6,10 +6,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/Tsukikage7/servex/observability/logger"
-	"github.com/Tsukikage7/servex/transport"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/transport"
 )
 
 // mockDiscovery 模拟服务发现
@@ -63,22 +64,22 @@ func (m *mockDiscovery) Close() error {
 // registryMockLogger 模拟日志
 type registryMockLogger struct{}
 
-func (m *registryMockLogger) Debug(args ...any)                          {}
-func (m *registryMockLogger) Debugf(format string, args ...any)          {}
-func (m *registryMockLogger) Info(args ...any)                           {}
-func (m *registryMockLogger) Infof(format string, args ...any)           {}
-func (m *registryMockLogger) Warn(args ...any)                           {}
-func (m *registryMockLogger) Warnf(format string, args ...any)           {}
-func (m *registryMockLogger) Error(args ...any)                          {}
-func (m *registryMockLogger) Errorf(format string, args ...any)          {}
-func (m *registryMockLogger) Fatal(args ...any)                          {}
-func (m *registryMockLogger) Fatalf(format string, args ...any)          {}
-func (m *registryMockLogger) Panic(args ...any)                          {}
-func (m *registryMockLogger) Panicf(format string, args ...any)          {}
-func (m *registryMockLogger) With(fields ...logger.Field) logger.Logger  { return m }
+func (m *registryMockLogger) Debug(args ...any)                             {}
+func (m *registryMockLogger) Debugf(format string, args ...any)             {}
+func (m *registryMockLogger) Info(args ...any)                              {}
+func (m *registryMockLogger) Infof(format string, args ...any)              {}
+func (m *registryMockLogger) Warn(args ...any)                              {}
+func (m *registryMockLogger) Warnf(format string, args ...any)              {}
+func (m *registryMockLogger) Error(args ...any)                             {}
+func (m *registryMockLogger) Errorf(format string, args ...any)             {}
+func (m *registryMockLogger) Fatal(args ...any)                             {}
+func (m *registryMockLogger) Fatalf(format string, args ...any)             {}
+func (m *registryMockLogger) Panic(args ...any)                             {}
+func (m *registryMockLogger) Panicf(format string, args ...any)             {}
+func (m *registryMockLogger) With(fields ...logger.Field) logger.Logger     { return m }
 func (m *registryMockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *registryMockLogger) Sync() error                                { return nil }
-func (m *registryMockLogger) Close() error                               { return nil }
+func (m *registryMockLogger) Sync() error                                   { return nil }
+func (m *registryMockLogger) Close() error                                  { return nil }
 
 func TestServiceRegistry_AddService(t *testing.T) {
 	disc := &mockDiscovery{}

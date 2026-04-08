@@ -4,8 +4,9 @@ package consul
 import (
 	"context"
 
-	"github.com/Tsukikage7/servex/config"
 	"github.com/hashicorp/consul/api"
+
+	"github.com/Tsukikage7/servex/config"
 )
 
 // Source Consul KV 配置源.

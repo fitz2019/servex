@@ -30,7 +30,7 @@ func PUT(path string) *Builder    { return newBuilder("PUT", path) }
 func DELETE(path string) *Builder { return newBuilder("DELETE", path) }
 func PATCH(path string) *Builder  { return newBuilder("PATCH", path) }
 
-func (b *Builder) Summary(s string) *Builder     { b.op.Summary = s; return b }
+func (b *Builder) Summary(s string) *Builder      { b.op.Summary = s; return b }
 func (b *Builder) Description(s string) *Builder  { b.op.Description = s; return b }
 func (b *Builder) Tags(tags ...string) *Builder   { b.op.Tags = append(b.op.Tags, tags...); return b }
 func (b *Builder) OperationID(id string) *Builder { b.op.OperationID = id; return b }

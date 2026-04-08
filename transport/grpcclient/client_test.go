@@ -2,33 +2,17 @@ package grpcclient
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"testing"
+	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
-	"github.com/Tsukikage7/servex/transport"
 	"google.golang.org/grpc"
+
+	"github.com/Tsukikage7/servex/middleware/circuitbreaker"
+	"github.com/Tsukikage7/servex/testx"
+	"github.com/Tsukikage7/servex/transport"
 )
-
-// mockLogger 测试用 mock logger.
-type mockLogger struct{}
-
-func (m *mockLogger) Debug(args ...any)                             {}
-func (m *mockLogger) Debugf(format string, args ...any)             {}
-func (m *mockLogger) Info(args ...any)                              {}
-func (m *mockLogger) Infof(format string, args ...any)              {}
-func (m *mockLogger) Warn(args ...any)                              {}
-func (m *mockLogger) Warnf(format string, args ...any)              {}
-func (m *mockLogger) Error(args ...any)                             {}
-func (m *mockLogger) Errorf(format string, args ...any)             {}
-func (m *mockLogger) Fatal(args ...any)                             {}
-func (m *mockLogger) Fatalf(format string, args ...any)             {}
-func (m *mockLogger) Panic(args ...any)                             {}
-func (m *mockLogger) Panicf(format string, args ...any)             {}
-func (m *mockLogger) With(fields ...logger.Field) logger.Logger     { return m }
-func (m *mockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *mockLogger) Sync() error                                   { return nil }
-func (m *mockLogger) Close() error                                  { return nil }
 
 // mockDiscovery 测试用 mock discovery.
 type mockDiscovery struct {
@@ -58,7 +42,7 @@ func TestNew(t *testing.T) {
 			WithName("test-client"),
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -78,7 +62,7 @@ func TestNew(t *testing.T) {
 		}()
 		New(
 			WithDiscovery(&mockDiscovery{addrs: []string{"localhost:9090"}}),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 	})
 
@@ -90,7 +74,7 @@ func TestNew(t *testing.T) {
 		}()
 		New(
 			WithServiceName("test-service"),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 	})
 
@@ -111,7 +95,7 @@ func TestNew(t *testing.T) {
 		_, err := New(
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err == nil {
 			t.Error("expected error when discovery fails")
@@ -126,7 +110,7 @@ func TestNew(t *testing.T) {
 		_, err := New(
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err == nil {
 			t.Error("expected error when no service found")
@@ -143,7 +127,7 @@ func TestClient_Close(t *testing.T) {
 		client, err := New(
 			WithServiceName("test-service"),
 			WithDiscovery(disc),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -156,7 +140,7 @@ func TestClient_Close(t *testing.T) {
 	})
 
 	t.Run("关闭nil连接", func(t *testing.T) {
-		client := &Client{opts: &options{logger: &mockLogger{}, name: "test", serviceName: "test"}}
+		client := &Client{opts: &options{logger: testx.NopLogger(), name: "test", serviceName: "test"}}
 		err := client.Close()
 		if err != nil {
 			t.Errorf("closing nil connection should not error: %v", err)
@@ -198,4 +182,225 @@ func TestClientOptions(t *testing.T) {
 			t.Errorf("expected default name 'gRPC-Client', got '%s'", opts.name)
 		}
 	})
+}
+
+func TestWithTLS_Option(t *testing.T) {
+	opts := defaultOptions()
+	tlsCfg := &tls.Config{InsecureSkipVerify: true}
+	WithTLS(tlsCfg)(opts)
+	if opts.tlsConfig == nil {
+		t.Fatal("TLS config should not be nil")
+	}
+	if !opts.tlsConfig.InsecureSkipVerify {
+		t.Error("TLS config should have InsecureSkipVerify=true")
+	}
+}
+
+func TestWithRetry_Option(t *testing.T) {
+	opts := defaultOptions()
+	WithRetry(3, 100*time.Millisecond)(opts)
+	if opts.retryMaxAttempts != 3 {
+		t.Errorf("expected retryMaxAttempts=3, got %d", opts.retryMaxAttempts)
+	}
+	if opts.retryBackoff != 100*time.Millisecond {
+		t.Errorf("expected retryBackoff=100ms, got %v", opts.retryBackoff)
+	}
+}
+
+func TestWithBalancer_Option(t *testing.T) {
+	opts := defaultOptions()
+	WithBalancer("round_robin")(opts)
+	if opts.balancerPolicy != "round_robin" {
+		t.Errorf("expected balancerPolicy='round_robin', got '%s'", opts.balancerPolicy)
+	}
+}
+
+func TestWithCircuitBreaker_Option(t *testing.T) {
+	opts := defaultOptions()
+	cb := circuitbreaker.New()
+	WithCircuitBreaker(cb)(opts)
+	if opts.circuitBreaker == nil {
+		t.Fatal("circuit breaker should not be nil")
+	}
+}
+
+func TestWithTracing_Option(t *testing.T) {
+	opts := defaultOptions()
+	WithTracing("test-service")(opts)
+	if opts.tracerName != "test-service" {
+		t.Errorf("expected tracerName='test-service', got '%s'", opts.tracerName)
+	}
+}
+
+func TestWithLogging_Option(t *testing.T) {
+	opts := defaultOptions()
+	WithLogging()(opts)
+	if !opts.enableLogging {
+		t.Error("logging should be enabled")
+	}
+}
+
+func TestWithTimeout_Option(t *testing.T) {
+	opts := defaultOptions()
+	WithTimeout(5 * time.Second)(opts)
+	if opts.timeout != 5*time.Second {
+		t.Errorf("expected timeout=5s, got %v", opts.timeout)
+	}
+}
+
+func TestWithKeepalive_Option(t *testing.T) {
+	opts := defaultOptions()
+	WithKeepalive(30*time.Second, 10*time.Second)(opts)
+	if opts.keepaliveTime != 30*time.Second {
+		t.Errorf("expected keepaliveTime=30s, got %v", opts.keepaliveTime)
+	}
+	if opts.keepaliveTimeout != 10*time.Second {
+		t.Errorf("expected keepaliveTimeout=10s, got %v", opts.keepaliveTimeout)
+	}
+}
+
+func TestWithStreamInterceptors_Option(t *testing.T) {
+	opts := defaultOptions()
+	si := func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, callOpts ...grpc.CallOption) (grpc.ClientStream, error) {
+		return streamer(ctx, desc, cc, method, callOpts...)
+	}
+	WithStreamInterceptors(si)(opts)
+	if len(opts.streamInterceptors) != 1 {
+		t.Error("stream interceptor not added")
+	}
+}
+
+func TestNewFromConfig(t *testing.T) {
+	t.Run("基本配置", func(t *testing.T) {
+		client, err := NewFromConfig(&Config{
+			Addr:        "localhost:9090",
+			ServiceName: "test-service",
+			Timeout:     5 * time.Second,
+		}, WithLogger(testx.NopLogger()))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer client.Close()
+
+		if client.Conn() == nil {
+			t.Error("connection should not be nil")
+		}
+	})
+
+	t.Run("缺少地址", func(t *testing.T) {
+		_, err := NewFromConfig(&Config{})
+		if err == nil {
+			t.Error("expected error when addr is missing")
+		}
+	})
+
+	t.Run("带重试配置", func(t *testing.T) {
+		client, err := NewFromConfig(&Config{
+			Addr: "localhost:9090",
+			Retry: &RetryConfig{
+				MaxAttempts: 3,
+				Backoff:     100 * time.Millisecond,
+			},
+		}, WithLogger(testx.NopLogger()))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer client.Close()
+	})
+
+	t.Run("带负载均衡配置", func(t *testing.T) {
+		client, err := NewFromConfig(&Config{
+			Addr:     "localhost:9090",
+			Balancer: "round_robin",
+		}, WithLogger(testx.NopLogger()))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer client.Close()
+	})
+
+	t.Run("带Keepalive配置", func(t *testing.T) {
+		client, err := NewFromConfig(&Config{
+			Addr: "localhost:9090",
+			Keepalive: &KeepaliveConfig{
+				Time:    30 * time.Second,
+				Timeout: 10 * time.Second,
+			},
+		}, WithLogger(testx.NopLogger()))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer client.Close()
+	})
+
+	t.Run("启用Tracing", func(t *testing.T) {
+		client, err := NewFromConfig(&Config{
+			Addr:          "localhost:9090",
+			ServiceName:   "test-service",
+			EnableTracing: true,
+		}, WithLogger(testx.NopLogger()))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		defer client.Close()
+	})
+}
+
+func TestConfigDefaults(t *testing.T) {
+	cfg := &Config{}
+	if cfg.Balancer != "" {
+		t.Errorf("default balancer should be empty, got '%s'", cfg.Balancer)
+	}
+	if cfg.Timeout != 0 {
+		t.Errorf("default timeout should be 0, got %v", cfg.Timeout)
+	}
+	if cfg.EnableTracing {
+		t.Error("default enable_tracing should be false")
+	}
+	if cfg.EnableMetrics {
+		t.Error("default enable_metrics should be false")
+	}
+	if cfg.TLS != nil {
+		t.Error("default TLS should be nil")
+	}
+}
+
+func TestNewWithTLS(t *testing.T) {
+	disc := &mockDiscovery{addrs: []string{"localhost:9090"}}
+	tlsCfg := &tls.Config{InsecureSkipVerify: true}
+	client, err := New(
+		WithServiceName("test-service"),
+		WithDiscovery(disc),
+		WithLogger(testx.NopLogger()),
+		WithTLS(tlsCfg),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer client.Close()
+
+	if client.Conn() == nil {
+		t.Error("connection should not be nil")
+	}
+}
+
+func TestNewWithAllOptions(t *testing.T) {
+	disc := &mockDiscovery{addrs: []string{"localhost:9090"}}
+	cb := circuitbreaker.New()
+	client, err := New(
+		WithServiceName("test-service"),
+		WithDiscovery(disc),
+		WithLogger(testx.NopLogger()),
+		WithRetry(3, 100*time.Millisecond),
+		WithCircuitBreaker(cb),
+		WithTracing("test-service"),
+		WithLogging(),
+		WithBalancer("round_robin"),
+		WithTimeout(5*time.Second),
+		WithKeepalive(30*time.Second, 10*time.Second),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	defer client.Close()
 }

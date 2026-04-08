@@ -99,4 +99,3 @@ func (c *Config) GetServiceConfig(protocol string) ServiceMetaConfig {
 		return ServiceMetaConfig{}
 	}
 }
-

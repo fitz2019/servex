@@ -77,10 +77,10 @@ func (s *ConfigTestSuite) TestApplyDefaults() {
 
 func (s *ConfigTestSuite) TestApplyDefaults_PreservesValues() {
 	config := &Config{
-		Type:         TypeMemory,
-		PoolSize:     20,
-		Timeout:      10 * time.Second,
-		MaxSize:      5000,
+		Type:     TypeMemory,
+		PoolSize: 20,
+		Timeout:  10 * time.Second,
+		MaxSize:  5000,
 	}
 	config.ApplyDefaults()
 

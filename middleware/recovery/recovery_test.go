@@ -11,8 +11,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/endpoint"
+	"github.com/Tsukikage7/servex/observability/logger"
 )
 
 // mockLogger 测试用 mock logger.
@@ -22,13 +22,13 @@ type mockLogger struct {
 	lastFields  []logger.Field
 }
 
-func newMockLogger() *mockLogger                                    { return &mockLogger{} }
-func (m *mockLogger) Debug(args ...any)                             {}
-func (m *mockLogger) Debugf(format string, args ...any)             {}
-func (m *mockLogger) Info(args ...any)                              {}
-func (m *mockLogger) Infof(format string, args ...any)              {}
-func (m *mockLogger) Warn(args ...any)                              {}
-func (m *mockLogger) Warnf(format string, args ...any)              {}
+func newMockLogger() *mockLogger                        { return &mockLogger{} }
+func (m *mockLogger) Debug(args ...any)                 {}
+func (m *mockLogger) Debugf(format string, args ...any) {}
+func (m *mockLogger) Info(args ...any)                  {}
+func (m *mockLogger) Infof(format string, args ...any)  {}
+func (m *mockLogger) Warn(args ...any)                  {}
+func (m *mockLogger) Warnf(format string, args ...any)  {}
 func (m *mockLogger) Error(args ...any) {
 	m.errorCalled = true
 	if len(args) > 0 {

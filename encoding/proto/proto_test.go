@@ -3,9 +3,10 @@ package proto
 import (
 	"testing"
 
-	"github.com/Tsukikage7/servex/encoding"
-	authpb "github.com/Tsukikage7/servex/auth/proto"
 	"github.com/stretchr/testify/suite"
+
+	authpb "github.com/Tsukikage7/servex/auth/proto"
+	"github.com/Tsukikage7/servex/encoding"
 )
 
 // ProtoCodecTestSuite proto 编解码器测试套件.

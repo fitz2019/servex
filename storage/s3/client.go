@@ -16,11 +16,11 @@ import (
 
 // s3Client S3 客户端实现.
 type s3Client struct {
-	client     *s3.Client
-	presigner  *s3.PresignClient
-	bucket     string
-	config     *Config
-	log        logger.Logger
+	client    *s3.Client
+	presigner *s3.PresignClient
+	bucket    string
+	config    *Config
+	log       logger.Logger
 }
 
 // NewClient 创建 S3 客户端.

@@ -85,10 +85,10 @@ type options struct {
 	enableLocale    bool
 	enableReferer   bool
 
-	clientIPOptions  []clientip.Option
-	deviceOptions    []deviceinfo.Option
-	botOptions       []botdetect.Option
-	refererOptions   []referer.Option
+	clientIPOptions []clientip.Option
+	deviceOptions   []deviceinfo.Option
+	botOptions      []botdetect.Option
+	refererOptions  []referer.Option
 }
 
 func defaultOptions() *options {

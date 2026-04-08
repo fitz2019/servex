@@ -233,7 +233,7 @@ func parseBrandList(list string) (browser, version string) {
 
 	// 优先级：Chrome > Edge > Firefox > Safari > Chromium > 其他
 	priority := map[string]int{
-		"Google Chrome": 1,
+		"Google Chrome":  1,
 		"Microsoft Edge": 2,
 		"Firefox":        3,
 		"Safari":         4,

@@ -6,55 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/storage/mongodb"
+	"github.com/Tsukikage7/servex/testx"
 )
 
 // mongoURI 从环境变量读取，默认指向本地.
 var (
-	mongoURI      = "mongodb://localhost:27017"
+	mongoURI       = "mongodb://localhost:27017"
 	mongoAvailable bool
 )
-
-// nopLog 供 TestMain 使用的无 t 日志.
-type nopLog struct{}
-
-func (l *nopLog) Debug(args ...any)                             {}
-func (l *nopLog) Debugf(fmt string, args ...any)               {}
-func (l *nopLog) Info(args ...any)                             {}
-func (l *nopLog) Infof(fmt string, args ...any)                {}
-func (l *nopLog) Warn(args ...any)                             {}
-func (l *nopLog) Warnf(fmt string, args ...any)                {}
-func (l *nopLog) Error(args ...any)                            {}
-func (l *nopLog) Errorf(fmt string, args ...any)               {}
-func (l *nopLog) Fatal(args ...any)                            {}
-func (l *nopLog) Fatalf(fmt string, args ...any)               {}
-func (l *nopLog) Panic(args ...any)                            {}
-func (l *nopLog) Panicf(fmt string, args ...any)               {}
-func (l *nopLog) With(...logger.Field) logger.Logger           { return l }
-func (l *nopLog) WithContext(context.Context) logger.Logger    { return l }
-func (l *nopLog) Sync() error                                  { return nil }
-func (l *nopLog) Close() error                                 { return nil }
-
-// testLog 带 t 的日志，供集成测试使用.
-type testLog struct{ t *testing.T }
-
-func (l *testLog) Debug(args ...any)                             {}
-func (l *testLog) Debugf(fmt string, args ...any)               {}
-func (l *testLog) Info(args ...any)                             {}
-func (l *testLog) Infof(fmt string, args ...any)                {}
-func (l *testLog) Warn(args ...any)                             {}
-func (l *testLog) Warnf(fmt string, args ...any)                {}
-func (l *testLog) Error(args ...any)                            {}
-func (l *testLog) Errorf(fmt string, args ...any)               {}
-func (l *testLog) Fatal(args ...any)                            {}
-func (l *testLog) Fatalf(fmt string, args ...any)               {}
-func (l *testLog) Panic(args ...any)                            {}
-func (l *testLog) Panicf(fmt string, args ...any)               {}
-func (l *testLog) With(...logger.Field) logger.Logger           { return l }
-func (l *testLog) WithContext(context.Context) logger.Logger    { return l }
-func (l *testLog) Sync() error                                  { return nil }
-func (l *testLog) Close() error                                 { return nil }
 
 func TestMain(m *testing.M) {
 	if uri := os.Getenv("MONGO_URI"); uri != "" {
@@ -74,7 +34,7 @@ func probeMongoDB() bool {
 		Database:       "servex_probe",
 		ConnectTimeout: 2 * time.Second,
 	}
-	client, err := mongodb.NewClient(cfg, &nopLog{})
+	client, err := mongodb.NewClient(cfg, testx.NopLogger())
 	if err != nil {
 		return false
 	}
@@ -100,7 +60,7 @@ func newTestClient(t *testing.T) mongodb.Client {
 		Database: "servex_test",
 	}
 
-	client, err := mongodb.NewClient(cfg, &testLog{t: t})
+	client, err := mongodb.NewClient(cfg, testx.NopLogger())
 	if err != nil {
 		t.Fatalf("创建 MongoDB 客户端失败: %v", err)
 	}
@@ -110,7 +70,7 @@ func newTestClient(t *testing.T) mongodb.Client {
 // ---- 单元测试（不需要服务）----
 
 func TestNewClient_NilConfig(t *testing.T) {
-	_, err := mongodb.NewClient(nil, &nopLog{})
+	_, err := mongodb.NewClient(nil, testx.NopLogger())
 	if err != mongodb.ErrNilConfig {
 		t.Errorf("期望 ErrNilConfig，得到 %v", err)
 	}
@@ -126,7 +86,7 @@ func TestNewClient_NilLogger(t *testing.T) {
 
 func TestNewClient_EmptyURI(t *testing.T) {
 	cfg := &mongodb.Config{Database: "db"}
-	_, err := mongodb.NewClient(cfg, &nopLog{})
+	_, err := mongodb.NewClient(cfg, testx.NopLogger())
 	if err != mongodb.ErrEmptyURI {
 		t.Errorf("期望 ErrEmptyURI，得到 %v", err)
 	}
@@ -134,7 +94,7 @@ func TestNewClient_EmptyURI(t *testing.T) {
 
 func TestNewClient_EmptyDatabase(t *testing.T) {
 	cfg := &mongodb.Config{URI: "mongodb://localhost"}
-	_, err := mongodb.NewClient(cfg, &nopLog{})
+	_, err := mongodb.NewClient(cfg, testx.NopLogger())
 	if err != mongodb.ErrEmptyDatabase {
 		t.Errorf("期望 ErrEmptyDatabase，得到 %v", err)
 	}

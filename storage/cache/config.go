@@ -15,7 +15,7 @@ type Config struct {
 	MaxRetries   int           `json:"max_retries" yaml:"max_retries" toml:"max_retries" mapstructure:"max_retries"`
 
 	// 内存缓存专用
-	MaxSize        int           `json:"max_size" yaml:"max_size" toml:"max_size" mapstructure:"max_size"`
+	MaxSize         int           `json:"max_size" yaml:"max_size" toml:"max_size" mapstructure:"max_size"`
 	CleanupInterval time.Duration `json:"cleanup_interval" yaml:"cleanup_interval" toml:"cleanup_interval" mapstructure:"cleanup_interval"`
 }
 

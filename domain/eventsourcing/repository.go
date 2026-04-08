@@ -12,8 +12,8 @@ import (
 type Repository[T Aggregate] struct {
 	eventStore    EventStore
 	snapshotStore SnapshotStore // 可选
-	factory       func() T     // 创建空聚合的工厂函数
-	snapshotEvery int64        // 每 N 个事件保存快照，0 表示不保存
+	factory       func() T      // 创建空聚合的工厂函数
+	snapshotEvery int64         // 每 N 个事件保存快照，0 表示不保存
 }
 
 // RepositoryOption 仓库配置选项.

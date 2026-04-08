@@ -21,9 +21,9 @@ type memoryCache struct {
 
 // cacheItem 缓存项.
 type cacheItem struct {
-	value      string
-	expireAt   time.Time
-	noExpire   bool
+	value    string
+	expireAt time.Time
+	noExpire bool
 }
 
 // isExpired 检查是否过期.

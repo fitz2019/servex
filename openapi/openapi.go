@@ -4,7 +4,7 @@ package openapi
 // Spec 表示一个 OpenAPI 3.0 文档。
 type Spec struct {
 	OpenAPI string               `json:"openapi" yaml:"openapi"`
-	Info    Info                  `json:"info" yaml:"info"`
+	Info    Info                 `json:"info" yaml:"info"`
 	Servers []Server             `json:"servers,omitzero" yaml:"servers,omitempty"`
 	Paths   map[string]*PathItem `json:"paths" yaml:"paths"`
 }

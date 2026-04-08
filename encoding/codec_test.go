@@ -22,9 +22,9 @@ type mockCodec struct {
 	name string
 }
 
-func (c mockCodec) Marshal(any) ([]byte, error)       { return nil, nil }
-func (c mockCodec) Unmarshal([]byte, any) error        { return nil }
-func (c mockCodec) Name() string                       { return c.name }
+func (c mockCodec) Marshal(any) ([]byte, error) { return nil, nil }
+func (c mockCodec) Unmarshal([]byte, any) error { return nil }
+func (c mockCodec) Name() string                { return c.name }
 
 func (s *CodecTestSuite) SetupTest() {
 	// 清理全局注册表

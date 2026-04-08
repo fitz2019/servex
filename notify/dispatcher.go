@@ -7,8 +7,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/Tsukikage7/servex/messaging/jobqueue"
 	"github.com/google/uuid"
+
+	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
 type Dispatcher struct {

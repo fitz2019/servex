@@ -2,6 +2,7 @@ package testx
 
 import (
 	"encoding/json"
+	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
@@ -100,4 +101,112 @@ func TestGolden(t *testing.T) {
 
 	// 匹配场景.
 	Golden(t, "sample", expected)
+}
+
+func TestLoadYAML(t *testing.T) {
+	type sample struct {
+		Name  string `yaml:"name"`
+		Value int    `yaml:"value"`
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "test.yaml")
+
+	content := "name: hello\nvalue: 42\n"
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatalf("写入临时文件失败: %v", err)
+	}
+
+	result := LoadYAML[sample](t, path)
+	if result.Name != "hello" {
+		t.Errorf("Name 不匹配: 期望 %q, 实际 %q", "hello", result.Name)
+	}
+	if result.Value != 42 {
+		t.Errorf("Value 不匹配: 期望 %d, 实际 %d", 42, result.Value)
+	}
+}
+
+func TestHTTPTestServer(t *testing.T) {
+	handler := http.NewServeMux()
+	handler.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"msg":"hello"}`))
+	})
+	handler.HandleFunc("/echo", func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]string
+		json.NewDecoder(r.Body).Decode(&body)
+		json.NewEncoder(w).Encode(body)
+	})
+
+	srv := NewHTTPTestServer(handler)
+	defer srv.Close()
+
+	t.Run("Get", func(t *testing.T) {
+		resp := srv.Get("/hello")
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("PostJSON", func(t *testing.T) {
+		resp := srv.PostJSON("/echo", map[string]string{"key": "value"})
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("expected 200, got %d", resp.StatusCode)
+		}
+	})
+
+	t.Run("with middleware", func(t *testing.T) {
+		var mwCalled bool
+		mw := func(next http.Handler) http.Handler {
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				mwCalled = true
+				next.ServeHTTP(w, r)
+			})
+		}
+
+		innerHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+
+		mwSrv := NewHTTPTestServer(innerHandler, mw)
+		defer mwSrv.Close()
+
+		resp := mwSrv.Get("/anything")
+		resp.Body.Close()
+		if !mwCalled {
+			t.Error("middleware should be called")
+		}
+	})
+}
+
+func TestGoldenJSON(t *testing.T) {
+	dir := t.TempDir()
+	goldenDir := filepath.Join(dir, "testdata")
+	if err := os.MkdirAll(goldenDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create expected golden content
+	type sample struct {
+		Name  string `json:"name"`
+		Value int    `json:"value"`
+	}
+	data, _ := json.MarshalIndent(sample{Name: "test", Value: 99}, "", "  ")
+	data = append(data, '\n')
+	goldenFile := filepath.Join(goldenDir, "json_test.golden")
+	if err := os.WriteFile(goldenFile, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	orig, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(dir); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.Chdir(orig) })
+
+	GoldenJSON(t, "json_test", sample{Name: "test", Value: 99})
 }

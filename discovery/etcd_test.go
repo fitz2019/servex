@@ -7,31 +7,12 @@ import (
 	"time"
 
 	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/testx"
 )
 
 // 集成测试：需要本地运行的 etcd 实例.
 // 可通过环境变量 ETCD_ENDPOINTS 指定地址（逗号分隔）.
 // 如果 etcd 不可用，测试将自动跳过.
-
-// testLogger 测试用 mock logger.
-type testLogger struct{}
-
-func (l *testLogger) Debug(args ...any)                            {}
-func (l *testLogger) Debugf(format string, args ...any)           {}
-func (l *testLogger) Info(args ...any)                            {}
-func (l *testLogger) Infof(format string, args ...any)            {}
-func (l *testLogger) Warn(args ...any)                            {}
-func (l *testLogger) Warnf(format string, args ...any)            {}
-func (l *testLogger) Error(args ...any)                           {}
-func (l *testLogger) Errorf(format string, args ...any)           {}
-func (l *testLogger) Fatal(args ...any)                           {}
-func (l *testLogger) Fatalf(format string, args ...any)           {}
-func (l *testLogger) Panic(args ...any)                           {}
-func (l *testLogger) Panicf(format string, args ...any)           {}
-func (l *testLogger) With(...logger.Field) logger.Logger          { return l }
-func (l *testLogger) WithContext(context.Context) logger.Logger   { return l }
-func (l *testLogger) Sync() error                                 { return nil }
-func (l *testLogger) Close() error                                { return nil }
 
 func skipIfNoEtcd(t *testing.T) ([]string, logger.Logger) {
 	t.Helper()
@@ -41,7 +22,7 @@ func skipIfNoEtcd(t *testing.T) ([]string, logger.Logger) {
 		endpoints = []string{ep}
 	}
 
-	log := &testLogger{}
+	log := testx.NopLogger()
 
 	cfg := &Config{
 		Type:            TypeEtcd,

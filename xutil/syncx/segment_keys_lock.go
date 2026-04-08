@@ -20,10 +20,10 @@ func NewSegmentKeysLock(size uint32) *SegmentKeysLock {
 	}
 }
 
-func (s *SegmentKeysLock) Lock(key string)        { s.locks[s.hash(key)].Lock() }
-func (s *SegmentKeysLock) TryLock(key string) bool { return s.locks[s.hash(key)].TryLock() }
-func (s *SegmentKeysLock) Unlock(key string)       { s.locks[s.hash(key)].Unlock() }
-func (s *SegmentKeysLock) RLock(key string)        { s.locks[s.hash(key)].RLock() }
+func (s *SegmentKeysLock) Lock(key string)          { s.locks[s.hash(key)].Lock() }
+func (s *SegmentKeysLock) TryLock(key string) bool  { return s.locks[s.hash(key)].TryLock() }
+func (s *SegmentKeysLock) Unlock(key string)        { s.locks[s.hash(key)].Unlock() }
+func (s *SegmentKeysLock) RLock(key string)         { s.locks[s.hash(key)].RLock() }
 func (s *SegmentKeysLock) TryRLock(key string) bool { return s.locks[s.hash(key)].TryRLock() }
 func (s *SegmentKeysLock) RUnlock(key string)       { s.locks[s.hash(key)].RUnlock() }
 

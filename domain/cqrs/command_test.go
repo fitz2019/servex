@@ -82,6 +82,59 @@ func TestApplyCommand_ContextCanceled(t *testing.T) {
 	assert.Equal(t, context.Canceled, err)
 }
 
+func TestChainCommand(t *testing.T) {
+	var order []string
+
+	mw1 := func(next CommandHandler[CreateOrderCommand, CreateOrderResult]) CommandHandler[CreateOrderCommand, CreateOrderResult] {
+		return &commandHandlerFunc[CreateOrderCommand, CreateOrderResult]{
+			fn: func(ctx context.Context, cmd CreateOrderCommand) (CreateOrderCommand, CreateOrderResult, error) {
+				order = append(order, "mw1:before")
+				cmd, result, err := next.Handle(ctx, cmd)
+				order = append(order, "mw1:after")
+				return cmd, result, err
+			},
+		}
+	}
+
+	mw2 := func(next CommandHandler[CreateOrderCommand, CreateOrderResult]) CommandHandler[CreateOrderCommand, CreateOrderResult] {
+		return &commandHandlerFunc[CreateOrderCommand, CreateOrderResult]{
+			fn: func(ctx context.Context, cmd CreateOrderCommand) (CreateOrderCommand, CreateOrderResult, error) {
+				order = append(order, "mw2:before")
+				cmd, result, err := next.Handle(ctx, cmd)
+				order = append(order, "mw2:after")
+				return cmd, result, err
+			},
+		}
+	}
+
+	handler := &createOrderHandler{}
+	chained := ChainCommand[CreateOrderCommand, CreateOrderResult](handler, mw1, mw2)
+
+	cmd := CreateOrderCommand{UserID: "u1", ProductID: "p1", Quantity: 1}
+	_, result, err := chained.Handle(t.Context(), cmd)
+
+	require.NoError(t, err)
+	assert.Equal(t, "ORD-u1-p1", result.OrderID)
+	assert.Equal(t, []string{"mw1:before", "mw2:before", "mw2:after", "mw1:after"}, order)
+}
+
+func TestChainCommand_ErrorPropagation(t *testing.T) {
+	mw := func(next CommandHandler[CreateOrderCommand, CreateOrderResult]) CommandHandler[CreateOrderCommand, CreateOrderResult] {
+		return &commandHandlerFunc[CreateOrderCommand, CreateOrderResult]{
+			fn: func(ctx context.Context, cmd CreateOrderCommand) (CreateOrderCommand, CreateOrderResult, error) {
+				return next.Handle(ctx, cmd)
+			},
+		}
+	}
+
+	handler := &createOrderHandler{shouldFail: true}
+	chained := ChainCommand[CreateOrderCommand, CreateOrderResult](handler, mw)
+
+	_, _, err := chained.Handle(t.Context(), CreateOrderCommand{UserID: "u1"})
+	require.Error(t, err)
+	assert.Equal(t, "create order failed", err.Error())
+}
+
 // contextAwareCommandHandler 检查 context 的处理器.
 type contextAwareCommandHandler struct{}
 

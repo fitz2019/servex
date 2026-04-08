@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/IBM/sarama"
+
 	"github.com/Tsukikage7/servex/observability/logger"
 )
 

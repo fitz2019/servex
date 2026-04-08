@@ -1,6 +1,6 @@
 # request
 
-`github.com/Tsukikage7/servex/request`
+`github.com/Tsukikage7/servex/httpx`
 
 请求上下文信息提取的组合层，整合多个子模块，提供统一的 HTTP 中间件和 gRPC 拦截器。
 

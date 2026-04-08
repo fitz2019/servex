@@ -4,6 +4,7 @@ package httpclient
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,9 +13,9 @@ import (
 	"time"
 
 	"github.com/Tsukikage7/servex/discovery"
-	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/middleware/circuitbreaker"
 	"github.com/Tsukikage7/servex/middleware/retry"
+	"github.com/Tsukikage7/servex/observability/logger"
 	"github.com/Tsukikage7/servex/observability/metrics"
 )
 
@@ -73,6 +74,10 @@ func New(opts ...Option) (*Client, error) {
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
+
+	// Apply TLS configuration
+	rt = applyTLSConfig(rt, o.tlsConfig)
+
 	for i := len(o.middlewares) - 1; i >= 0; i-- {
 		rt = o.middlewares[i](rt)
 	}
@@ -215,11 +220,12 @@ type options struct {
 	transport        http.RoundTripper
 	balancer         Balancer
 	middlewares      []Middleware
-	baseURL          string                       // for NewSimple (static base URL)
+	baseURL          string // for NewSimple (static base URL)
 	retryCfg         *retry.Config
 	circuitBreaker   circuitbreaker.CircuitBreaker
 	tracerName       string
 	metricsCollector metrics.Collector
+	tlsConfig        *tls.Config
 }
 
 // defaultOptions 返回默认配置.
@@ -336,11 +342,19 @@ func WithMetrics(c metrics.Collector) Option {
 	return func(o *options) { o.metricsCollector = c }
 }
 
+// WithTLS 设置 TLS 配置.
+//
+// 如果已通过 WithTransport 设置了自定义 Transport，TLS 配置将应用到该 Transport 上.
+// 否则创建新的 http.Transport 并配置 TLS.
+func WithTLS(cfg *tls.Config) Option {
+	return func(o *options) { o.tlsConfig = cfg }
+}
+
 // Request 支持 auto JSON 和 per-request headers 的请求描述.
 type Request struct {
 	Method  string
 	Path    string
-	Body    any               // 自动 JSON 序列化
+	Body    any // 自动 JSON 序列化
 	Headers map[string]string
 	Query   map[string]string
 }
@@ -417,6 +431,9 @@ func NewSimple(opts ...Option) *Client {
 		rt = http.DefaultTransport
 	}
 
+	// Apply TLS configuration
+	rt = applyTLSConfig(rt, o.tlsConfig)
+
 	// Build middleware chain (inner to outer)
 	if o.logger != nil {
 		rt = LoggingMiddleware(o.logger)(rt)
@@ -443,5 +460,23 @@ func NewSimple(opts ...Option) *Client {
 			Transport: rt,
 		},
 		opts: o,
+	}
+}
+
+// applyTLSConfig 将 TLS 配置应用到 RoundTripper.
+//
+// 如果 rt 是 *http.Transport，则 clone 后设置 TLSClientConfig.
+// 否则创建新的 http.Transport 包裹 TLS 配置.
+func applyTLSConfig(rt http.RoundTripper, tlsCfg *tls.Config) http.RoundTripper {
+	if tlsCfg == nil {
+		return rt
+	}
+	if t, ok := rt.(*http.Transport); ok {
+		t2 := t.Clone()
+		t2.TLSClientConfig = tlsCfg
+		return t2
+	}
+	return &http.Transport{
+		TLSClientConfig: tlsCfg,
 	}
 }

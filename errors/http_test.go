@@ -14,9 +14,9 @@ import (
 
 var (
 	testErrTokenExpired = New(100401, "auth.token.expired", "令牌已过期").
-		WithHTTP(http.StatusUnauthorized).WithGRPC(codes.Unauthenticated)
+				WithHTTP(http.StatusUnauthorized).WithGRPC(codes.Unauthenticated)
 	testErrInternal = New(900500, "internal", "服务内部错误").
-		WithHTTP(http.StatusInternalServerError).WithGRPC(codes.Internal)
+			WithHTTP(http.StatusInternalServerError).WithGRPC(codes.Internal)
 )
 
 func TestToHTTPStatus(t *testing.T) {

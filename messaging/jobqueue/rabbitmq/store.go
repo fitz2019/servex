@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 

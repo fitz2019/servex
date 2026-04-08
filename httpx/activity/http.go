@@ -12,11 +12,11 @@ import (
 func HTTPMiddleware(tracker *Tracker, opts ...MiddlewareOption) func(http.Handler) http.Handler {
 	o := &middlewareOptions{
 		skipPaths: map[string]bool{
-			"/health":  true,
-			"/healthz": true,
-			"/ready":   true,
-			"/readyz":  true,
-			"/metrics": true,
+			"/health":      true,
+			"/healthz":     true,
+			"/ready":       true,
+			"/readyz":      true,
+			"/metrics":     true,
 			"/favicon.ico": true,
 		},
 		eventType: EventTypeRequest,

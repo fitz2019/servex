@@ -3,40 +3,22 @@ package grpcserver
 import (
 	"context"
 	"net"
+	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"google.golang.org/grpc"
+
+	"github.com/Tsukikage7/servex/testx"
 )
-
-// mockLogger 测试用 mock logger.
-type mockLogger struct{}
-
-func (m *mockLogger) Debug(args ...any)                             {}
-func (m *mockLogger) Debugf(format string, args ...any)             {}
-func (m *mockLogger) Info(args ...any)                              {}
-func (m *mockLogger) Infof(format string, args ...any)              {}
-func (m *mockLogger) Warn(args ...any)                              {}
-func (m *mockLogger) Warnf(format string, args ...any)              {}
-func (m *mockLogger) Error(args ...any)                             {}
-func (m *mockLogger) Errorf(format string, args ...any)             {}
-func (m *mockLogger) Fatal(args ...any)                             {}
-func (m *mockLogger) Fatalf(format string, args ...any)             {}
-func (m *mockLogger) Panic(args ...any)                             {}
-func (m *mockLogger) Panicf(format string, args ...any)             {}
-func (m *mockLogger) With(fields ...logger.Field) logger.Logger     { return m }
-func (m *mockLogger) WithContext(ctx context.Context) logger.Logger { return m }
-func (m *mockLogger) Sync() error                                   { return nil }
-func (m *mockLogger) Close() error                                  { return nil }
 
 // mockRegistrar 测试用 mock registrar.
 type mockRegistrar struct {
-	registered bool
+	registered atomic.Bool
 }
 
 func (m *mockRegistrar) RegisterGRPC(server *grpc.Server) {
-	m.registered = true
+	m.registered.Store(true)
 }
 
 func getAvailablePort(t *testing.T) string {
@@ -53,7 +35,7 @@ func TestNew(t *testing.T) {
 		srv := New(
 			WithName("test-grpc"),
 			WithAddr(":9090"),
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 		)
 
 		if srv.Name() != "test-grpc" {
@@ -74,7 +56,7 @@ func TestNew(t *testing.T) {
 	})
 
 	t.Run("默认值", func(t *testing.T) {
-		srv := New(WithLogger(&mockLogger{}))
+		srv := New(WithLogger(testx.NopLogger()))
 
 		if srv.Name() != "gRPC" {
 			t.Errorf("expected default name 'gRPC', got '%s'", srv.Name())
@@ -86,7 +68,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestServer_Register(t *testing.T) {
-	srv := New(WithLogger(&mockLogger{}))
+	srv := New(WithLogger(testx.NopLogger()))
 
 	reg1 := &mockRegistrar{}
 	reg2 := &mockRegistrar{}
@@ -107,7 +89,7 @@ func TestServer_StartAndStop(t *testing.T) {
 	addr := getAvailablePort(t)
 	srv := New(
 		WithAddr(addr),
-		WithLogger(&mockLogger{}),
+		WithLogger(testx.NopLogger()),
 		WithReflection(true),
 	)
 
@@ -126,7 +108,7 @@ func TestServer_StartAndStop(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// 验证服务已注册
-	if !reg.registered {
+	if !reg.registered.Load() {
 		t.Error("service should be registered")
 	}
 
@@ -156,7 +138,7 @@ func TestServer_StartAndStop(t *testing.T) {
 }
 
 func TestServer_StopNotStarted(t *testing.T) {
-	srv := New(WithLogger(&mockLogger{}))
+	srv := New(WithLogger(testx.NopLogger()))
 
 	err := srv.Stop(t.Context())
 	if err != nil {
@@ -165,7 +147,7 @@ func TestServer_StopNotStarted(t *testing.T) {
 }
 
 func TestServer_GRPCServerBeforeStart(t *testing.T) {
-	srv := New(WithLogger(&mockLogger{}))
+	srv := New(WithLogger(testx.NopLogger()))
 
 	if srv.GRPCServer() != nil {
 		t.Error("GRPCServer should be nil before start")
@@ -175,7 +157,7 @@ func TestServer_GRPCServerBeforeStart(t *testing.T) {
 func TestServerOptions(t *testing.T) {
 	t.Run("WithReflection", func(t *testing.T) {
 		srv := New(
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithReflection(false),
 		)
 		if srv.opts.enableReflection {
@@ -185,7 +167,7 @@ func TestServerOptions(t *testing.T) {
 
 	t.Run("WithKeepalive", func(t *testing.T) {
 		srv := New(
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithKeepalive(30*time.Second, 10*time.Second),
 		)
 		if srv.opts.keepaliveTime != 30*time.Second {
@@ -201,7 +183,7 @@ func TestServerOptions(t *testing.T) {
 			return handler(ctx, req)
 		}
 		srv := New(
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithUnaryInterceptor(interceptor),
 		)
 		if len(srv.opts.unaryInterceptors) != 1 {
@@ -214,7 +196,7 @@ func TestServerOptions(t *testing.T) {
 			return handler(srv, ss)
 		}
 		srv := New(
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithStreamInterceptor(interceptor),
 		)
 		if len(srv.opts.streamInterceptors) != 1 {
@@ -224,11 +206,94 @@ func TestServerOptions(t *testing.T) {
 
 	t.Run("WithServerOption", func(t *testing.T) {
 		srv := New(
-			WithLogger(&mockLogger{}),
+			WithLogger(testx.NopLogger()),
 			WithServerOption(grpc.MaxRecvMsgSize(1024)),
 		)
 		if len(srv.opts.serverOptions) != 1 {
 			t.Error("server option not added")
+		}
+	})
+}
+
+func TestServerOptions_Extended(t *testing.T) {
+	t.Run("WithRecovery", func(t *testing.T) {
+		srv := New(
+			WithLogger(testx.NopLogger()),
+			WithRecovery(),
+		)
+		if !srv.opts.enableRecovery {
+			t.Error("recovery should be enabled")
+		}
+	})
+
+	t.Run("WithLogging", func(t *testing.T) {
+		srv := New(
+			WithLogger(testx.NopLogger()),
+			WithLogging("/grpc.health.v1.Health/Check"),
+		)
+		if !srv.opts.enableLogging {
+			t.Error("logging should be enabled")
+		}
+		if len(srv.opts.loggingSkipPaths) != 1 {
+			t.Error("skip paths not set")
+		}
+	})
+
+	t.Run("WithPublicMethods", func(t *testing.T) {
+		srv := New(
+			WithLogger(testx.NopLogger()),
+			WithPublicMethods("/api.v1.Auth/Login", "/api.v1.Auth/Register"),
+		)
+		if len(srv.opts.publicMethods) != 2 {
+			t.Errorf("expected 2 public methods, got %d", len(srv.opts.publicMethods))
+		}
+	})
+
+	t.Run("WithHealthTimeout", func(t *testing.T) {
+		srv := New(
+			WithLogger(testx.NopLogger()),
+			WithHealthTimeout(10*time.Second),
+		)
+		if srv.opts.healthTimeout != 10*time.Second {
+			t.Error("health timeout not set correctly")
+		}
+	})
+
+	t.Run("WithName", func(t *testing.T) {
+		srv := New(
+			WithLogger(testx.NopLogger()),
+			WithName("custom-grpc"),
+		)
+		if srv.Name() != "custom-grpc" {
+			t.Errorf("expected 'custom-grpc', got '%s'", srv.Name())
+		}
+	})
+
+	t.Run("WithAddr", func(t *testing.T) {
+		srv := New(
+			WithLogger(testx.NopLogger()),
+			WithAddr(":50051"),
+		)
+		if srv.Addr() != ":50051" {
+			t.Errorf("expected ':50051', got '%s'", srv.Addr())
+		}
+	})
+
+	t.Run("Health not nil", func(t *testing.T) {
+		srv := New(WithLogger(testx.NopLogger()))
+		if srv.Health() == nil {
+			t.Error("Health should not be nil")
+		}
+	})
+
+	t.Run("HealthEndpoint", func(t *testing.T) {
+		srv := New(WithLogger(testx.NopLogger()))
+		ep := srv.HealthEndpoint()
+		if ep == nil {
+			t.Fatal("HealthEndpoint should not be nil")
+		}
+		if ep.Addr != ":9090" {
+			t.Errorf("expected default addr, got %s", ep.Addr)
 		}
 	})
 }

@@ -3,7 +3,6 @@ package tracing
 import (
 	"context"
 
-	"github.com/Tsukikage7/servex/observability/logger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
@@ -12,6 +11,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"github.com/Tsukikage7/servex/observability/logger"
 )
 
 // metadataCarrier 实现 propagation.TextMapCarrier 接口.

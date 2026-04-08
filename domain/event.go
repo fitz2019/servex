@@ -19,5 +19,5 @@ func NewBaseEvent(name string) BaseEvent {
 	return BaseEvent{name: name, occurredAt: time.Now()}
 }
 
-func (e BaseEvent) EventName() string      { return e.name }
-func (e BaseEvent) OccurredAt() time.Time  { return e.occurredAt }
+func (e BaseEvent) EventName() string     { return e.name }
+func (e BaseEvent) OccurredAt() time.Time { return e.occurredAt }

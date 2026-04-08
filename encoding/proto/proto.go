@@ -5,9 +5,10 @@ package proto
 import (
 	stdjson "encoding/json"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/Tsukikage7/servex/encoding"
 	"github.com/Tsukikage7/servex/encoding/pbjson"
-	"google.golang.org/protobuf/proto"
 )
 
 func init() { encoding.RegisterCodec(codec{}) }

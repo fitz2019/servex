@@ -16,9 +16,16 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/Tsukikage7/servex/auth"
-	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/httpx/clientip"
+	"github.com/Tsukikage7/servex/middleware/cors"
+	"github.com/Tsukikage7/servex/middleware/logging"
+	"github.com/Tsukikage7/servex/middleware/ratelimit"
 	"github.com/Tsukikage7/servex/middleware/recovery"
+	"github.com/Tsukikage7/servex/middleware/requestid"
+	"github.com/Tsukikage7/servex/observability/logger"
+	"github.com/Tsukikage7/servex/observability/metrics"
 	"github.com/Tsukikage7/servex/observability/tracing"
+	"github.com/Tsukikage7/servex/tenant"
 	"github.com/Tsukikage7/servex/transport"
 	"github.com/Tsukikage7/servex/transport/health"
 	"github.com/Tsukikage7/servex/transport/response"
@@ -60,10 +67,22 @@ func New(opts ...Option) *Server {
 		panic("gateway: 日志记录器不能为空")
 	}
 
-	// 应用 recovery 拦截器（必须在所有 option 处理之后）
+	// 按照优先级顺序应用 gRPC 拦截器（由外到内）:
+	// 1. Recovery
+	// 2. RequestID
+	// 3. Logging
+	// 4. Tracing（已在 WithTrace 中添加）
+	// 5. Metrics
+	// 6. RateLimit
+	// 7. ClientIP
+	// 8. Tenant
+	// 9. Auth（在 applyAuthInterceptors 中添加）
+	applyNewInterceptors(o)
+
+	// 应用 recovery 拦截器（必须在所有 option 处理之后，放在拦截器链最前面）
 	applyRecoveryInterceptors(o)
 
-	// 应用 auth 拦截器
+	// 应用 auth 拦截器（放在拦截器链末尾）
 	applyAuthInterceptors(o)
 
 	muxOpts := []runtime.ServeMuxOption{
@@ -311,17 +330,68 @@ func (s *Server) connectGateway() error {
 }
 
 func (s *Server) startHTTP(ctx context.Context) error {
-	// 使用健康检查中间件包装 mux
+	// 构建 HTTP 中间件链（由内到外包装）
+	//
+	// 最终请求执行顺序:
+	// Recovery → RequestID → Logging → Tracing → Metrics → CORS →
+	// RateLimit → ClientIP → Tenant → Auth(via gRPC) → Health → handler
 	var handler http.Handler = health.Middleware(s.health)(s.mux)
 
-	// 如果启用链路追踪，使用 trace 中间件包装
+	// 9. Tenant（HTTP 端）
+	if s.opts.tenantResolver != nil {
+		tenantOpts := s.opts.tenantOpts
+		if s.opts.logger != nil {
+			tenantOpts = append(tenantOpts, tenant.WithLogger(s.opts.logger))
+		}
+		handler = tenant.HTTPMiddleware(s.opts.tenantResolver, tenantOpts...)(handler)
+	}
+
+	// 8. ClientIP（HTTP 端）
+	if s.opts.enableClientIP {
+		handler = clientip.HTTPMiddleware(s.opts.clientIPOpts...)(handler)
+	}
+
+	// 7. RateLimit（HTTP 端）
+	if s.opts.rateLimiter != nil {
+		handler = ratelimit.HTTPMiddleware(s.opts.rateLimiter)(handler)
+	}
+
+	// 6. CORS（仅 HTTP 端）
+	if s.opts.enableCORS {
+		handler = cors.HTTPMiddleware(s.opts.corsOpts...)(handler)
+	}
+
+	// 5. Metrics（HTTP 端）
+	if s.opts.metricsCollector != nil {
+		handler = metrics.HTTPMiddleware(s.opts.metricsCollector)(handler)
+	}
+
+	// 4. Tracing（HTTP 端）
 	if s.opts.tracerName != "" {
 		handler = tracing.HTTPMiddleware(s.opts.tracerName)(handler)
 	}
 
-	// 如果启用 panic 恢复，使用 recovery 中间件包装（在最外层）
+	// 3. Logging（HTTP 端）
+	if s.opts.enableLogging && s.opts.logger != nil {
+		handler = logging.HTTPMiddleware(
+			logging.WithLogger(s.opts.logger),
+			logging.WithSkipPaths(s.opts.loggingSkipPaths...),
+		)(handler)
+	}
+
+	// 2. RequestID（HTTP 端）
+	if s.opts.enableRequestID {
+		handler = requestid.HTTPMiddleware(s.opts.requestIDOpts...)(handler)
+	}
+
+	// 1. Recovery（HTTP 端，最外层）
 	if s.opts.enableRecovery {
 		handler = recovery.HTTPMiddleware(recovery.WithLogger(s.opts.logger))(handler)
+	}
+
+	// 应用用户自定义 HTTP 中间件
+	for i := len(s.opts.httpMiddlewares) - 1; i >= 0; i-- {
+		handler = s.opts.httpMiddlewares[i](handler)
 	}
 
 	s.httpHandler = handler
@@ -332,6 +402,7 @@ func (s *Server) startHTTP(ctx context.Context) error {
 		ReadTimeout:  s.opts.httpReadTimeout,
 		WriteTimeout: s.opts.httpWriteTimeout,
 		IdleTimeout:  s.opts.httpIdleTimeout,
+		TLSConfig:    s.opts.httpTLSConfig,
 	}
 
 	s.opts.logger.With(
@@ -341,7 +412,13 @@ func (s *Server) startHTTP(ctx context.Context) error {
 
 	errCh := make(chan error, 1)
 	go func() {
-		if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		var err error
+		if s.opts.httpTLSConfig != nil {
+			err = s.httpServer.ListenAndServeTLS("", "")
+		} else {
+			err = s.httpServer.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
 			errCh <- err
 		}
 	}()

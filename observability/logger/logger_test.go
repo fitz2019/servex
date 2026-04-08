@@ -205,4 +205,3 @@ func (s *ConstantsTestSuite) TestOutputConstants() {
 	s.Equal("file", OutputFile)
 	s.Equal("both", OutputBoth)
 }
-

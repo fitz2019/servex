@@ -5,6 +5,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+
+	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
 // gRPC metadata 键名.
@@ -46,11 +48,7 @@ func StreamServerInterceptor(opts ...Option) grpc.StreamServerInterceptor {
 		handler grpc.StreamHandler,
 	) error {
 		ctx := parseAndStore(ss.Context(), parser)
-		wrapped := &wrappedServerStream{
-			ServerStream: ss,
-			ctx:          ctx,
-		}
-		return handler(srv, wrapped)
+		return handler(srv, grpcx.WrapServerStream(ss, ctx))
 	}
 }
 
@@ -80,15 +78,4 @@ func getMetadataValue(md metadata.MD, key string) string {
 		return values[0]
 	}
 	return ""
-}
-
-// wrappedServerStream 包装 grpc.ServerStream 以提供自定义 context.
-type wrappedServerStream struct {
-	grpc.ServerStream
-	ctx context.Context
-}
-
-// Context 返回包装后的 context.
-func (w *wrappedServerStream) Context() context.Context {
-	return w.ctx
 }

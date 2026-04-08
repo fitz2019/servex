@@ -12,16 +12,16 @@ import (
 // jsonCodec 用于 Example 的 JSON 编解码器.
 type jsonCodec struct{}
 
-func (jsonCodec) Marshal(v any) ([]byte, error)     { return stdjson.Marshal(v) }
+func (jsonCodec) Marshal(v any) ([]byte, error)      { return stdjson.Marshal(v) }
 func (jsonCodec) Unmarshal(data []byte, v any) error { return stdjson.Unmarshal(data, v) }
-func (jsonCodec) Name() string                      { return "json" }
+func (jsonCodec) Name() string                       { return "json" }
 
 // xmlCodec 用于 Example 的 XML 编解码器桩.
 type xmlCodec struct{}
 
-func (xmlCodec) Marshal(v any) ([]byte, error)     { return nil, nil }
+func (xmlCodec) Marshal(v any) ([]byte, error)      { return nil, nil }
 func (xmlCodec) Unmarshal(data []byte, v any) error { return nil }
-func (xmlCodec) Name() string                      { return "xml" }
+func (xmlCodec) Name() string                       { return "xml" }
 
 // registerExampleCodecs 在每个 Example 中显式注册，避免依赖 init() 副作用.
 func registerExampleCodecs() {
