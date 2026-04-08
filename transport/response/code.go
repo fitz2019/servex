@@ -46,39 +46,52 @@ func (c Code) Is(target error) bool {
 //   - 5xxxx: 服务器内部错误
 //   - 6xxxx: 外部服务错误
 var (
-	// 成功
+	// CodeSuccess 成功.
 	CodeSuccess = Code{Num: 0, Message: "成功", HTTPStatus: http.StatusOK, GRPCCode: codes.OK, Key: "success"}
 
-	// 通用错误 1xxxx
-	CodeUnknown  = Code{Num: 10000, Message: "未知错误", HTTPStatus: http.StatusInternalServerError, GRPCCode: codes.Unknown, Key: "error.unknown"}
+	// CodeUnknown 未知错误.
+	CodeUnknown = Code{Num: 10000, Message: "未知错误", HTTPStatus: http.StatusInternalServerError, GRPCCode: codes.Unknown, Key: "error.unknown"}
+	// CodeCanceled 请求已取消.
 	CodeCanceled = Code{Num: 10001, Message: "请求已取消", HTTPStatus: http.StatusRequestTimeout, GRPCCode: codes.Canceled, Key: "error.canceled"}
-	CodeTimeout  = Code{Num: 10002, Message: "请求超时", HTTPStatus: http.StatusGatewayTimeout, GRPCCode: codes.DeadlineExceeded, Key: "error.timeout"}
+	// CodeTimeout 请求超时.
+	CodeTimeout = Code{Num: 10002, Message: "请求超时", HTTPStatus: http.StatusGatewayTimeout, GRPCCode: codes.DeadlineExceeded, Key: "error.timeout"}
 
-	// 认证/授权错误 2xxxx
+	// CodeUnauthorized 未授权.
 	CodeUnauthorized = Code{Num: 20001, Message: "未授权", HTTPStatus: http.StatusUnauthorized, GRPCCode: codes.Unauthenticated, Key: "error.unauthorized"}
-	CodeForbidden    = Code{Num: 20002, Message: "禁止访问", HTTPStatus: http.StatusForbidden, GRPCCode: codes.PermissionDenied, Key: "error.forbidden"}
+	// CodeForbidden 禁止访问.
+	CodeForbidden = Code{Num: 20002, Message: "禁止访问", HTTPStatus: http.StatusForbidden, GRPCCode: codes.PermissionDenied, Key: "error.forbidden"}
+	// CodeTokenExpired 令牌已过期.
 	CodeTokenExpired = Code{Num: 20003, Message: "令牌已过期", HTTPStatus: http.StatusUnauthorized, GRPCCode: codes.Unauthenticated, Key: "error.token_expired"}
+	// CodeTokenInvalid 令牌无效.
 	CodeTokenInvalid = Code{Num: 20004, Message: "令牌无效", HTTPStatus: http.StatusUnauthorized, GRPCCode: codes.Unauthenticated, Key: "error.token_invalid"}
 
-	// 请求参数错误 3xxxx
-	CodeInvalidParam     = Code{Num: 30001, Message: "参数无效", HTTPStatus: http.StatusBadRequest, GRPCCode: codes.InvalidArgument, Key: "error.invalid_param"}
-	CodeMissingParam     = Code{Num: 30002, Message: "缺少必需参数", HTTPStatus: http.StatusBadRequest, GRPCCode: codes.InvalidArgument, Key: "error.missing_param"}
+	// CodeInvalidParam 参数无效.
+	CodeInvalidParam = Code{Num: 30001, Message: "参数无效", HTTPStatus: http.StatusBadRequest, GRPCCode: codes.InvalidArgument, Key: "error.invalid_param"}
+	// CodeMissingParam 缺少必需参数.
+	CodeMissingParam = Code{Num: 30002, Message: "缺少必需参数", HTTPStatus: http.StatusBadRequest, GRPCCode: codes.InvalidArgument, Key: "error.missing_param"}
+	// CodeValidationFailed 参数验证失败.
 	CodeValidationFailed = Code{Num: 30003, Message: "参数验证失败", HTTPStatus: http.StatusBadRequest, GRPCCode: codes.InvalidArgument, Key: "error.validation"}
 
-	// 资源错误 4xxxx
-	CodeNotFound          = Code{Num: 40001, Message: "资源不存在", HTTPStatus: http.StatusNotFound, GRPCCode: codes.NotFound, Key: "error.not_found"}
-	CodeAlreadyExists     = Code{Num: 40002, Message: "资源已存在", HTTPStatus: http.StatusConflict, GRPCCode: codes.AlreadyExists, Key: "error.already_exists"}
-	CodeConflict          = Code{Num: 40003, Message: "资源冲突", HTTPStatus: http.StatusConflict, GRPCCode: codes.Aborted, Key: "error.conflict"}
+	// CodeNotFound 资源不存在.
+	CodeNotFound = Code{Num: 40001, Message: "资源不存在", HTTPStatus: http.StatusNotFound, GRPCCode: codes.NotFound, Key: "error.not_found"}
+	// CodeAlreadyExists 资源已存在.
+	CodeAlreadyExists = Code{Num: 40002, Message: "资源已存在", HTTPStatus: http.StatusConflict, GRPCCode: codes.AlreadyExists, Key: "error.already_exists"}
+	// CodeConflict 资源冲突.
+	CodeConflict = Code{Num: 40003, Message: "资源冲突", HTTPStatus: http.StatusConflict, GRPCCode: codes.Aborted, Key: "error.conflict"}
+	// CodeResourceExhausted 资源耗尽.
 	CodeResourceExhausted = Code{Num: 40004, Message: "资源耗尽", HTTPStatus: http.StatusTooManyRequests, GRPCCode: codes.ResourceExhausted, Key: "error.exhausted"}
 
-	// 服务器内部错误 5xxxx
-	CodeInternal       = Code{Num: 50001, Message: "服务器内部错误", HTTPStatus: http.StatusInternalServerError, GRPCCode: codes.Internal, Key: "error.internal"}
+	// CodeInternal 服务器内部错误.
+	CodeInternal = Code{Num: 50001, Message: "服务器内部错误", HTTPStatus: http.StatusInternalServerError, GRPCCode: codes.Internal, Key: "error.internal"}
+	// CodeNotImplemented 功能未实现.
 	CodeNotImplemented = Code{Num: 50002, Message: "功能未实现", HTTPStatus: http.StatusNotImplemented, GRPCCode: codes.Unimplemented, Key: "error.not_implemented"}
-	CodeDatabaseError  = Code{Num: 50003, Message: "数据库错误", HTTPStatus: http.StatusInternalServerError, GRPCCode: codes.Internal, Key: "error.database"}
+	// CodeDatabaseError 数据库错误.
+	CodeDatabaseError = Code{Num: 50003, Message: "数据库错误", HTTPStatus: http.StatusInternalServerError, GRPCCode: codes.Internal, Key: "error.database"}
 
-	// 外部服务错误 6xxxx
+	// CodeServiceUnavailable 服务不可用.
 	CodeServiceUnavailable = Code{Num: 60001, Message: "服务不可用", HTTPStatus: http.StatusServiceUnavailable, GRPCCode: codes.Unavailable, Key: "error.unavailable"}
-	CodeUpstreamError      = Code{Num: 60002, Message: "上游服务错误", HTTPStatus: http.StatusBadGateway, GRPCCode: codes.Unavailable, Key: "error.upstream"}
+	// CodeUpstreamError 上游服务错误.
+	CodeUpstreamError = Code{Num: 60002, Message: "上游服务错误", HTTPStatus: http.StatusBadGateway, GRPCCode: codes.Unavailable, Key: "error.upstream"}
 )
 
 // NewCode 创建自定义错误码.

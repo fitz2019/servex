@@ -1,4 +1,3 @@
-// Package apikey 提供 AI 服务的 API Key 管理功能.
 package apikey
 
 import (

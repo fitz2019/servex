@@ -1,11 +1,10 @@
-// jobqueue/kafka/config.go
 package kafka
 
 import (
 	"github.com/IBM/sarama"
 )
 
-// NewStoreFromConfig 根据 broker 列表创建 Kafka Store。
+// NewStoreFromConfig 根据 broker 列表创建 Kafka Store.
 func NewStoreFromConfig(brokers []string, prefix string) (*Store, error) {
 	cfg := sarama.NewConfig()
 	cfg.Producer.Return.Successes = true

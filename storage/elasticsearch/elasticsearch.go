@@ -30,13 +30,20 @@ import (
 
 // 预定义错误.
 var (
-	ErrNilConfig          = errors.New("elasticsearch: config is nil")
-	ErrNilLogger          = errors.New("elasticsearch: logger is nil")
-	ErrEmptyAddresses     = errors.New("elasticsearch: addresses is empty")
-	ErrIndexNotFound      = errors.New("elasticsearch: index not found")
-	ErrDocumentNotFound   = errors.New("elasticsearch: document not found")
+	// ErrNilConfig 配置为 nil 时返回.
+	ErrNilConfig = errors.New("elasticsearch: config is nil")
+	// ErrNilLogger 日志记录器为 nil 时返回.
+	ErrNilLogger = errors.New("elasticsearch: logger is nil")
+	// ErrEmptyAddresses 地址列表为空时返回.
+	ErrEmptyAddresses = errors.New("elasticsearch: addresses is empty")
+	// ErrIndexNotFound 索引未找到.
+	ErrIndexNotFound = errors.New("elasticsearch: index not found")
+	// ErrDocumentNotFound 文档未找到.
+	ErrDocumentNotFound = errors.New("elasticsearch: document not found")
+	// ErrBulkPartialFailure 批量操作部分失败.
 	ErrBulkPartialFailure = errors.New("elasticsearch: bulk operation has failures")
-	ErrRequestFailed      = errors.New("elasticsearch: request failed")
+	// ErrRequestFailed 请求失败.
+	ErrRequestFailed = errors.New("elasticsearch: request failed")
 )
 
 // Config Elasticsearch 配置.

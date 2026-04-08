@@ -20,7 +20,6 @@ func (h *queryHandlerFunc[Q, R]) Handle(ctx context.Context, query Q) (R, error)
 }
 
 // ChainQuery 将中间件链应用到查询处理器上.
-//
 // 中间件按参数顺序从外到内执行，即 mws[0] 最先执行.
 func ChainQuery[Q, R any](handler QueryHandler[Q, R], mws ...QueryMiddleware[Q, R]) QueryHandler[Q, R] {
 	for i := len(mws) - 1; i >= 0; i-- {

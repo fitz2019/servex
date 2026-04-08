@@ -1,4 +1,3 @@
-// webhook/dispatcher.go
 package webhook
 
 import (
@@ -13,7 +12,7 @@ type dispatcher struct {
 	opts dispatcherOptions
 }
 
-// NewDispatcher 创建 webhook 投递器。
+// NewDispatcher 创建 webhook 投递器.
 func NewDispatcher(opts ...DispatcherOption) *dispatcher {
 	o := dispatcherOptions{
 		timeout:         10 * time.Second,
@@ -31,6 +30,7 @@ func NewDispatcher(opts ...DispatcherOption) *dispatcher {
 	return &dispatcher{opts: o}
 }
 
+// Dispatch 向订阅者投递 webhook 事件.
 func (d *dispatcher) Dispatch(ctx context.Context, sub *Subscription, event *Event) error {
 	if sub == nil {
 		return ErrNilSubscription
@@ -68,4 +68,5 @@ func (d *dispatcher) Dispatch(ctx context.Context, sub *Subscription, event *Eve
 	return nil
 }
 
+// Close 关闭投递器.
 func (d *dispatcher) Close() error { return nil }

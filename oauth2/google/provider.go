@@ -1,4 +1,4 @@
-// oauth2/google/provider.go
+// Package google 实现 Google OAuth2 登录.
 package google
 
 import (
@@ -21,6 +21,7 @@ const (
 	defaultUserInfoURL = "https://www.googleapis.com/oauth2/v2/userinfo"
 )
 
+// Provider 实现 Google OAuth2 登录.
 type Provider struct {
 	opts        options
 	authBaseURL string
@@ -28,6 +29,7 @@ type Provider struct {
 	userInfoURL string
 }
 
+// NewProvider 创建 Google OAuth2 Provider 实例.
 func NewProvider(opts ...Option) *Provider {
 	o := options{
 		httpClient: &http.Client{Timeout: 10 * time.Second},
@@ -44,6 +46,7 @@ func NewProvider(opts ...Option) *Provider {
 	}
 }
 
+// AuthURL 生成 Google OAuth2 授权跳转链接.
 func (p *Provider) AuthURL(state string, opts ...oauth2.AuthURLOption) string {
 	extra := oauth2.ApplyAuthURLOptions(opts)
 	params := url.Values{
@@ -61,6 +64,7 @@ func (p *Provider) AuthURL(state string, opts ...oauth2.AuthURLOption) string {
 	return p.authBaseURL + "?" + params.Encode()
 }
 
+// Exchange 使用授权码换取访问令牌.
 func (p *Provider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
 	if code == "" {
 		return nil, oauth2.ErrInvalidCode
@@ -108,6 +112,7 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*oauth2.Token, er
 	return token, nil
 }
 
+// Refresh 使用 refresh token 刷新访问令牌.
 func (p *Provider) Refresh(ctx context.Context, refreshToken string) (*oauth2.Token, error) {
 	if refreshToken == "" {
 		return nil, oauth2.ErrRefreshFailed
@@ -147,6 +152,7 @@ func (p *Provider) Refresh(ctx context.Context, refreshToken string) (*oauth2.To
 	return token, nil
 }
 
+// UserInfo 获取 Google 用户信息.
 func (p *Provider) UserInfo(ctx context.Context, token *oauth2.Token) (*oauth2.UserInfo, error) {
 	if token == nil || token.AccessToken == "" {
 		return nil, oauth2.ErrInvalidToken

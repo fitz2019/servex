@@ -27,6 +27,7 @@ func CopyTo[Dst, Src any](src *Src, dst *Dst) error {
 	return copyStruct(reflect.ValueOf(src).Elem(), reflect.ValueOf(dst).Elem(), defaultCopyOptions())
 }
 
+// CopyWithOptions 从 src 创建 Dst 类型的新对象，按字段名匹配复制，支持自定义选项.
 func CopyWithOptions[Dst, Src any](src *Src, opts ...CopyOption) (*Dst, error) {
 	if src == nil {
 		return nil, ErrNilSource
@@ -38,6 +39,7 @@ func CopyWithOptions[Dst, Src any](src *Src, opts ...CopyOption) (*Dst, error) {
 	return dst, nil
 }
 
+// CopyToWithOptions 将 src 的字段值复制到已有的 dst 对象，支持自定义选项.
 func CopyToWithOptions[Dst, Src any](src *Src, dst *Dst, opts ...CopyOption) error {
 	if src == nil {
 		return ErrNilSource

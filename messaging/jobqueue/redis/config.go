@@ -1,11 +1,10 @@
-// jobqueue/redis/config.go
 package redis
 
 import (
 	goredis "github.com/redis/go-redis/v9"
 )
 
-// NewStoreFromConfig 根据连接参数创建 Redis Store。
+// NewStoreFromConfig 根据连接参数创建 Redis Store.
 func NewStoreFromConfig(addr, password string, db int, prefix string) (*Store, error) {
 	client := goredis.NewClient(&goredis.Options{
 		Addr:     addr,

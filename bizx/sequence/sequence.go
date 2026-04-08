@@ -1,10 +1,7 @@
 // Package sequence 提供业务序号生成器.
-//
 // 区别于 xutil/idgen 的全局唯一 ID，本包生成连续有意义的业务编号，
 // 支持前缀、日期、补零、每日重置等功能.
-//
 // 基本用法:
-//
 //	store := sequence.NewMemoryStore()
 //	seq := sequence.New(&sequence.Config{
 //	    Name:       "order",
@@ -12,7 +9,6 @@
 //	    DateFormat: "20060102",
 //	    Padding:    4,
 //	}, store)
-//
 //	id, _ := seq.Next(ctx) // "ORD-20260405-0001"
 //	id, _ = seq.Next(ctx)  // "ORD-20260405-0002"
 package sequence

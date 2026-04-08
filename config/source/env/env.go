@@ -62,7 +62,6 @@ func (s *Source) Load() ([]*config.KeyValue, error) {
 }
 
 // Watch 监听配置变更.
-//
 // 若设置了 EnvFile，使用 fsnotify 监听文件变化.
 // 否则返回不支持 Watch 的 watcher（Next 直接返回 ErrSourceClosed）.
 func (s *Source) Watch() (config.Watcher, error) {

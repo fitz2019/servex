@@ -2,7 +2,6 @@ package eventsourcing
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrNilEventStore 事件存储为空.
 	ErrNilEventStore = errors.New("eventsourcing: event store is nil")

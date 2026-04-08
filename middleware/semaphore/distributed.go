@@ -9,7 +9,6 @@ import (
 )
 
 // Distributed 分布式信号量.
-//
 // 基于 Counter 接口实现，适用于分布式并发控制.
 type Distributed struct {
 	counter   Counter
@@ -23,7 +22,6 @@ type Distributed struct {
 type Option func(*Distributed)
 
 // WithTTL 设置许可的过期时间.
-//
 // 防止因客户端崩溃导致许可无法释放.
 // 默认 30 秒.
 func WithTTL(ttl time.Duration) Option {
@@ -33,7 +31,6 @@ func WithTTL(ttl time.Duration) Option {
 }
 
 // WithRetryWait 设置重试等待时间.
-//
 // 当无法获取许可时，等待多长时间后重试.
 // 默认 100ms.
 func WithRetryWait(wait time.Duration) Option {
@@ -43,7 +40,6 @@ func WithRetryWait(wait time.Duration) Option {
 }
 
 // New 创建分布式信号量.
-//
 // counter: 计数器实现（可用 CacheCounter 适配 cache.Cache）
 // key: 信号量唯一标识
 // size: 最大并发数
@@ -143,9 +139,7 @@ type cacheCounter struct {
 }
 
 // CacheCounter 将 cache.Cache 适配为 Counter 接口.
-//
 // 示例:
-//
 //	redisCache, _ := cache.New(&cache.Config{Type: "redis", ...})
 //	counter := semaphore.CacheCounter(redisCache)
 //	sem := semaphore.New(counter, "api-limit", 100)

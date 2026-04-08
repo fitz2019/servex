@@ -10,9 +10,7 @@ import (
 )
 
 // HTTPMiddleware 返回 HTTP 指标采集中间件.
-//
 // 使用示例:
-//
 //	collector, _ := metrics.New(cfg)
 //	handler := metrics.HTTPMiddleware(collector)(mux)
 //	http.ListenAndServe(":8080", handler)
@@ -59,9 +57,7 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 }
 
 // EndpointMiddleware 返回 Endpoint 指标采集中间件.
-//
 // 使用示例:
-//
 //	collector, _ := metrics.New(cfg)
 //	endpoint = metrics.EndpointMiddleware(collector, "my-service", "GetUser")(endpoint)
 func EndpointMiddleware(collector *PrometheusCollector, service, method string) endpoint.Middleware {

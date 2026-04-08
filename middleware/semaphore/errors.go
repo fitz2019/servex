@@ -2,7 +2,6 @@ package semaphore
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrNoPermit 无法获取许可.
 	ErrNoPermit = errors.New("semaphore: 无法获取许可")

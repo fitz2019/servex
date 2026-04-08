@@ -1,4 +1,3 @@
-// Package logger 提供结构化日志记录功能.
 package logger
 
 import (

@@ -1,19 +1,14 @@
 // Package semaphore 提供分布式信号量并发控制.
-//
 // 信号量用于限制对共享资源的并发访问数量，
 // 适用于分布式部署场景.
-//
 // 基本用法:
-//
 //	counter := semaphore.CacheCounter(cacheClient)
 //	sem := semaphore.New(counter, "api-limit", 100)
 //	if err := sem.Acquire(ctx); err != nil {
 //	    return err
 //	}
 //	defer sem.Release(ctx)
-//
 // 中间件:
-//
 //	endpoint = semaphore.EndpointMiddleware(sem)(endpoint)
 package semaphore
 
@@ -43,7 +38,6 @@ type Semaphore interface {
 }
 
 // Counter 信号量所需的计数器接口.
-//
 // 这是 semaphore 包的最小依赖接口.
 // 可以用 cache.Cache、Redis 客户端或其他存储实现.
 type Counter interface {

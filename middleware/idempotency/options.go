@@ -39,7 +39,6 @@ func applyOptions(store Store, opts []Option) *options {
 }
 
 // WithKeyExtractor 设置幂等键提取函数.
-//
 // 默认行为:
 //   - HTTP: 从 Idempotency-Key 请求头提取
 //   - gRPC: 从 x-idempotency-key 元数据提取
@@ -51,7 +50,6 @@ func WithKeyExtractor(fn KeyExtractor) Option {
 }
 
 // WithTTL 设置幂等键过期时间.
-//
 // 默认 24 小时.
 func WithTTL(ttl time.Duration) Option {
 	return func(o *options) {
@@ -67,7 +65,6 @@ func WithLogger(log logger.Logger) Option {
 }
 
 // WithSkipOnError 设置存储错误时是否跳过幂等检查.
-//
 // 如果设置为 true，当存储操作失败时，会跳过幂等检查继续处理请求.
 // 默认为 false，存储失败时返回错误.
 func WithSkipOnError(skip bool) Option {
@@ -77,7 +74,6 @@ func WithSkipOnError(skip bool) Option {
 }
 
 // WithLockTimeout 设置锁超时时间.
-//
 // 当请求正在处理中时，新请求会等待这个时间.
 // 默认 30 秒.
 func WithLockTimeout(timeout time.Duration) Option {

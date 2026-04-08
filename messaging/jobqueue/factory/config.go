@@ -1,4 +1,4 @@
-// jobqueue/factory/config.go
+// Package factory 提供根据配置创建 jobqueue.Store 实例的工厂方法.
 package factory
 
 import (
@@ -12,7 +12,7 @@ import (
 	jqredis "github.com/Tsukikage7/servex/messaging/jobqueue/redis"
 )
 
-// StoreConfig 配置任务存储后端。
+// StoreConfig 配置任务存储后端.
 type StoreConfig struct {
 	Type string `json:"type" yaml:"type"` // "redis", "kafka", "rabbitmq", "database"
 
@@ -34,7 +34,7 @@ type StoreConfig struct {
 	Table  string `json:"table"  yaml:"table"`
 }
 
-// NewStore 根据 StoreConfig 创建对应的 jobqueue.Store 实例。
+// NewStore 根据 StoreConfig 创建对应的 jobqueue.Store 实例.
 func NewStore(cfg *StoreConfig) (jobqueue.Store, error) {
 	if cfg == nil {
 		return nil, errors.New("jobqueue/factory: StoreConfig 不能为空")

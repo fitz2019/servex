@@ -2,13 +2,6 @@ package outbox
 
 import "errors"
 
-// 预定义错误.
-//
-// 所有错误均可通过 errors.Is 进行判断:
-//
-//	if errors.Is(err, outbox.ErrRelayAlreadyRunning) {
-//	    // 处理中继器已运行的情况
-//	}
 var (
 	// ErrNilStore Store 为空.
 	ErrNilStore = errors.New("outbox: Store 为空")

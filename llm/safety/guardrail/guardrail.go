@@ -14,10 +14,14 @@ import (
 
 // 护栏错误类型.
 var (
-	ErrBlocked     = errors.New("guardrail: message blocked")
+	// ErrBlocked 消息被护栏拦截.
+	ErrBlocked = errors.New("guardrail: message blocked")
+	// ErrPIIDetected 检测到个人隐私信息.
 	ErrPIIDetected = errors.New("guardrail: PII detected")
-	ErrTooLong     = errors.New("guardrail: message too long")
-	ErrTooMany     = errors.New("guardrail: too many messages")
+	// ErrTooLong 消息内容过长.
+	ErrTooLong = errors.New("guardrail: message too long")
+	// ErrTooMany 消息数量过多.
+	ErrTooMany = errors.New("guardrail: too many messages")
 )
 
 // Guard 护栏接口.
@@ -105,9 +109,13 @@ type PIIPattern string
 
 // 内置 PII 类型常量.
 const (
-	PIIEmail      PIIPattern = "email"
-	PIIPhone      PIIPattern = "phone"
-	PIIIDCard     PIIPattern = "id_card"
+	// PIIEmail 电子邮箱.
+	PIIEmail PIIPattern = "email"
+	// PIIPhone 手机号码.
+	PIIPhone PIIPattern = "phone"
+	// PIIIDCard 身份证号码.
+	PIIIDCard PIIPattern = "id_card"
+	// PIICreditCard 信用卡号码.
 	PIICreditCard PIIPattern = "credit_card"
 )
 

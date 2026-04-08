@@ -7,21 +7,16 @@ import "cmp"
 type LessFunc[T any] func(a, b T) bool
 
 // PriorityQueue 优先队列.
-//
 // 基于二叉堆实现，支持 O(log n) 的插入和弹出操作.
-//
 // 示例:
-//
 //	// 最小堆
 //	pq := priorityqueue.NewMin[int]()
 //	pq.Push(3, 1, 2)
 //	pq.Pop() // 1
-//
 //	// 最大堆
 //	pq := priorityqueue.NewMax[int]()
 //	pq.Push(3, 1, 2)
 //	pq.Pop() // 3
-//
 //	// 自定义优先级
 //	pq := priorityqueue.New(func(a, b Task) bool {
 //	    return a.Priority > b.Priority

@@ -1,4 +1,4 @@
-// Package factory 提供 Config 驱动的 notify.Dispatcher 工厂。
+// Package factory 提供 Config 驱动的 notify.Dispatcher 工厂.
 package factory
 
 import (
@@ -14,7 +14,7 @@ import (
 	"github.com/Tsukikage7/servex/observability/logger"
 )
 
-// Config 聚合所有通知渠道的配置。
+// Config 聚合所有通知渠道的配置.
 type Config struct {
 	DefaultChannel string         `json:"default_channel" yaml:"default_channel"`
 	TemplateDir    string         `json:"template_dir"    yaml:"template_dir"`
@@ -24,14 +24,14 @@ type Config struct {
 	Push           *PushConfig    `json:"push"            yaml:"push"`
 }
 
-// EmailConfig 邮件发送配置。
+// EmailConfig 邮件发送配置.
 type EmailConfig struct {
 	Host, Username, Password, From, Name string
 	Port                                 int
 	TLS                                  bool
 }
 
-// SMSConfig 短信发送配置。
+// SMSConfig 短信发送配置.
 type SMSConfig struct {
 	Provider string
 	SignName string
@@ -39,32 +39,32 @@ type SMSConfig struct {
 	Tencent  *TencentSMSConfig
 }
 
-// AliyunSMSConfig 阿里云短信配置。
+// AliyunSMSConfig 阿里云短信配置.
 type AliyunSMSConfig struct{ AccessKeyID, AccessKeySecret, Endpoint string }
 
-// TencentSMSConfig 腾讯云短信配置。
+// TencentSMSConfig 腾讯云短信配置.
 type TencentSMSConfig struct{ SecretID, SecretKey, AppID, Endpoint string }
 
-// WebhookConfig Webhook 发送配置。
+// WebhookConfig Webhook 发送配置.
 type WebhookConfig struct {
 	Timeout int
 	Retry   int
 }
 
-// PushConfig 推送发送配置。
+// PushConfig 推送发送配置.
 type PushConfig struct {
 	Provider string
 	FCM      *FCMPushConfig
 	APNs     *APNsPushConfig
 }
 
-// FCMPushConfig Firebase Cloud Messaging 配置。
+// FCMPushConfig Firebase Cloud Messaging 配置.
 type FCMPushConfig struct {
 	ProjectID       string
 	CredentialsJSON string
 }
 
-// APNsPushConfig Apple Push Notification service 配置。
+// APNsPushConfig Apple Push Notification service 配置.
 type APNsPushConfig struct {
 	BundleID, TeamID, KeyID, KeyFile string
 	Production                       bool
@@ -72,7 +72,7 @@ type APNsPushConfig struct {
 
 var errNilConfig = errors.New("notification: config 不能为空")
 
-// NewDispatcher 根据 Config 创建并配置好 *notify.Dispatcher。
+// NewDispatcher 根据 Config 创建并配置好 *notify.Dispatcher.
 func NewDispatcher(cfg *Config, log logger.Logger) (*notify.Dispatcher, error) {
 	if cfg == nil {
 		return nil, errNilConfig

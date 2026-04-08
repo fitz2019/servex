@@ -1,5 +1,6 @@
 package copier
 
+// CopyOption 复制操作的配置选项.
 type CopyOption func(*copyOptions)
 
 type copyOptions struct {
@@ -22,6 +23,7 @@ func applyCopyOptions(opts []CopyOption) *copyOptions {
 	return o
 }
 
+// IgnoreFields 忽略指定字段不参与复制.
 func IgnoreFields(fields ...string) CopyOption {
 	return func(o *copyOptions) {
 		for _, f := range fields {
@@ -30,6 +32,7 @@ func IgnoreFields(fields ...string) CopyOption {
 	}
 }
 
+// FieldMapping 设置源字段到目标字段的名称映射.
 func FieldMapping(srcField, dstField string) CopyOption {
 	return func(o *copyOptions) {
 		o.fieldMapping[srcField] = dstField

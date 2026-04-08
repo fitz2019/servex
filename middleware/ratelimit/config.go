@@ -5,12 +5,15 @@ import (
 	"time"
 )
 
-// 限流算法类型.
 const (
-	AlgorithmTokenBucket   = "token_bucket"
+	// AlgorithmTokenBucket 令牌桶算法.
+	AlgorithmTokenBucket = "token_bucket"
+	// AlgorithmSlidingWindow 滑动窗口算法.
 	AlgorithmSlidingWindow = "sliding_window"
-	AlgorithmFixedWindow   = "fixed_window"
-	AlgorithmDistributed   = "distributed"
+	// AlgorithmFixedWindow 固定窗口算法.
+	AlgorithmFixedWindow = "fixed_window"
+	// AlgorithmDistributed 分布式限流算法.
+	AlgorithmDistributed = "distributed"
 )
 
 // Config 限流配置.

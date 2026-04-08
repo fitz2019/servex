@@ -8,12 +8,9 @@ import (
 )
 
 // HTTPMiddleware 返回 HTTP 请求日志中间件.
-//
 // 每次请求结束后记录方法、路径、状态码、耗时和响应字节数.
 // 可通过 WithSkipPaths 跳过探活等不需要记录的路径.
-//
 // 示例:
-//
 //	handler = logging.HTTPMiddleware(
 //	    logging.WithLogger(log),
 //	    logging.WithSkipPaths("/health", "/metrics"),

@@ -1,3 +1,4 @@
+// Package conversation 提供 AI 对话会话管理功能.
 package conversation
 
 import (

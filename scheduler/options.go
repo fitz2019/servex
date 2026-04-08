@@ -39,12 +39,9 @@ func WithLogger(log logger.Logger) Option {
 }
 
 // WithLocker 设置分布式锁.
-//
 // 用于分布式任务调度，确保同一任务在多实例间只执行一次.
 // 需要配合 Job.Distributed 使用.
-//
 // 示例:
-//
 //	redisCache, _ := cache.New(&cache.Config{Type: "redis", ...})
 //	locker := lock.NewRedis(redisCache, lock.WithKeyPrefix("scheduler:"))
 //	s := scheduler.New(scheduler.WithLocker(locker))
@@ -55,7 +52,6 @@ func WithLocker(l lock.Locker) Option {
 }
 
 // WithHooks 设置全局钩子.
-//
 // 对所有任务生效.
 func WithHooks(hooks *Hooks) Option {
 	return func(o *options) {
@@ -64,7 +60,6 @@ func WithHooks(hooks *Hooks) Option {
 }
 
 // WithDefaultTimeout 设置默认任务超时时间.
-//
 // 如果任务未指定超时时间，将使用此值.
 // 默认: 5 分钟.
 func WithDefaultTimeout(d time.Duration) Option {
@@ -74,7 +69,6 @@ func WithDefaultTimeout(d time.Duration) Option {
 }
 
 // WithLockTTL 设置分布式锁默认过期时间.
-//
 // 应大于任务最大执行时间.
 // 默认: 10 分钟.
 func WithLockTTL(d time.Duration) Option {
@@ -84,7 +78,6 @@ func WithLockTTL(d time.Duration) Option {
 }
 
 // WithSeconds 设置是否支持秒级调度.
-//
 // 启用后，Cron 表达式格式为: 秒 分 时 日 月 周
 // 禁用后，Cron 表达式格式为: 分 时 日 月 周
 // 默认: 启用.
@@ -95,7 +88,6 @@ func WithSeconds(enabled bool) Option {
 }
 
 // WithLocation 设置时区.
-//
 // 默认: time.Local
 func WithLocation(loc *time.Location) Option {
 	return func(o *options) {

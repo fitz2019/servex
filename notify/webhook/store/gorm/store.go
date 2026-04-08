@@ -1,4 +1,4 @@
-// webhook/store/gorm/store.go
+// Package gorm 提供基于 GORM 的 webhook SubscriptionStore 实现.
 package gorm
 
 import (
@@ -20,20 +20,21 @@ type subscriptionModel struct {
 	Metadata string `gorm:"type:text"` // JSON
 }
 
-// Store 基于 GORM 的 SubscriptionStore。
+// Store 基于 GORM 的 SubscriptionStore.
 type Store struct {
 	db        *gorm.DB
 	tableName string
 }
 
+// Option Store 配置选项.
 type Option func(*Store)
 
+// WithTableName 设置数据库表名.
 func WithTableName(name string) Option {
 	return func(s *Store) { s.tableName = name }
 }
 
-// NewStore 创建基于 GORM 的 SubscriptionStore。
-// 接受 servex 的 rdbms.Database，内部获取 *gorm.DB。
+// NewStore 创建基于 GORM 的 SubscriptionStore.
 func NewStore(db rdbms.Database, opts ...Option) (*Store, error) {
 	if db == nil {
 		return nil, errors.New("webhook/store/gorm: db 不能为空")
@@ -52,15 +53,18 @@ func NewStore(db rdbms.Database, opts ...Option) (*Store, error) {
 	return s, nil
 }
 
+// Save 保存或更新订阅.
 func (s *Store) Save(ctx context.Context, sub *webhook.Subscription) error {
 	m := toModel(sub)
 	return s.db.Table(s.tableName).WithContext(ctx).Save(&m).Error
 }
 
+// Delete 删除指定订阅.
 func (s *Store) Delete(ctx context.Context, id string) error {
 	return s.db.Table(s.tableName).WithContext(ctx).Where("id = ?", id).Delete(&subscriptionModel{}).Error
 }
 
+// ListByEvent 按事件类型查询订阅列表.
 func (s *Store) ListByEvent(ctx context.Context, eventType string) ([]*webhook.Subscription, error) {
 	var models []subscriptionModel
 	if err := s.db.Table(s.tableName).WithContext(ctx).
@@ -75,6 +79,7 @@ func (s *Store) ListByEvent(ctx context.Context, eventType string) ([]*webhook.S
 	return subs, nil
 }
 
+// Get 按 ID 查询单个订阅.
 func (s *Store) Get(ctx context.Context, id string) (*webhook.Subscription, error) {
 	var m subscriptionModel
 	if err := s.db.Table(s.tableName).WithContext(ctx).Where("id = ?", id).First(&m).Error; err != nil {

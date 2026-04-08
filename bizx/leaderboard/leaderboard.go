@@ -1,16 +1,11 @@
 // Package leaderboard 提供排行榜实现.
-//
 // 区别于 storage/redis 的 ZSet 操作，本包提供语义化的排行榜接口，
 // 支持分页、并列排名、升降序等业务功能.
-//
 // 基本用法:
-//
 //	// 内存实现
 //	lb := leaderboard.NewMemoryLeaderboard("daily_score")
-//
 //	// Redis 实现
 //	lb := leaderboard.NewRedisLeaderboard(redisClient, "daily_score")
-//
 //	lb.AddScore(ctx, "player1", 100)
 //	lb.IncrScore(ctx, "player1", 50)
 //	top, _ := lb.TopN(ctx, 10)

@@ -1,3 +1,4 @@
+// Package migration 提供 Go DSL 数据库迁移工具.
 package migration
 
 import (

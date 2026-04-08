@@ -1,4 +1,3 @@
-// jobqueue/worker.go
 package jobqueue
 
 import (
@@ -16,7 +15,7 @@ type worker struct {
 	opts     workerOptions
 }
 
-// NewWorker 创建任务消费 Worker。
+// NewWorker 创建任务消费 Worker.
 func NewWorker(store Store, opts ...WorkerOption) Worker {
 	o := workerOptions{
 		concurrency:  1,
@@ -38,7 +37,7 @@ func (w *worker) Register(jobType string, handler Handler) {
 	w.handlers[jobType] = handler
 }
 
-// Start 启动 Worker，阻塞直到 ctx 取消。
+// Start 启动 Worker，阻塞直到 ctx 取消.
 func (w *worker) Start(ctx context.Context) error {
 	if len(w.opts.queues) == 0 {
 		return ErrNoQueues

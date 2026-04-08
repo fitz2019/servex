@@ -81,7 +81,6 @@ func defaultOptions() Options {
 }
 
 // HTTPMiddleware 创建 HTTP CORS 中间件.
-//
 // 处理逻辑：
 //  1. 无 Origin 头 → 直接透传（非 CORS 请求）
 //  2. 验证来源是否在白名单

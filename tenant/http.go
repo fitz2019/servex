@@ -9,11 +9,8 @@ import (
 )
 
 // HTTPMiddleware 返回 HTTP 租户解析中间件.
-//
 // 默认 TokenExtractor 为 BearerTokenExtractor().
-//
 // 示例:
-//
 //	handler = tenant.HTTPMiddleware(resolver)(handler)
 func HTTPMiddleware(resolver Resolver, opts ...Option) func(http.Handler) http.Handler {
 	if resolver == nil {
@@ -81,9 +78,7 @@ func HTTPMiddleware(resolver Resolver, opts ...Option) func(http.Handler) http.H
 }
 
 // HTTPSkipPaths 返回跳过指定路径的 Skipper（精确匹配 + 通配前缀）.
-//
 // 示例:
-//
 //	tenant.HTTPSkipPaths("/health", "/api/public/*")
 func HTTPSkipPaths(paths ...string) Skipper {
 	exact := make(map[string]bool)

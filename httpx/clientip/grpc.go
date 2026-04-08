@@ -11,10 +11,11 @@ import (
 	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
-// gRPC metadata 键名（小写）.
 const (
+	// ForwardedForMetadata X-Forwarded-For 对应的 gRPC metadata 键名.
 	ForwardedForMetadata = "x-forwarded-for"
-	RealIPMetadata       = "x-real-ip"
+	// RealIPMetadata X-Real-IP 对应的 gRPC metadata 键名.
+	RealIPMetadata = "x-real-ip"
 )
 
 // UnaryServerInterceptor 创建一元 gRPC 客户端 IP 提取拦截器.

@@ -15,10 +15,12 @@ type JsonColumn[T any] struct {
 	Valid bool
 }
 
+// NewJsonColumn 创建有效的 JSON 列值.
 func NewJsonColumn[T any](val T) JsonColumn[T] {
 	return JsonColumn[T]{Val: val, Valid: true}
 }
 
+// NullJsonColumn 创建空值的 JSON 列.
 func NullJsonColumn[T any]() JsonColumn[T] {
 	return JsonColumn[T]{}
 }

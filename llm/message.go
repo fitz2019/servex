@@ -4,10 +4,14 @@ package llm
 type Role string
 
 const (
-	RoleSystem    Role = "system"
-	RoleUser      Role = "user"
+	// RoleSystem 系统消息角色.
+	RoleSystem Role = "system"
+	// RoleUser 用户消息角色.
+	RoleUser Role = "user"
+	// RoleAssistant 助手消息角色.
 	RoleAssistant Role = "assistant"
-	RoleTool      Role = "tool"
+	// RoleTool 工具消息角色.
+	RoleTool Role = "tool"
 )
 
 // ContentType 内容类型.

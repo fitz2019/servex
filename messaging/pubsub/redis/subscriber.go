@@ -1,4 +1,3 @@
-// pubsub/redis/subscriber.go
 package redis
 
 import (
@@ -15,8 +14,8 @@ import (
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 
-// Subscriber 通过 Redis Streams 订阅消息。
-// 支持消费者组（XREADGROUP）和简单读取（XREAD）两种模式。
+// Subscriber 通过 Redis Streams 订阅消息.
+// 支持消费者组（XREADGROUP）和简单读取（XREAD）两种模式.
 type Subscriber struct {
 	client goredis.Cmdable
 	closed atomic.Bool
@@ -26,7 +25,7 @@ type Subscriber struct {
 	opts   subscriberOptions
 }
 
-// NewSubscriber 基于已有的 redis.Cmdable 创建 Subscriber。
+// NewSubscriber 基于已有的 redis.Cmdable 创建 Subscriber.
 func NewSubscriber(client goredis.Cmdable, opts ...SubscriberOption) (*Subscriber, error) {
 	if client == nil {
 		return nil, errors.New("pubsub/redis: client 不能为空")
@@ -42,8 +41,8 @@ func NewSubscriber(client goredis.Cmdable, opts ...SubscriberOption) (*Subscribe
 	return &Subscriber{client: client, opts: o}, nil
 }
 
-// Subscribe 订阅指定 stream（topic），返回消息 channel。
-// 若配置了 ConsumerGroup，使用 XREADGROUP；否则使用 XREAD。
+// Subscribe 订阅指定 stream（topic），返回消息 channel.
+// 若配置了 ConsumerGroup，使用 XREADGROUP；否则使用 XREAD.
 func (s *Subscriber) Subscribe(ctx context.Context, topic string) (<-chan *pubsub.Message, error) {
 	if s.closed.Load() {
 		return nil, pubsub.ErrClosed
@@ -77,7 +76,7 @@ func (s *Subscriber) Subscribe(ctx context.Context, topic string) (<-chan *pubsu
 	return msgCh, nil
 }
 
-// readGroup 通过 XREADGROUP 消费消息。
+// readGroup 通过 XREADGROUP 消费消息.
 func (s *Subscriber) readGroup(ctx context.Context, stream string, out chan<- *pubsub.Message) {
 	consumer := s.opts.consumer
 	if consumer == "" {
@@ -123,7 +122,7 @@ func (s *Subscriber) readGroup(ctx context.Context, stream string, out chan<- *p
 	}
 }
 
-// readStream 通过 XREAD 消费消息（无消费者组）。
+// readStream 通过 XREAD 消费消息（无消费者组）.
 func (s *Subscriber) readStream(ctx context.Context, stream string, out chan<- *pubsub.Message) {
 	lastID := "$"
 	for {
@@ -164,7 +163,7 @@ func (s *Subscriber) readStream(ctx context.Context, stream string, out chan<- *
 	}
 }
 
-// Ack 确认消息已处理（XACK）。仅在消费者组模式下有效。
+// Ack 确认消息已处理（XACK）. 仅在消费者组模式下有效.
 func (s *Subscriber) Ack(ctx context.Context, msg *pubsub.Message) error {
 	if msg == nil {
 		return pubsub.ErrNilMessage
@@ -182,7 +181,7 @@ func (s *Subscriber) Ack(ctx context.Context, msg *pubsub.Message) error {
 	return nil
 }
 
-// Nack 拒绝消息（Redis Streams 没有原生 Nack，此处为空操作）。
+// Nack 拒绝消息（Redis Streams 没有原生 Nack，此处为空操作）.
 func (s *Subscriber) Nack(_ context.Context, msg *pubsub.Message) error {
 	if msg == nil {
 		return pubsub.ErrNilMessage
@@ -190,7 +189,7 @@ func (s *Subscriber) Nack(_ context.Context, msg *pubsub.Message) error {
 	return nil
 }
 
-// Close 关闭 Subscriber。幂等。
+// Close 关闭 Subscriber. 幂等.
 func (s *Subscriber) Close() error {
 	if s.closed.Swap(true) {
 		return nil
@@ -204,7 +203,7 @@ func (s *Subscriber) Close() error {
 	return nil
 }
 
-// convertXMessage 将 Redis XMessage 转换为 pubsub.Message。
+// convertXMessage 将 Redis XMessage 转换为 pubsub.Message.
 func convertXMessage(stream string, xmsg goredis.XMessage) *pubsub.Message {
 	msg := &pubsub.Message{
 		Topic: stream,

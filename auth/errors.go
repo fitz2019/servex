@@ -2,7 +2,6 @@ package auth
 
 import "errors"
 
-// 认证授权错误.
 var (
 	// ErrUnauthenticated 未认证错误.
 	ErrUnauthenticated = errors.New("auth: 未认证")

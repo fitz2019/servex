@@ -16,6 +16,7 @@ import (
 
 // 预定义错误.
 var (
+	// ErrNilStore Store 为 nil 时返回.
 	ErrNilStore = errors.New("billing: store is nil")
 )
 

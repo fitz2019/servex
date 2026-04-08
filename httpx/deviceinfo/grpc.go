@@ -9,17 +9,25 @@ import (
 	"github.com/Tsukikage7/servex/transport/grpcx"
 )
 
-// gRPC metadata 键名.
 const (
-	MetadataKeyUserAgent              = "user-agent"
-	MetadataKeySecCHUA                = "sec-ch-ua"
-	MetadataKeySecCHUAMobile          = "sec-ch-ua-mobile"
-	MetadataKeySecCHUAPlatform        = "sec-ch-ua-platform"
+	// MetadataKeyUserAgent User-Agent 的 gRPC metadata 键名.
+	MetadataKeyUserAgent = "user-agent"
+	// MetadataKeySecCHUA Sec-CH-UA 的 gRPC metadata 键名.
+	MetadataKeySecCHUA = "sec-ch-ua"
+	// MetadataKeySecCHUAMobile Sec-CH-UA-Mobile 的 gRPC metadata 键名.
+	MetadataKeySecCHUAMobile = "sec-ch-ua-mobile"
+	// MetadataKeySecCHUAPlatform Sec-CH-UA-Platform 的 gRPC metadata 键名.
+	MetadataKeySecCHUAPlatform = "sec-ch-ua-platform"
+	// MetadataKeySecCHUAPlatformVersion Sec-CH-UA-Platform-Version 的 gRPC metadata 键名.
 	MetadataKeySecCHUAPlatformVersion = "sec-ch-ua-platform-version"
-	MetadataKeySecCHUAArch            = "sec-ch-ua-arch"
-	MetadataKeySecCHUAModel           = "sec-ch-ua-model"
-	MetadataKeyDeviceMemory           = "device-memory"
-	MetadataKeyDPR                    = "dpr"
+	// MetadataKeySecCHUAArch Sec-CH-UA-Arch 的 gRPC metadata 键名.
+	MetadataKeySecCHUAArch = "sec-ch-ua-arch"
+	// MetadataKeySecCHUAModel Sec-CH-UA-Model 的 gRPC metadata 键名.
+	MetadataKeySecCHUAModel = "sec-ch-ua-model"
+	// MetadataKeyDeviceMemory Device-Memory 的 gRPC metadata 键名.
+	MetadataKeyDeviceMemory = "device-memory"
+	// MetadataKeyDPR DPR 的 gRPC metadata 键名.
+	MetadataKeyDPR = "dpr"
 )
 
 // UnaryServerInterceptor 返回一元 gRPC 拦截器，解析设备信息并存入 context.

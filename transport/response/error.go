@@ -5,9 +5,6 @@ import (
 	"fmt"
 )
 
-// 注意：ExtractMessage 对内部错误（5xxxx、6xxxx）会隐藏详细信息。
-// 如需完整错误信息（用于日志），请使用 ExtractMessageUnsafe。
-
 // BusinessError 业务错误.
 //
 // 实现 error 接口，可用于在业务层传递错误码信息.

@@ -5,7 +5,6 @@ import (
 )
 
 // HTTPMiddleware 创建 HTTP 限流中间件.
-//
 // 当请求被限流时返回 429 Too Many Requests.
 func HTTPMiddleware(limiter Limiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -20,7 +19,6 @@ func HTTPMiddleware(limiter Limiter) func(http.Handler) http.Handler {
 }
 
 // HTTPMiddlewareWithWait 创建阻塞式 HTTP 限流中间件.
-//
 // 当请求被限流时阻塞等待，直到可以通过或请求超时.
 func HTTPMiddlewareWithWait(limiter Limiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -38,7 +36,6 @@ func HTTPMiddlewareWithWait(limiter Limiter) func(http.Handler) http.Handler {
 type HTTPKeyFunc func(r *http.Request) string
 
 // KeyedHTTPMiddleware 创建基于键的 HTTP 限流中间件.
-//
 // 可以基于 IP 地址、用户 ID 等进行限流.
 func KeyedHTTPMiddleware(keyFunc HTTPKeyFunc, getLimiter KeyedLimiterFunc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

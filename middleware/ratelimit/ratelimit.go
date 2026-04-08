@@ -25,7 +25,6 @@ type Limiter interface {
 }
 
 // RateCounter 分布式限流器所需的计数器接口.
-//
 // 这是分布式限流的最小依赖接口.
 // 可以用 cache.Cache、Redis 客户端或其他存储实现.
 type RateCounter interface {
@@ -40,7 +39,6 @@ type RateCounter interface {
 }
 
 // TokenBucket 令牌桶限流器.
-//
 // 令牌以固定速率生成，请求需要消耗令牌才能通过.
 // 适合平滑突发流量.
 type TokenBucket struct {
@@ -53,7 +51,6 @@ type TokenBucket struct {
 }
 
 // NewTokenBucket 创建令牌桶限流器.
-//
 // rate: 每秒生成的令牌数
 // capacity: 桶容量（最大令牌数）
 func NewTokenBucket(rate float64, capacity float64) *TokenBucket {
@@ -128,7 +125,6 @@ func (tb *TokenBucket) refill() {
 }
 
 // SlidingWindow 滑动窗口限流器.
-//
 // 统计最近一个时间窗口内的请求数，超过阈值则拒绝.
 // 适合精确控制 QPS.
 type SlidingWindow struct {
@@ -140,7 +136,6 @@ type SlidingWindow struct {
 }
 
 // NewSlidingWindow 创建滑动窗口限流器.
-//
 // limit: 窗口内允许的最大请求数
 // window: 窗口大小
 func NewSlidingWindow(limit int, window time.Duration) *SlidingWindow {
@@ -222,7 +217,6 @@ func (sw *SlidingWindow) cleanup(now time.Time) {
 }
 
 // FixedWindow 固定窗口限流器.
-//
 // 将时间划分为固定窗口，每个窗口内限制请求数.
 // 实现简单，但可能有边界突发问题.
 type FixedWindow struct {

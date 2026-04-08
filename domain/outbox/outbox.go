@@ -1,25 +1,18 @@
 // Package outbox 实现事务发件箱模式.
-//
 // 事务发件箱模式将消息与业务数据在同一数据库事务中持久化，
 // 由异步 Relay 轮询投递到消息队列，保证最终一致性.
-//
 // 状态流转:
-//
 //	Pending(0) ──FetchPending──► Processing(1) ──发送成功──► Sent(2)
 //	                                  │
 //	                                  └──发送失败──► Failed(3)
 //	                                                    │
 //	                                          ResetStale ──► Pending(0)
-//
 // 使用示例:
-//
 //	store := outbox.NewGORMStore(db)
 //	store.AutoMigrate()
-//
 //	relay, _ := outbox.NewRelay(store, producer, outbox.WithLogger(log))
 //	relay.Start(ctx)
 //	defer relay.Stop(ctx)
-//
 //	// 业务事务中写入 outbox 消息
 //	store.WithTx(ctx, func(txCtx context.Context) error {
 //	    // 业务操作...

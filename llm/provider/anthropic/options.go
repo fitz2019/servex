@@ -1,4 +1,3 @@
-// Package anthropic 提供 Anthropic Claude API 适配器.
 package anthropic
 
 import "net/http"

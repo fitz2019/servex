@@ -13,9 +13,7 @@ import (
 type GRPCRetryableFunc func(err error) bool
 
 // UnaryClientInterceptor 返回 gRPC 一元客户端重试拦截器.
-//
 // 使用示例:
-//
 //	cfg := retry.DefaultConfig()
 //	conn, _ := grpc.Dial("localhost:50051",
 //	    grpc.WithUnaryInterceptor(retry.UnaryClientInterceptor(cfg)),
@@ -72,12 +70,9 @@ func UnaryClientInterceptor(cfg *Config) grpc.UnaryClientInterceptor {
 }
 
 // StreamClientInterceptor 返回 gRPC 流式客户端重试拦截器.
-//
 // 注意：流式 RPC 的重试只在建立连接阶段生效。
 // 一旦流开始传输，重试可能导致数据不一致。
-//
 // 使用示例:
-//
 //	cfg := retry.DefaultConfig()
 //	conn, _ := grpc.Dial("localhost:50051",
 //	    grpc.WithStreamInterceptor(retry.StreamClientInterceptor(cfg)),

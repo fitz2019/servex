@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// 服务名常量.
 const (
 	// ServiceLiveness 存活检查服务名.
 	ServiceLiveness = "liveness"

@@ -14,6 +14,7 @@ func ParseRetryAfter(header string) int {
 	return v
 }
 
+// ExtractJSON 从可能包含 markdown 代码块的字符串中提取 JSON 内容.
 func ExtractJSON(s string) string {
 	s = strings.TrimSpace(s)
 	// 处理 ```json ... ``` 代码块.

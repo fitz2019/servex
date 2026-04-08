@@ -1,4 +1,3 @@
-// pubsub/kafka/subscriber.go
 package kafka
 
 import (
@@ -12,7 +11,7 @@ import (
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 
-// Subscriber 通过 Kafka Consumer Group 订阅消息。
+// Subscriber 通过 Kafka Consumer Group 订阅消息.
 type Subscriber struct {
 	client  sarama.Client
 	groupID string
@@ -24,7 +23,7 @@ type Subscriber struct {
 	opts    subscriberOptions
 }
 
-// NewSubscriber 基于已有的 sarama.Client 创建 Subscriber。
+// NewSubscriber 基于已有的 sarama.Client 创建 Subscriber.
 func NewSubscriber(client sarama.Client, groupID string, opts ...SubscriberOption) (*Subscriber, error) {
 	if client == nil {
 		return nil, errors.New("pubsub/kafka: client 不能为空")
@@ -51,8 +50,8 @@ func NewSubscriber(client sarama.Client, groupID string, opts ...SubscriberOptio
 	}, nil
 }
 
-// Subscribe 订阅指定 topic，返回消息 channel。
-// channel 在 Subscriber 关闭或 ctx 取消时关闭。
+// Subscribe 订阅指定 topic，返回消息 channel.
+// channel 在 Subscriber 关闭或 ctx 取消时关闭.
 func (s *Subscriber) Subscribe(ctx context.Context, topic string) (<-chan *pubsub.Message, error) {
 	if s.closed.Load() {
 		return nil, pubsub.ErrClosed
@@ -87,7 +86,7 @@ func (s *Subscriber) Subscribe(ctx context.Context, topic string) (<-chan *pubsu
 	return ch, nil
 }
 
-// Ack 确认消息已处理。
+// Ack 确认消息已处理.
 func (s *Subscriber) Ack(ctx context.Context, msg *pubsub.Message) error {
 	if msg == nil {
 		return pubsub.ErrNilMessage
@@ -104,7 +103,7 @@ func (s *Subscriber) Ack(ctx context.Context, msg *pubsub.Message) error {
 	return nil
 }
 
-// Nack 拒绝消息（Kafka 不支持原生 Nack，此处为空操作）。
+// Nack 拒绝消息（Kafka 不支持原生 Nack，此处为空操作）.
 func (s *Subscriber) Nack(ctx context.Context, msg *pubsub.Message) error {
 	if msg == nil {
 		return pubsub.ErrNilMessage
@@ -112,7 +111,7 @@ func (s *Subscriber) Nack(ctx context.Context, msg *pubsub.Message) error {
 	return nil
 }
 
-// Close 关闭 Subscriber。
+// Close 关闭 Subscriber.
 func (s *Subscriber) Close() error {
 	if s.closed.Swap(true) {
 		return nil
@@ -126,7 +125,7 @@ func (s *Subscriber) Close() error {
 	return s.group.Close()
 }
 
-// consumerGroupHandler 实现 sarama.ConsumerGroupHandler。
+// consumerGroupHandler 实现 sarama.ConsumerGroupHandler.
 type consumerGroupHandler struct {
 	ch chan<- *pubsub.Message
 }

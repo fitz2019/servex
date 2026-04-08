@@ -59,7 +59,6 @@ func (c *shipperCore) Sync() error { return nil }
 
 // ZapHook 返回一个 zapcore.Core，将日志同时投递到 Shipper.
 // 用法示例:
-//
 //	hook := ZapHook(shipper)
 //	logger := zap.New(zapcore.NewTee(originalCore, hook))
 func ZapHook(shipper *Shipper) zapcore.Core {

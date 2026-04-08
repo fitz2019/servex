@@ -6,7 +6,6 @@ import (
 )
 
 // Repository 事件溯源聚合仓库.
-//
 // 泛型参数 T 必须实现 Aggregate 接口.
 // 支持可选的快照存储以加速聚合加载.
 type Repository[T Aggregate] struct {
@@ -27,7 +26,6 @@ func WithSnapshotStore[T Aggregate](store SnapshotStore) RepositoryOption[T] {
 }
 
 // WithSnapshotEvery 设置快照间隔.
-//
 // 每保存 n 个事件后自动创建快照，0 表示不保存快照.
 func WithSnapshotEvery[T Aggregate](n int64) RepositoryOption[T] {
 	return func(r *Repository[T]) {
@@ -55,7 +53,6 @@ func NewRepository[T Aggregate](eventStore EventStore, factory func() T, opts ..
 }
 
 // Save 保存聚合的未提交事件.
-//
 // 获取未提交事件列表，持久化到事件存储，
 // 并在满足快照条件时自动保存快照.
 func (r *Repository[T]) Save(ctx context.Context, aggregate T) error {
@@ -86,7 +83,6 @@ func (r *Repository[T]) Save(ctx context.Context, aggregate T) error {
 }
 
 // Load 加载聚合.
-//
 // 加载流程:
 //  1. 如果配置了快照存储，尝试加载快照
 //  2. 通过工厂创建空聚合

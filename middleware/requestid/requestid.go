@@ -1,5 +1,4 @@
 // Package requestid 提供 Request ID 中间件.
-//
 // 优先从请求头读取已有 ID，若不存在则用 UUID 生成新 ID，
 // 并将 ID 写入 context 和响应头透传.
 package requestid

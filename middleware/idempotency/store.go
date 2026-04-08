@@ -8,7 +8,6 @@ import (
 )
 
 // IdempotentStore 幂等性存储实现.
-//
 // 基于 KV 接口实现，适用于分布式部署场景.
 type IdempotentStore struct {
 	kv        KV
@@ -26,7 +25,6 @@ func WithKeyPrefix(prefix string) StoreOption {
 }
 
 // NewStore 创建幂等性存储.
-//
 // kv: KV 存储实现（可用 CacheKV 适配 cache.Cache）
 func NewStore(kv KV, opts ...StoreOption) *IdempotentStore {
 	s := &IdempotentStore{
@@ -107,9 +105,7 @@ type cacheKV struct {
 }
 
 // CacheKV 将 cache.Cache 适配为 KV 接口.
-//
 // 示例:
-//
 //	redisCache, _ := cache.New(&cache.Config{Type: "redis", ...})
 //	kv := idempotency.CacheKV(redisCache)
 //	store := idempotency.NewStore(kv)

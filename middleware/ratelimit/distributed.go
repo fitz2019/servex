@@ -9,7 +9,6 @@ import (
 )
 
 // DistributedLimiter 分布式限流器.
-//
 // 使用 RateCounter 接口实现分布式限流.
 type DistributedLimiter struct {
 	counter RateCounter
@@ -170,7 +169,6 @@ func NewKeyedDistributedLimiter(cfg *DistributedConfig) (*KeyedDistributedLimite
 }
 
 // GetLimiter 获取指定键的限流器.
-//
 // 返回 KeyedLimiterFunc 以便与 KeyedEndpointMiddleware 等配合使用.
 func (kdl *KeyedDistributedLimiter) GetLimiter(key string) Limiter {
 	return &keyedDistributedLimiterInstance{
@@ -234,9 +232,7 @@ type cacheRateCounter struct {
 }
 
 // CacheRateCounter 将 cache.Cache 适配为 RateCounter 接口.
-//
 // 示例:
-//
 //	redisCache, _ := cache.New(&cache.Config{Type: "redis", ...})
 //	counter := ratelimit.CacheRateCounter(redisCache)
 //	limiter, _ := ratelimit.NewDistributedLimiter(&ratelimit.DistributedConfig{

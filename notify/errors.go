@@ -2,6 +2,14 @@ package notify
 
 import "errors"
 
+// ErrNilMessage 消息为空.
+// ErrEmptyChannel 渠道为空.
+// ErrInvalidChannel 无效渠道.
+// ErrEmptyRecipients 收件人为空.
+// ErrNoSender 未找到对应渠道的 Sender.
+// ErrClosed 分发器已关闭.
+// ErrTemplateNotFound 模板未找到.
+// ErrTemplateRender 模板渲染失败.
 var (
 	ErrNilMessage       = errors.New("notification: 消息为空")
 	ErrEmptyChannel     = errors.New("notification: 渠道为空")

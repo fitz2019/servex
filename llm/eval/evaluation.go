@@ -1,4 +1,4 @@
-// Package evaluation 提供 LLM 输出质量评估框架.
+// Package eval 提供 LLM 输出质量评估框架.
 //
 // 支持相关性、忠实性、连贯性、正确性等多维度评估，
 // 每个维度由独立的 Evaluator 实现，可通过 CompositeEvaluator 组合使用.

@@ -222,8 +222,8 @@ func WithLogging(skipPaths ...string) Option {
 }
 
 // WithAuth 启用认证.
-// jwtSrv
-// 示例:jwtSrv
+//
+// 示例:
 //
 //	jwtService := jwt.NewJWT(jwt.WithSecretKey("secret"))
 //	authenticator := jwt.NewAuthenticator(jwtService)

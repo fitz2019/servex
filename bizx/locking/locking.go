@@ -1,23 +1,18 @@
 // Package locking 提供业务级锁实现.
-//
 // 区别于 storage/lock 的基础分布式锁，本包提供可重入锁、读写锁、
 // 自动续期等高级锁能力.
-//
 // 基本用法:
-//
 //	// 普通锁
 //	l := locking.NewLock(locker, "order:123", locking.WithTTL(30*time.Second))
 //	err := locking.WithLock(ctx, l, func(ctx context.Context) error {
 //	    return processOrder(123)
 //	})
-//
 //	// 可重入锁
 //	rl := locking.NewReentrantLock(locker, "resource:abc")
 //	rl.Lock(ctx)
 //	rl.Lock(ctx) // 同一 goroutine 可再次获取
 //	rl.Unlock(ctx)
 //	rl.Unlock(ctx)
-//
 //	// 读写锁
 //	rwl := locking.NewRWLock(locker, "config")
 //	locking.WithRLock(ctx, rwl, func(ctx context.Context) error {

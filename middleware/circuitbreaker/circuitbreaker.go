@@ -1,5 +1,4 @@
 // Package circuitbreaker 实现熔断器模式.
-//
 // 熔断器有三个状态：
 //   - Closed（关闭）：正常工作，计数失败次数
 //   - Open（开路）：拒绝所有请求，等待超时后转 HalfOpen

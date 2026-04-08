@@ -2,17 +2,20 @@ package auth
 
 import "github.com/Tsukikage7/servex/observability/logger"
 
-// HTTP 相关常量.
 const (
+	// AuthorizationHeader HTTP Authorization 请求头.
 	AuthorizationHeader = "Authorization"
-	BearerPrefix        = "Bearer "
-	APIKeyHeader        = "X-API-Key"
+	// BearerPrefix Bearer 令牌前缀.
+	BearerPrefix = "Bearer "
+	// APIKeyHeader API Key 请求头.
+	APIKeyHeader = "X-API-Key"
 )
 
-// gRPC 相关常量.
 const (
+	// GRPCAuthorizationMetadata gRPC authorization 元数据键.
 	GRPCAuthorizationMetadata = "authorization"
-	GRPCAPIKeyMetadata        = "x-api-key"
+	// GRPCAPIKeyMetadata gRPC API Key 元数据键.
+	GRPCAPIKeyMetadata = "x-api-key"
 )
 
 // options 中间件配置.

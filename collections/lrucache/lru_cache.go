@@ -12,13 +12,10 @@ type entry[K comparable, V any] struct {
 }
 
 // LRUCache LRU 缓存.
-//
 // 基于哈希表 + 双向链表实现，Get/Put 操作时间复杂度 O(1).
 // 当缓存满时，自动淘汰最近最少使用的元素.
 // 线程安全.
-//
 // 示例:
-//
 //	cache := lrucache.New[string, int](100)
 //	cache.Put("a", 1)
 //	cache.Put("b", 2)

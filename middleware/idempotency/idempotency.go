@@ -1,22 +1,16 @@
 // Package idempotency 提供请求幂等性控制.
-//
 // 幂等性保证同一请求多次执行的效果与执行一次相同，
 // 适用于支付、订单等关键业务场景。
-//
 // 工作原理:
 //  1. 客户端在请求头中携带幂等键（Idempotency-Key）
 //  2. 服务端检查该键是否已存在
 //  3. 如果存在，返回之前的结果
 //  4. 如果不存在，执行请求并保存结果
-//
 // 基本用法:
-//
 //	kv := idempotency.CacheKV(cacheClient)
 //	store := idempotency.NewStore(kv)
 //	handler = idempotency.HTTPMiddleware(store)(handler)
-//
 // 自定义键提取:
-//
 //	handler = idempotency.HTTPMiddleware(store,
 //	    idempotency.WithKeyExtractor(func(r *http.Request) string {
 //	        return r.Header.Get("X-Request-ID")
@@ -31,7 +25,6 @@ import (
 )
 
 // KV 幂等性存储所需的键值存储接口.
-//
 // 这是 idempotency 包的最小依赖接口.
 // 可以用 cache.Cache、Redis 客户端或其他存储实现.
 type KV interface {
@@ -102,7 +95,6 @@ type Store interface {
 }
 
 // KeyExtractor 从请求中提取幂等键的函数.
-//
 // 对于 HTTP 请求，参数类型为 *http.Request.
 // 对于 gRPC 请求，参数类型为 context.Context.
 // 对于 Endpoint 请求，参数为请求对象.

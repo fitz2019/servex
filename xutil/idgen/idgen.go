@@ -1,17 +1,13 @@
 // Package idgen 提供分布式 ID 生成器.
-//
 // 支持多种 ID 生成算法：
 //   - Snowflake: 41-bit 时间戳 + 5-bit 数据中心 + 5-bit 工作节点 + 12-bit 序列号
 //   - ULID: 26 字符 Crockford Base32，同毫秒内单调递增
 //   - NanoID: 可配置字母表和长度的随机 ID
 //   - UUID: 封装 google/uuid
-//
 // 示例：
-//
 //	// Snowflake
 //	gen, _ := idgen.NewSnowflake(&idgen.SnowflakeConfig{WorkerID: 1})
 //	id, _ := gen.NextID() // "6849812345678901"
-//
 //	// 便捷函数
 //	id := idgen.ULID()   // "01ARZ3NDEKTSV4RRFFQ69G5FAV"
 //	id = idgen.NanoID()   // "V1StGXR8_Z5jdHi6B-myT"
@@ -30,9 +26,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// 错误定义.
 var (
-	ErrInvalidWorkerID     = errors.New("idgen: worker ID must be 0-1023")
+	// ErrInvalidWorkerID 无效的 Worker ID.
+	ErrInvalidWorkerID = errors.New("idgen: worker ID must be 0-1023")
+	// ErrInvalidDatacenterID 无效的 Datacenter ID.
 	ErrInvalidDatacenterID = errors.New("idgen: datacenter ID must be 0-31")
 )
 
@@ -142,7 +139,6 @@ type ulidGen struct {
 }
 
 // NewULID 创建 ULID 生成器.
-//
 // 使用 crypto/rand，同毫秒内单调递增.
 func NewULID() Generator {
 	return &ulidGen{}
@@ -269,7 +265,6 @@ func (n *nanoGen) NextID() (string, error) {
 // 便捷函数
 // ============================================================================
 
-// 默认生成器（延迟初始化）.
 var (
 	defaultSnowflake Generator
 	defaultULID      Generator
@@ -290,7 +285,6 @@ func initDefaults() {
 }
 
 // Snowflake 使用默认配置生成 Snowflake ID.
-//
 // 出错时 panic.
 func Snowflake() string {
 	initDefaults()

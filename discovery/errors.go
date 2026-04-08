@@ -2,7 +2,6 @@ package discovery
 
 import "errors"
 
-// 预定义错误常量.
 var (
 	// ErrNilConfig 服务发现配置为空.
 	ErrNilConfig = errors.New("服务发现配置为空")

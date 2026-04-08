@@ -11,7 +11,6 @@ import (
 )
 
 // UnaryServerInterceptor 创建 gRPC 一元拦截器.
-//
 // 当请求被限流时返回 ResourceExhausted 错误.
 func UnaryServerInterceptor(limiter Limiter) grpc.UnaryServerInterceptor {
 	return func(

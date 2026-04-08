@@ -20,8 +20,11 @@ type Server interface {
 type HealthCheckType string
 
 const (
-	HealthCheckTypeTCP  HealthCheckType = "tcp"
+	// HealthCheckTypeTCP TCP 健康检查类型.
+	HealthCheckTypeTCP HealthCheckType = "tcp"
+	// HealthCheckTypeHTTP HTTP 健康检查类型.
 	HealthCheckTypeHTTP HealthCheckType = "http"
+	// HealthCheckTypeGRPC gRPC 健康检查类型.
 	HealthCheckTypeGRPC HealthCheckType = "grpc"
 )
 
@@ -38,8 +41,6 @@ type HealthCheckable interface {
 	Health() *health.Health
 	HealthEndpoint() *HealthEndpoint
 }
-
-// ==================== Config ====================
 
 // HTTPConfig HTTP 服务器配置.
 type HTTPConfig struct {

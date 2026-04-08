@@ -9,10 +9,11 @@ import (
 	"gorm.io/gorm"
 )
 
-// 默认配置.
 const (
+	// DefaultLimit 默认每页数量.
 	DefaultLimit = 20
-	MaxLimit     = 100
+	// MaxLimit 最大每页数量.
+	MaxLimit = 100
 )
 
 // Direction 分页方向.

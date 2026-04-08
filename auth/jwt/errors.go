@@ -2,7 +2,6 @@ package jwt
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrTokenInvalid 令牌无效.
 	ErrTokenInvalid = errors.New("jwt: 令牌无效或已过期")

@@ -13,6 +13,7 @@ type LimitPool[T any] struct {
 	maxTokens int32
 }
 
+// NewLimitPool 创建带令牌限制的对象池，maxTokens 为最大并发数.
 func NewLimitPool[T any](maxTokens int, factory func() T) *LimitPool[T] {
 	lp := &LimitPool[T]{
 		factory:   factory,

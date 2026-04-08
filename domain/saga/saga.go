@@ -1,30 +1,23 @@
 // Package saga 提供 Saga 分布式事务编排.
-//
 // Saga 模式用于管理跨服务的分布式事务，通过编排一系列本地事务，
 // 并在失败时执行补偿操作来保证最终一致性。
-//
 // 基本用法:
-//
 //	saga := saga.New("create-order").
 //	    Step("reserve-inventory", reserveInventory, compensateInventory).
 //	    Step("charge-payment", chargePayment, refundPayment).
 //	    Step("send-notification", sendNotification, nil).
 //	    Build()
-//
 //	if err := saga.Execute(ctx); err != nil {
 //	    // 失败时会自动执行补偿
 //	    log.Error("saga failed", err)
 //	}
-//
 // 数据传递:
-//
 //	reserveInventory := func(ctx context.Context, data *saga.Data) error {
 //	    orderID := data.GetString("order_id")
 //	    // 执行业务逻辑
 //	    data.Set("reservation_id", "RES-123")
 //	    return nil
 //	}
-//
 //	chargePayment := func(ctx context.Context, data *saga.Data) error {
 //	    reservationID := data.GetString("reservation_id")
 //	    // 使用上一步的数据
@@ -66,7 +59,6 @@ func New(name string) *Builder {
 }
 
 // Step 添加步骤.
-//
 // name: 步骤名称
 // action: 正向操作
 // compensate: 补偿操作（可选，传 nil 表示不需要补偿）
@@ -105,7 +97,6 @@ func defaultIDGenerator() string {
 }
 
 // Execute 执行 Saga.
-//
 // 执行所有步骤，如果任何步骤失败，会按逆序执行已完成步骤的补偿操作.
 func (s *Saga) Execute(ctx context.Context) error {
 	return s.ExecuteWithData(ctx, NewData())

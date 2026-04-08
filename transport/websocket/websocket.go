@@ -41,15 +41,21 @@ const (
 	PongMessage MessageType = 10
 )
 
-// 预定义错误.
 var (
-	ErrClientNotFound   = errors.New("websocket: client not found")
-	ErrHubClosed        = errors.New("websocket: hub is closed")
+	// ErrClientNotFound 客户端不存在.
+	ErrClientNotFound = errors.New("websocket: client not found")
+	// ErrHubClosed Hub 已关闭.
+	ErrHubClosed = errors.New("websocket: hub is closed")
+	// ErrConnectionClosed 连接已关闭.
 	ErrConnectionClosed = errors.New("websocket: connection closed")
-	ErrWriteTimeout     = errors.New("websocket: write timeout")
-	ErrMessageTooLarge  = errors.New("websocket: message too large")
-	ErrInvalidMessage   = errors.New("websocket: invalid message")
-	ErrUpgradeFailed    = errors.New("websocket: upgrade failed")
+	// ErrWriteTimeout 写超时.
+	ErrWriteTimeout = errors.New("websocket: write timeout")
+	// ErrMessageTooLarge 消息过大.
+	ErrMessageTooLarge = errors.New("websocket: message too large")
+	// ErrInvalidMessage 无效消息.
+	ErrInvalidMessage = errors.New("websocket: invalid message")
+	// ErrUpgradeFailed 升级失败.
+	ErrUpgradeFailed = errors.New("websocket: upgrade failed")
 )
 
 // Message WebSocket 消息.

@@ -1,4 +1,3 @@
-// Package slicesx 提供切片操作的工具函数.
 package slicesx
 
 // Number 数值类型约束，涵盖所有整型和浮点型.

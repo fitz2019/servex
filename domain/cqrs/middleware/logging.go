@@ -10,7 +10,6 @@ import (
 )
 
 // CommandLogging 为命令处理器添加日志装饰器.
-//
 // 记录命令名称、执行耗时和错误信息.
 func CommandLogging[C, R any](log logger.Logger, commandName string) cqrs.CommandMiddleware[C, R] {
 	return func(next cqrs.CommandHandler[C, R]) cqrs.CommandHandler[C, R] {
@@ -50,7 +49,6 @@ func (h *commandLoggingHandler[C, R]) Handle(ctx context.Context, cmd C) (C, R, 
 }
 
 // QueryLogging 为查询处理器添加日志装饰器.
-//
 // 记录查询名称、执行耗时和错误信息.
 func QueryLogging[Q, R any](log logger.Logger, queryName string) cqrs.QueryMiddleware[Q, R] {
 	return func(next cqrs.QueryHandler[Q, R]) cqrs.QueryHandler[Q, R] {

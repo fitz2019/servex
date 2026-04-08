@@ -1,4 +1,4 @@
-// Package ai 提供 LLM/AI 服务的统一客户端抽象.
+// Package llm 提供 LLM/AI 服务的统一客户端抽象.
 //
 // 支持多 Provider（OpenAI、Anthropic、Gemini 等），提供统一的 ChatModel 和 EmbeddingModel 接口.
 // 所有 Provider 适配器仅依赖标准库，不引入第三方 AI SDK.

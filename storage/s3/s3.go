@@ -32,11 +32,17 @@ import (
 
 // 预定义错误.
 var (
-	ErrNilConfig      = errors.New("s3: config is nil")
-	ErrNilLogger      = errors.New("s3: logger is nil")
-	ErrEmptyEndpoint  = errors.New("s3: endpoint is empty")
-	ErrEmptyBucket    = errors.New("s3: bucket is empty")
-	ErrEmptyKey       = errors.New("s3: key is empty")
+	// ErrNilConfig 配置为 nil 时返回.
+	ErrNilConfig = errors.New("s3: config is nil")
+	// ErrNilLogger 日志记录器为 nil 时返回.
+	ErrNilLogger = errors.New("s3: logger is nil")
+	// ErrEmptyEndpoint 端点地址为空时返回.
+	ErrEmptyEndpoint = errors.New("s3: endpoint is empty")
+	// ErrEmptyBucket 桶名为空时返回.
+	ErrEmptyBucket = errors.New("s3: bucket is empty")
+	// ErrEmptyKey 对象键为空时返回.
+	ErrEmptyKey = errors.New("s3: key is empty")
+	// ErrObjectNotFound 对象未找到.
 	ErrObjectNotFound = errors.New("s3: object not found")
 )
 
@@ -324,18 +330,28 @@ func WithContinuationToken(token string) ListOption {
 
 // 常用 ACL.
 const (
-	ACLPrivate           = "private"
-	ACLPublicRead        = "public-read"
-	ACLPublicReadWrite   = "public-read-write"
+	// ACLPrivate 私有访问.
+	ACLPrivate = "private"
+	// ACLPublicRead 公开读取.
+	ACLPublicRead = "public-read"
+	// ACLPublicReadWrite 公开读写.
+	ACLPublicReadWrite = "public-read-write"
+	// ACLAuthenticatedRead 已认证用户读取.
 	ACLAuthenticatedRead = "authenticated-read"
 )
 
 // 常用存储类型.
 const (
-	StorageClassStandard          = "STANDARD"
+	// StorageClassStandard 标准存储.
+	StorageClassStandard = "STANDARD"
+	// StorageClassReducedRedundancy 低冗余存储.
 	StorageClassReducedRedundancy = "REDUCED_REDUNDANCY"
-	StorageClassStandardIA        = "STANDARD_IA"
-	StorageClassOnezoneIA         = "ONEZONE_IA"
-	StorageClassGlacier           = "GLACIER"
-	StorageClassDeepArchive       = "DEEP_ARCHIVE"
+	// StorageClassStandardIA 标准低频访问存储.
+	StorageClassStandardIA = "STANDARD_IA"
+	// StorageClassOnezoneIA 单区域低频访问存储.
+	StorageClassOnezoneIA = "ONEZONE_IA"
+	// StorageClassGlacier 归档存储.
+	StorageClassGlacier = "GLACIER"
+	// StorageClassDeepArchive 深度归档存储.
+	StorageClassDeepArchive = "DEEP_ARCHIVE"
 )

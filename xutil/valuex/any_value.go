@@ -8,8 +8,11 @@ import (
 )
 
 var (
-	ErrNilValue      = errors.New("valuex: 值为 nil")
-	ErrTypeMismatch  = errors.New("valuex: 类型不匹配")
+	// ErrNilValue 值为 nil.
+	ErrNilValue = errors.New("valuex: 值为 nil")
+	// ErrTypeMismatch 类型不匹配.
+	ErrTypeMismatch = errors.New("valuex: 类型不匹配")
+	// ErrConvertFailed 转换失败.
 	ErrConvertFailed = errors.New("valuex: 转换失败")
 )
 
@@ -19,6 +22,7 @@ type AnyValue struct {
 	Err error
 }
 
+// Of 创建一个包装指定值的 AnyValue.
 func Of(val any) AnyValue {
 	return AnyValue{Val: val}
 }
@@ -36,22 +40,52 @@ func typeAssert[T any](av AnyValue, typeName string) (T, error) {
 	return val, nil
 }
 
+// Int 将值断言为 int 类型.
 func (av AnyValue) Int() (int, error)         { return typeAssert[int](av, "int") }
-func (av AnyValue) Int8() (int8, error)       { return typeAssert[int8](av, "int8") }
-func (av AnyValue) Int16() (int16, error)     { return typeAssert[int16](av, "int16") }
-func (av AnyValue) Int32() (int32, error)     { return typeAssert[int32](av, "int32") }
-func (av AnyValue) Int64() (int64, error)     { return typeAssert[int64](av, "int64") }
-func (av AnyValue) Uint() (uint, error)       { return typeAssert[uint](av, "uint") }
-func (av AnyValue) Uint8() (uint8, error)     { return typeAssert[uint8](av, "uint8") }
-func (av AnyValue) Uint16() (uint16, error)   { return typeAssert[uint16](av, "uint16") }
-func (av AnyValue) Uint32() (uint32, error)   { return typeAssert[uint32](av, "uint32") }
-func (av AnyValue) Uint64() (uint64, error)   { return typeAssert[uint64](av, "uint64") }
-func (av AnyValue) Float32() (float32, error) { return typeAssert[float32](av, "float32") }
-func (av AnyValue) Float64() (float64, error) { return typeAssert[float64](av, "float64") }
-func (av AnyValue) String() (string, error)   { return typeAssert[string](av, "string") }
-func (av AnyValue) Bool() (bool, error)       { return typeAssert[bool](av, "bool") }
-func (av AnyValue) Bytes() ([]byte, error)    { return typeAssert[[]byte](av, "[]byte") }
 
+// Int8 将值断言为 int8 类型.
+func (av AnyValue) Int8() (int8, error) { return typeAssert[int8](av, "int8") }
+
+// Int16 将值断言为 int16 类型.
+func (av AnyValue) Int16() (int16, error) { return typeAssert[int16](av, "int16") }
+
+// Int32 将值断言为 int32 类型.
+func (av AnyValue) Int32() (int32, error) { return typeAssert[int32](av, "int32") }
+
+// Int64 将值断言为 int64 类型.
+func (av AnyValue) Int64() (int64, error) { return typeAssert[int64](av, "int64") }
+
+// Uint 将值断言为 uint 类型.
+func (av AnyValue) Uint() (uint, error) { return typeAssert[uint](av, "uint") }
+
+// Uint8 将值断言为 uint8 类型.
+func (av AnyValue) Uint8() (uint8, error) { return typeAssert[uint8](av, "uint8") }
+
+// Uint16 将值断言为 uint16 类型.
+func (av AnyValue) Uint16() (uint16, error) { return typeAssert[uint16](av, "uint16") }
+
+// Uint32 将值断言为 uint32 类型.
+func (av AnyValue) Uint32() (uint32, error) { return typeAssert[uint32](av, "uint32") }
+
+// Uint64 将值断言为 uint64 类型.
+func (av AnyValue) Uint64() (uint64, error) { return typeAssert[uint64](av, "uint64") }
+
+// Float32 将值断言为 float32 类型.
+func (av AnyValue) Float32() (float32, error) { return typeAssert[float32](av, "float32") }
+
+// Float64 将值断言为 float64 类型.
+func (av AnyValue) Float64() (float64, error) { return typeAssert[float64](av, "float64") }
+
+// String 将值断言为 string 类型.
+func (av AnyValue) String() (string, error) { return typeAssert[string](av, "string") }
+
+// Bool 将值断言为 bool 类型.
+func (av AnyValue) Bool() (bool, error) { return typeAssert[bool](av, "bool") }
+
+// Bytes 将值断言为 []byte 类型.
+func (av AnyValue) Bytes() ([]byte, error) { return typeAssert[[]byte](av, "[]byte") }
+
+// AsInt 将值转换为 int 类型，支持跨数值类型转换.
 func (av AnyValue) AsInt() (int, error) {
 	if av.Err != nil {
 		return 0, av.Err
@@ -91,6 +125,7 @@ func (av AnyValue) AsInt() (int, error) {
 	}
 }
 
+// AsInt64 将值转换为 int64 类型，支持跨数值类型转换.
 func (av AnyValue) AsInt64() (int64, error) {
 	if av.Err != nil {
 		return 0, av.Err
@@ -130,6 +165,7 @@ func (av AnyValue) AsInt64() (int64, error) {
 	}
 }
 
+// AsFloat64 将值转换为 float64 类型，支持跨数值类型转换.
 func (av AnyValue) AsFloat64() (float64, error) {
 	if av.Err != nil {
 		return 0, av.Err
@@ -169,6 +205,7 @@ func (av AnyValue) AsFloat64() (float64, error) {
 	}
 }
 
+// AsString 将值转换为 string 类型.
 func (av AnyValue) AsString() (string, error) {
 	if av.Err != nil {
 		return "", av.Err
@@ -188,6 +225,7 @@ func (av AnyValue) AsString() (string, error) {
 	}
 }
 
+// AsBool 将值转换为 bool 类型.
 func (av AnyValue) AsBool() (bool, error) {
 	if av.Err != nil {
 		return false, av.Err
@@ -211,6 +249,7 @@ func (av AnyValue) AsBool() (bool, error) {
 	}
 }
 
+// IntOrDefault 返回 int 值，转换失败时返回默认值.
 func (av AnyValue) IntOrDefault(def int) int {
 	val, err := av.AsInt()
 	if err != nil {
@@ -219,6 +258,7 @@ func (av AnyValue) IntOrDefault(def int) int {
 	return val
 }
 
+// Int64OrDefault 返回 int64 值，转换失败时返回默认值.
 func (av AnyValue) Int64OrDefault(def int64) int64 {
 	val, err := av.AsInt64()
 	if err != nil {
@@ -227,6 +267,7 @@ func (av AnyValue) Int64OrDefault(def int64) int64 {
 	return val
 }
 
+// Float64OrDefault 返回 float64 值，转换失败时返回默认值.
 func (av AnyValue) Float64OrDefault(def float64) float64 {
 	val, err := av.AsFloat64()
 	if err != nil {
@@ -235,6 +276,7 @@ func (av AnyValue) Float64OrDefault(def float64) float64 {
 	return val
 }
 
+// StringOrDefault 返回 string 值，转换失败时返回默认值.
 func (av AnyValue) StringOrDefault(def string) string {
 	val, err := av.AsString()
 	if err != nil {
@@ -243,6 +285,7 @@ func (av AnyValue) StringOrDefault(def string) string {
 	return val
 }
 
+// BoolOrDefault 返回 bool 值，转换失败时返回默认值.
 func (av AnyValue) BoolOrDefault(def bool) bool {
 	val, err := av.AsBool()
 	if err != nil {

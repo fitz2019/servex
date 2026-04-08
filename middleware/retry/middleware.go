@@ -57,9 +57,7 @@ func NeverRetry(_ error) bool {
 }
 
 // EndpointMiddleware 返回 Endpoint 重试中间件.
-//
 // 使用示例:
-//
 //	cfg := retry.DefaultConfig()
 //	endpoint = retry.EndpointMiddleware(cfg)(endpoint)
 func EndpointMiddleware(cfg *Config) endpoint.Middleware {

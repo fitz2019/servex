@@ -1,3 +1,4 @@
+// Package errors 提供统一的业务错误定义，支持 HTTP 和 gRPC 状态码映射.
 package errors
 
 import (

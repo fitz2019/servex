@@ -8,11 +8,8 @@ import (
 )
 
 // OutboxPublisher 通过 Outbox 发布领域事件，保证事务一致性.
-//
 // 典型用法：
-//
 //	publisher := outbox.NewOutboxPublisher(store, domain.NewJSONEventConverter())
-//
 //	store.WithTx(ctx, func(txCtx context.Context) error {
 //	    // 业务操作...
 //	    return publisher.Publish(txCtx, event1, event2)
@@ -31,7 +28,6 @@ func NewOutboxPublisher(store Store, converter domain.EventConverter) *OutboxPub
 }
 
 // Publish 将领域事件转换为 Outbox 消息并保存.
-//
 // 若 ctx 中注入了事务（通过 outbox.InjectTx），则在该事务中保存，
 // 保证与业务操作的原子性.
 func (p *OutboxPublisher) Publish(ctx context.Context, events ...domain.DomainEvent) error {

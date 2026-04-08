@@ -1,3 +1,4 @@
+// Package pagination 提供通用分页参数与结果封装.
 package pagination
 
 const (

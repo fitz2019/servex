@@ -1,5 +1,4 @@
 // Package i18n 提供国际化本地化支持.
-//
 // 基于 golang.org/x/text/language 实现语言匹配，使用 JSON 文件存储翻译消息，
 // 支持 text/template 模板语法进行参数替换.
 package i18n
@@ -52,7 +51,6 @@ func NewBundle(defaultLang language.Tag, opts ...Option) *Bundle {
 }
 
 // LoadMessageFile 加载 JSON 消息文件.
-//
 // 文件名中须包含语言标签（如 messages.zh.json、en.json），
 // 语言标签通过 tag 参数显式指定.
 func (b *Bundle) LoadMessageFile(tag language.Tag, path string) error {
@@ -106,7 +104,6 @@ func (b *Bundle) LoadMessages(tag language.Tag, messages map[string]string) {
 }
 
 // NewLocalizer 创建本地化器.
-//
 // langs 为语言偏好列表（如 Accept-Language 头），按优先级从高到低排列.
 func (b *Bundle) NewLocalizer(langs ...string) *Localizer {
 	parsedTags := make([]language.Tag, 0, len(langs))

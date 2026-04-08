@@ -1,4 +1,3 @@
-// webhook/receiver.go
 package webhook
 
 import (
@@ -12,7 +11,7 @@ type receiver struct {
 	opts receiverOptions
 }
 
-// NewReceiver 创建 webhook 接收器。
+// NewReceiver 创建 webhook 接收器.
 func NewReceiver(opts ...ReceiverOption) *receiver {
 	o := receiverOptions{
 		signer:          NewHMACSigner(),
@@ -26,6 +25,7 @@ func NewReceiver(opts ...ReceiverOption) *receiver {
 	return &receiver{opts: o}
 }
 
+// Handle 处理传入的 webhook 请求并返回解析后的事件.
 func (rc *receiver) Handle(ctx context.Context, r *http.Request) (*Event, error) {
 	if r.Body == nil {
 		return nil, ErrEmptyBody

@@ -1,4 +1,3 @@
-// openapi/handler.go
 package openapi
 
 import (
@@ -8,7 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// ServeJSON 返回一个 http.Handler，输出 OpenAPI JSON。
+// ServeJSON 返回一个 http.Handler，输出 OpenAPI JSON.
 func (r *Registry) ServeJSON() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		spec := r.Build()
@@ -17,7 +16,7 @@ func (r *Registry) ServeJSON() http.Handler {
 	})
 }
 
-// ServeYAML 返回一个 http.Handler，输出 OpenAPI YAML。
+// ServeYAML 返回一个 http.Handler，输出 OpenAPI YAML.
 func (r *Registry) ServeYAML() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		spec := r.Build()

@@ -2,7 +2,6 @@ package timeout
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrTimeout 请求超时.
 	ErrTimeout = errors.New("timeout: 请求超时")

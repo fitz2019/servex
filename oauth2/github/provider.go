@@ -1,4 +1,4 @@
-// oauth2/github/provider.go
+// Package github 实现 GitHub OAuth2 登录.
 package github
 
 import (
@@ -21,7 +21,7 @@ const (
 	defaultUserInfoURL = "https://api.github.com/user"
 )
 
-// Provider 实现 GitHub OAuth2 登录。
+// Provider 实现 GitHub OAuth2 登录.
 type Provider struct {
 	opts        options
 	authBaseURL string
@@ -29,6 +29,7 @@ type Provider struct {
 	userInfoURL string
 }
 
+// NewProvider 创建 GitHub OAuth2 Provider 实例.
 func NewProvider(opts ...Option) *Provider {
 	o := options{
 		httpClient: &http.Client{Timeout: 10 * time.Second},
@@ -44,6 +45,7 @@ func NewProvider(opts ...Option) *Provider {
 	}
 }
 
+// AuthURL 生成 GitHub OAuth2 授权跳转链接.
 func (p *Provider) AuthURL(state string, opts ...oauth2.AuthURLOption) string {
 	extra := oauth2.ApplyAuthURLOptions(opts)
 
@@ -61,6 +63,7 @@ func (p *Provider) AuthURL(state string, opts ...oauth2.AuthURLOption) string {
 	return p.authBaseURL + "?" + params.Encode()
 }
 
+// Exchange 使用授权码换取访问令牌.
 func (p *Provider) Exchange(ctx context.Context, code string) (*oauth2.Token, error) {
 	if code == "" {
 		return nil, oauth2.ErrInvalidCode
@@ -107,11 +110,13 @@ func (p *Provider) Exchange(ctx context.Context, code string) (*oauth2.Token, er
 	return token, nil
 }
 
+// Refresh 刷新访问令牌（GitHub 不支持 refresh token）.
 func (p *Provider) Refresh(_ context.Context, _ string) (*oauth2.Token, error) {
 	// GitHub OAuth2 不支持 refresh token
 	return nil, oauth2.ErrRefreshFailed
 }
 
+// UserInfo 获取 GitHub 用户信息.
 func (p *Provider) UserInfo(ctx context.Context, token *oauth2.Token) (*oauth2.UserInfo, error) {
 	if token == nil || token.AccessToken == "" {
 		return nil, oauth2.ErrInvalidToken

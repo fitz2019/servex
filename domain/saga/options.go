@@ -40,7 +40,6 @@ func applyOptions(opts []Option) *options {
 }
 
 // WithStore 设置状态存储.
-//
 // 如果不设置，使用内部空存储（不保存状态）.
 // 生产环境建议使用 NewRedisStore 保存状态.
 func WithStore(store Store) Option {
@@ -57,7 +56,6 @@ func WithLogger(log logger.Logger) Option {
 }
 
 // WithTimeout 设置执行超时时间.
-//
 // 超时后会停止执行并开始补偿.
 func WithTimeout(timeout time.Duration) Option {
 	return func(o *options) {
@@ -66,7 +64,6 @@ func WithTimeout(timeout time.Duration) Option {
 }
 
 // WithRetry 设置重试配置.
-//
 // count: 重试次数
 // delay: 重试间隔
 func WithRetry(count int, delay time.Duration) Option {

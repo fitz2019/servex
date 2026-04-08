@@ -20,12 +20,23 @@ func NewSegmentKeysLock(size uint32) *SegmentKeysLock {
 	}
 }
 
-func (s *SegmentKeysLock) Lock(key string)          { s.locks[s.hash(key)].Lock() }
-func (s *SegmentKeysLock) TryLock(key string) bool  { return s.locks[s.hash(key)].TryLock() }
-func (s *SegmentKeysLock) Unlock(key string)        { s.locks[s.hash(key)].Unlock() }
-func (s *SegmentKeysLock) RLock(key string)         { s.locks[s.hash(key)].RLock() }
+// Lock 对指定 key 加写锁.
+func (s *SegmentKeysLock) Lock(key string) { s.locks[s.hash(key)].Lock() }
+
+// TryLock 尝试对指定 key 加写锁，成功返回 true.
+func (s *SegmentKeysLock) TryLock(key string) bool { return s.locks[s.hash(key)].TryLock() }
+
+// Unlock 释放指定 key 的写锁.
+func (s *SegmentKeysLock) Unlock(key string) { s.locks[s.hash(key)].Unlock() }
+
+// RLock 对指定 key 加读锁.
+func (s *SegmentKeysLock) RLock(key string) { s.locks[s.hash(key)].RLock() }
+
+// TryRLock 尝试对指定 key 加读锁，成功返回 true.
 func (s *SegmentKeysLock) TryRLock(key string) bool { return s.locks[s.hash(key)].TryRLock() }
-func (s *SegmentKeysLock) RUnlock(key string)       { s.locks[s.hash(key)].RUnlock() }
+
+// RUnlock 释放指定 key 的读锁.
+func (s *SegmentKeysLock) RUnlock(key string) { s.locks[s.hash(key)].RUnlock() }
 
 // hash FNV-1a 零分配实现.
 func (s *SegmentKeysLock) hash(key string) uint32 {

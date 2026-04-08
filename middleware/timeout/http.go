@@ -9,18 +9,14 @@ import (
 )
 
 // HTTPMiddleware 返回 HTTP 超时控制中间件.
-//
 // 当请求超时时，中间件会：
 //  1. 取消请求 context
 //  2. 记录超时日志（如果设置了 logger）
 //  3. 调用超时回调（如果设置了 onTimeout）
 //  4. 返回 503 Service Unavailable
-//
 // 注意: 此中间件不会中断正在执行的 handler，只是不再等待其响应.
 // 如果需要强制中断，handler 应该检查 ctx.Done().
-//
 // 示例:
-//
 //	mux := http.NewServeMux()
 //	handler := timeout.HTTPMiddleware(10*time.Second)(mux)
 //	http.ListenAndServe(":8080", handler)
@@ -128,11 +124,8 @@ func (tw *timeoutWriter) Write(b []byte) (int, error) {
 }
 
 // HTTPTimeoutHandler 返回带超时的 http.Handler.
-//
 // 这是标准库 http.TimeoutHandler 的增强版，支持日志记录和回调.
-//
 // 示例:
-//
 //	handler := timeout.HTTPTimeoutHandler(myHandler, 10*time.Second, "请求超时")
 func HTTPTimeoutHandler(h http.Handler, dt time.Duration, msg string, opts ...Option) http.Handler {
 	if dt <= 0 {

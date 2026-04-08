@@ -1,4 +1,4 @@
-// jobqueue/rabbitmq/store.go
+// Package rabbitmq 提供基于 RabbitMQ 的 jobqueue.Store 实现.
 package rabbitmq
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
-// Store 基于 RabbitMQ 的 jobqueue.Store 实现。
+// Store 基于 RabbitMQ 的 jobqueue.Store 实现.
 type Store struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
@@ -20,6 +20,7 @@ type Store struct {
 	opts    options
 }
 
+// NewStore 基于 AMQP 连接创建 RabbitMQ Store.
 func NewStore(conn *amqp.Connection, opts ...Option) (*Store, error) {
 	if conn == nil {
 		return nil, errors.New("jobqueue/rabbitmq: connection 不能为空")

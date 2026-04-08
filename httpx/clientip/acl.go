@@ -11,10 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ACL 相关错误.
-var (
-	ErrIPDenied = errors.New("clientip: IP address denied")
-)
+// ErrIPDenied IP 地址被拒绝.
+var ErrIPDenied = errors.New("clientip: IP address denied")
 
 // ACLMode ACL 默认策略模式.
 type ACLMode int

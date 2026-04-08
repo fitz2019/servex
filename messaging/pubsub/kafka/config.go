@@ -1,4 +1,3 @@
-// pubsub/kafka/config.go
 package kafka
 
 import (
@@ -9,7 +8,7 @@ import (
 	"github.com/Tsukikage7/servex/observability/logger"
 )
 
-// NewPublisherFromConfig 根据 brokers 地址列表创建 Publisher，内部自动管理 sarama.Client 生命周期。
+// NewPublisherFromConfig 根据 brokers 地址列表创建 Publisher，内部自动管理 sarama.Client 生命周期.
 func NewPublisherFromConfig(brokers []string, log logger.Logger) (*Publisher, error) {
 	if len(brokers) == 0 {
 		return nil, errors.New("pubsub/kafka: brokers 不能为空")
@@ -32,7 +31,7 @@ func NewPublisherFromConfig(brokers []string, log logger.Logger) (*Publisher, er
 	return pub, nil
 }
 
-// NewSubscriberFromConfig 根据 brokers 地址列表和 group 创建 Subscriber，内部自动管理 sarama.Client 生命周期。
+// NewSubscriberFromConfig 根据 brokers 地址列表和 group 创建 Subscriber，内部自动管理 sarama.Client 生命周期.
 func NewSubscriberFromConfig(brokers []string, group string, log logger.Logger) (*Subscriber, error) {
 	if len(brokers) == 0 {
 		return nil, errors.New("pubsub/kafka: brokers 不能为空")

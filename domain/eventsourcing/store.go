@@ -45,7 +45,6 @@ func (s *GORMEventStore) AutoMigrate() error {
 }
 
 // Save 批量保存事件.
-//
 // 利用 (aggregate_id, aggregate_type, version) 唯一索引实现乐观并发控制，
 // 当版本冲突时返回 ErrConcurrencyConflict.
 func (s *GORMEventStore) Save(ctx context.Context, events []Event) error {
@@ -111,7 +110,6 @@ func (s *GORMSnapshotStore) AutoMigrate() error {
 }
 
 // Save 保存快照（upsert 语义）.
-//
 // 使用 ON CONFLICT UPDATE 实现 upsert.
 func (s *GORMSnapshotStore) Save(ctx context.Context, snapshot Snapshot) error {
 	return s.db.WithContext(ctx).

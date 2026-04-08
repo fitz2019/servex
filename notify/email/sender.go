@@ -1,4 +1,4 @@
-// notification/email/sender.go
+// Package email 提供基于 SMTP 的邮件发送能力.
 package email
 
 import (
@@ -17,11 +17,13 @@ import (
 	"github.com/Tsukikage7/servex/notify"
 )
 
+// Sender 邮件发送器.
 type Sender struct {
 	opts   senderOptions
 	closed atomic.Bool
 }
 
+// NewSender 创建邮件发送器实例.
 func NewSender(opts ...Option) (*Sender, error) {
 	var o senderOptions
 	for _, opt := range opts {
@@ -36,8 +38,10 @@ func NewSender(opts ...Option) (*Sender, error) {
 	return &Sender{opts: o}, nil
 }
 
+// Channel 返回邮件渠道标识.
 func (s *Sender) Channel() notify.Channel { return notify.ChannelEmail }
 
+// Send 发送邮件消息.
 func (s *Sender) Send(ctx context.Context, msg *notify.Message) (*notify.Result, error) {
 	if msg == nil {
 		return nil, notify.ErrNilMessage
@@ -132,4 +136,5 @@ func (s *Sender) sendMail(addr string, recipients []string, body []byte) error {
 	return client.Quit()
 }
 
+// Close 关闭邮件发送器.
 func (s *Sender) Close() error { s.closed.Store(true); return nil }

@@ -5,7 +5,6 @@ import (
 )
 
 // HTTPMiddleware 创建 HTTP Request ID 中间件.
-//
 // 优先从请求头读取已有 ID，若不存在则生成新 ID，
 // 并将 ID 注入 context 和写入响应头.
 func HTTPMiddleware(opts ...Option) func(http.Handler) http.Handler {

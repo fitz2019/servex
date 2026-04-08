@@ -1,22 +1,16 @@
 // Package signature 提供 HMAC 请求签名验证中间件.
-//
 // 特性：
 //   - HMAC-SHA256/SHA512 签名
 //   - 时间戳防重放攻击
 //   - HTTP 中间件（服务端验签）
 //   - 请求签名辅助函数（客户端签名）
 //   - 常量时间比较防时序攻击
-//
 // 签名算法：
-//
 //	HMAC-SHA256(secret, timestamp + "." + body)
-//
 // 示例：
-//
 //	// 服务端
 //	cfg := signature.DefaultConfig("my-secret")
 //	handler = signature.HTTPMiddleware(cfg)(handler)
-//
 //	// 客户端
 //	req, _ := http.NewRequest("POST", url, body)
 //	_ = signature.SignRequest(req, "my-secret")
@@ -38,11 +32,14 @@ import (
 	"time"
 )
 
-// 错误定义.
 var (
+	// ErrMissingSignature 缺少签名头.
 	ErrMissingSignature = errors.New("signature: missing signature header")
+	// ErrMissingTimestamp 缺少时间戳头.
 	ErrMissingTimestamp = errors.New("signature: missing timestamp header")
+	// ErrExpiredTimestamp 时间戳已过期.
 	ErrExpiredTimestamp = errors.New("signature: timestamp expired")
+	// ErrInvalidSignature 签名无效.
 	ErrInvalidSignature = errors.New("signature: invalid signature")
 )
 
@@ -93,7 +90,6 @@ func newHMAC(algorithm string, secret []byte) hash.Hash {
 }
 
 // Sign 对请求体签名.
-//
 // 签名算法: HMAC-SHA256(secret, timestamp + "." + body)
 func Sign(body []byte, timestamp string, secret string) string {
 	return signWithAlgorithm(body, timestamp, secret, "sha256")
@@ -109,7 +105,6 @@ func signWithAlgorithm(body []byte, timestamp string, secret string, algorithm s
 }
 
 // Verify 验证签名.
-//
 // 使用常量时间比较防止时序攻击.
 func Verify(body []byte, timestamp, sig, secret string) bool {
 	expected := Sign(body, timestamp, secret)
@@ -117,7 +112,6 @@ func Verify(body []byte, timestamp, sig, secret string) bool {
 }
 
 // HTTPMiddleware 返回签名验证 HTTP 中间件.
-//
 // 流程:
 //  1. 读取 body + timestamp header + signature header
 //  2. 检查 timestamp 是否在 MaxAge 内
@@ -180,7 +174,6 @@ func HTTPMiddleware(cfg *Config) func(http.Handler) http.Handler {
 }
 
 // SignRequest 为 HTTP 请求签名（客户端用）.
-//
 // 读取请求 body，生成时间戳，计算签名，设置 headers.
 func SignRequest(req *http.Request, secret string) error {
 	return SignRequestWithConfig(req, DefaultConfig(secret))

@@ -5,15 +5,12 @@ import (
 )
 
 // StepFunc 步骤执行函数类型.
-//
 // ctx: 执行上下文
 // data: Saga 共享数据，可以在步骤间传递数据
-//
 // 返回错误表示步骤失败，将触发补偿.
 type StepFunc func(ctx context.Context, data *Data) error
 
 // CompensateFunc 补偿函数类型.
-//
 // 当步骤失败时，会按逆序调用已执行步骤的补偿函数.
 // 补偿函数应该是幂等的，因为可能被多次调用.
 type CompensateFunc func(ctx context.Context, data *Data) error
@@ -73,7 +70,6 @@ const (
 )
 
 // Data Saga 共享数据.
-//
 // 用于在步骤之间传递数据.
 type Data struct {
 	values map[string]any

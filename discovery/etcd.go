@@ -82,7 +82,6 @@ func (e *etcdDiscovery) RegisterWithProtocol(ctx context.Context, serviceName, a
 }
 
 // RegisterWithHealthEndpoint 注册服务实例.
-//
 // etcd 通过 lease 续约机制实现健康检查，healthEndpoint 参数不使用.
 func (e *etcdDiscovery) RegisterWithHealthEndpoint(ctx context.Context, serviceName, address, protocol string, _ *transport.HealthEndpoint) (string, error) {
 	if serviceName == "" {

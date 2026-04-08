@@ -9,9 +9,7 @@ import (
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务端指标拦截器.
-//
 // 使用示例:
-//
 //	collector, _ := metrics.New(cfg)
 //	server := grpc.NewServer(
 //	    grpc.UnaryInterceptor(metrics.UnaryServerInterceptor(collector)),
@@ -45,9 +43,7 @@ func UnaryServerInterceptor(collector *PrometheusCollector) grpc.UnaryServerInte
 }
 
 // StreamServerInterceptor 返回 gRPC 流式服务端指标拦截器.
-//
 // 使用示例:
-//
 //	collector, _ := metrics.New(cfg)
 //	server := grpc.NewServer(
 //	    grpc.StreamInterceptor(metrics.StreamServerInterceptor(collector)),
@@ -81,9 +77,7 @@ func StreamServerInterceptor(collector *PrometheusCollector) grpc.StreamServerIn
 }
 
 // UnaryClientInterceptor 返回 gRPC 一元客户端指标拦截器.
-//
 // 使用示例:
-//
 //	collector, _ := metrics.New(cfg)
 //	conn, _ := grpc.Dial(addr,
 //	    grpc.WithUnaryInterceptor(metrics.UnaryClientInterceptor(collector)),
@@ -119,9 +113,7 @@ func UnaryClientInterceptor(collector *PrometheusCollector) grpc.UnaryClientInte
 }
 
 // StreamClientInterceptor 返回 gRPC 流式客户端指标拦截器.
-//
 // 使用示例:
-//
 //	collector, _ := metrics.New(cfg)
 //	conn, _ := grpc.Dial(addr,
 //	    grpc.WithStreamInterceptor(metrics.StreamClientInterceptor(collector)),

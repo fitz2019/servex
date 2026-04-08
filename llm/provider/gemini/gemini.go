@@ -1,3 +1,4 @@
+// Package gemini 提供 Google Gemini REST API 适配器.
 package gemini
 
 import (

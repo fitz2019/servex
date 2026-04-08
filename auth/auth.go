@@ -37,10 +37,6 @@ import (
 	"time"
 )
 
-// ============================================================================
-// 核心类型
-// ============================================================================
-
 // Credentials 认证凭据.
 type Credentials struct {
 	// Type 凭据类型: bearer, api_key, basic.
@@ -53,11 +49,13 @@ type Credentials struct {
 	Extra map[string]string
 }
 
-// CredentialType 凭据类型常量.
 const (
+	// CredentialTypeBearer Bearer 令牌凭据.
 	CredentialTypeBearer = "bearer"
+	// CredentialTypeAPIKey API Key 凭据.
 	CredentialTypeAPIKey = "api_key"
-	CredentialTypeBasic  = "basic"
+	// CredentialTypeBasic Basic 认证凭据.
+	CredentialTypeBasic = "basic"
 )
 
 // Principal 身份主体，表示已认证的用户/服务.
@@ -84,9 +82,10 @@ type Principal struct {
 	ExpiresAt *time.Time
 }
 
-// PrincipalType 主体类型常量.
 const (
-	PrincipalTypeUser    = "user"
+	// PrincipalTypeUser 用户类型主体.
+	PrincipalTypeUser = "user"
+	// PrincipalTypeService 服务类型主体.
 	PrincipalTypeService = "service"
 )
 
@@ -156,10 +155,6 @@ func (p *Principal) GetMetadataString(key string) string {
 	s, _ := v.(string)
 	return s
 }
-
-// ============================================================================
-// 接口定义
-// ============================================================================
 
 // Authenticator 认证器接口.
 type Authenticator interface {

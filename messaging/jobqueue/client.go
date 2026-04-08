@@ -1,4 +1,3 @@
-// jobqueue/client.go
 package jobqueue
 
 import (
@@ -12,7 +11,7 @@ type client struct {
 	store Store
 }
 
-// NewClient 创建任务投递客户端。
+// NewClient 创建任务投递客户端.
 func NewClient(store Store) Client {
 	return &client{store: store}
 }

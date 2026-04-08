@@ -1,3 +1,4 @@
+// Package response 提供统一的 HTTP/gRPC 响应格式和错误码体系.
 package response
 
 import (

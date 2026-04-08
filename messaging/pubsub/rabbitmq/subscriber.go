@@ -1,4 +1,3 @@
-// pubsub/rabbitmq/subscriber.go
 package rabbitmq
 
 import (
@@ -13,7 +12,7 @@ import (
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 
-// Subscriber 通过 RabbitMQ 订阅消息。
+// Subscriber 通过 RabbitMQ 订阅消息.
 type Subscriber struct {
 	conn   *amqp.Connection
 	ch     *amqp.Channel
@@ -24,7 +23,7 @@ type Subscriber struct {
 	opts   subscriberOptions
 }
 
-// NewSubscriber 基于 AMQP URL 创建 Subscriber。
+// NewSubscriber 基于 AMQP URL 创建 Subscriber.
 func NewSubscriber(url string, opts ...SubscriberOption) (*Subscriber, error) {
 	if url == "" {
 		return nil, errors.New("pubsub/rabbitmq: url 不能为空")
@@ -75,8 +74,8 @@ func NewSubscriber(url string, opts ...SubscriberOption) (*Subscriber, error) {
 	return &Subscriber{conn: conn, ch: ch, opts: o}, nil
 }
 
-// Subscribe 订阅指定 queue/topic，返回消息 channel。
-// topic 作为 queue 名称（若有 exchange 则作为 routing key）。
+// Subscribe 订阅指定 queue/topic，返回消息 channel.
+// topic 作为 queue 名称（若有 exchange 则作为 routing key）.
 func (s *Subscriber) Subscribe(ctx context.Context, topic string) (<-chan *pubsub.Message, error) {
 	if s.closed.Load() {
 		return nil, pubsub.ErrClosed
@@ -151,7 +150,7 @@ func (s *Subscriber) Subscribe(ctx context.Context, topic string) (<-chan *pubsu
 	return msgCh, nil
 }
 
-// Ack 确认消息已处理。
+// Ack 确认消息已处理.
 func (s *Subscriber) Ack(_ context.Context, msg *pubsub.Message) error {
 	if msg == nil {
 		return pubsub.ErrNilMessage
@@ -166,7 +165,7 @@ func (s *Subscriber) Ack(_ context.Context, msg *pubsub.Message) error {
 	return nil
 }
 
-// Nack 拒绝消息并重新入队。
+// Nack 拒绝消息并重新入队.
 func (s *Subscriber) Nack(_ context.Context, msg *pubsub.Message) error {
 	if msg == nil {
 		return pubsub.ErrNilMessage
@@ -181,7 +180,7 @@ func (s *Subscriber) Nack(_ context.Context, msg *pubsub.Message) error {
 	return nil
 }
 
-// Close 关闭 Subscriber。幂等。
+// Close 关闭 Subscriber. 幂等.
 func (s *Subscriber) Close() error {
 	if s.closed.Swap(true) {
 		return nil

@@ -6,10 +6,11 @@ import (
 	"time"
 )
 
-// 默认配置值.
 const (
+	// DefaultMaxAttempts 默认最大重试次数.
 	DefaultMaxAttempts = 3
-	DefaultDelay       = 100 * time.Millisecond
+	// DefaultDelay 默认重试延迟.
+	DefaultDelay = 100 * time.Millisecond
 )
 
 // Retry 重试器.
@@ -21,13 +22,10 @@ type Retry struct {
 }
 
 // Do 创建重试器.
-//
 // 使用示例:
-//
 //	err := retry.Do(ctx, func() error {
 //	    return someOperation()
 //	}).Run()
-//
 //	err := retry.Do(ctx, func() error {
 //	    return someOperation()
 //	}).WithMaxAttempts(5).WithDelay(time.Second).Run()

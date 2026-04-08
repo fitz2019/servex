@@ -19,6 +19,7 @@ type fixedStrategy struct {
 	attempt    int
 }
 
+// NewFixedStrategy 创建固定间隔重试策略.
 func NewFixedStrategy(interval time.Duration, maxRetries int) Strategy {
 	return &fixedStrategy{
 		interval:   interval,
@@ -48,6 +49,7 @@ type exponentialStrategy struct {
 	attempt    int
 }
 
+// NewExponentialStrategy 创建指数退避重试策略.
 func NewExponentialStrategy(initial, maxDelay time.Duration, maxRetries int) Strategy {
 	return &exponentialStrategy{
 		initial:    initial,
@@ -126,6 +128,7 @@ func (s *adaptiveStrategy) countErrors() int {
 	return count
 }
 
+// RetryWithStrategy 使用指定策略执行带重试的函数.
 func RetryWithStrategy(ctx context.Context, strategy Strategy, fn func() error) error {
 	s := strategy
 	for {

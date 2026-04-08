@@ -1,4 +1,4 @@
-// Package database 提供数据库连接和管理功能.
+// Package rdbms 提供数据库连接和管理功能.
 package rdbms
 
 import (
@@ -10,15 +10,21 @@ import (
 
 // 支持的驱动类型.
 const (
-	DriverMySQL      = "mysql"
-	DriverPostgres   = "postgres"
+	// DriverMySQL MySQL 驱动.
+	DriverMySQL = "mysql"
+	// DriverPostgres PostgreSQL 驱动.
+	DriverPostgres = "postgres"
+	// DriverPostgreSQL PostgreSQL 驱动（别名）.
 	DriverPostgreSQL = "postgresql"
-	DriverSQLite     = "sqlite"
-	DriverSQLite3    = "sqlite3"
+	// DriverSQLite SQLite 驱动.
+	DriverSQLite = "sqlite"
+	// DriverSQLite3 SQLite3 驱动（别名）.
+	DriverSQLite3 = "sqlite3"
 )
 
 // 支持的 ORM 类型.
 const (
+	// TypeGORM GORM ORM 类型.
 	TypeGORM = "gorm"
 )
 

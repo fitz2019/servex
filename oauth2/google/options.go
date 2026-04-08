@@ -1,4 +1,3 @@
-// oauth2/google/options.go
 package google
 
 import "net/http"
@@ -11,10 +10,20 @@ type options struct {
 	httpClient   *http.Client
 }
 
+// Option 配置 Google OAuth2 Provider 的选项函数.
 type Option func(*options)
 
-func WithClientID(id string) Option        { return func(o *options) { o.clientID = id } }
-func WithClientSecret(s string) Option     { return func(o *options) { o.clientSecret = s } }
-func WithRedirectURL(url string) Option    { return func(o *options) { o.redirectURL = url } }
-func WithScopes(scopes ...string) Option   { return func(o *options) { o.scopes = scopes } }
+// WithClientID 设置 Google OAuth2 客户端 ID.
+func WithClientID(id string) Option { return func(o *options) { o.clientID = id } }
+
+// WithClientSecret 设置 Google OAuth2 客户端密钥.
+func WithClientSecret(s string) Option { return func(o *options) { o.clientSecret = s } }
+
+// WithRedirectURL 设置 OAuth2 回调地址.
+func WithRedirectURL(url string) Option { return func(o *options) { o.redirectURL = url } }
+
+// WithScopes 设置请求的权限范围.
+func WithScopes(scopes ...string) Option { return func(o *options) { o.scopes = scopes } }
+
+// WithHTTPClient 设置自定义 HTTP 客户端.
 func WithHTTPClient(c *http.Client) Option { return func(o *options) { o.httpClient = c } }

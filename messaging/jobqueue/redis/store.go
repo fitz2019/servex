@@ -1,4 +1,4 @@
-// jobqueue/redis/store.go
+// Package redis 提供基于 Redis 的 jobqueue.Store 实现.
 package redis
 
 import (
@@ -13,13 +13,14 @@ import (
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
-// Store 基于 Redis 的 jobqueue.Store 实现。
-// 使用 sorted set 实现延迟和优先级队列。
+// Store 基于 Redis 的 jobqueue.Store 实现.
+// 使用 sorted set 实现延迟和优先级队列.
 type Store struct {
 	client *goredis.Client
 	opts   options
 }
 
+// NewStore 基于 go-redis Client 创建 Redis Store.
 func NewStore(client *goredis.Client, opts ...Option) (*Store, error) {
 	if client == nil {
 		return nil, errors.New("jobqueue/redis: client 不能为空")

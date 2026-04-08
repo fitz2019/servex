@@ -13,8 +13,10 @@ type templateEngine struct {
 	templates map[string]*template.Template
 }
 
+// TemplateOption 模板引擎配置选项.
 type TemplateOption func(*templateEngine)
 
+// WithTemplateDir 从指定目录加载模板文件.
 func WithTemplateDir(dir string) TemplateOption {
 	return func(e *templateEngine) {
 		entries, err := os.ReadDir(dir)
@@ -40,6 +42,7 @@ func WithTemplateDir(dir string) TemplateOption {
 	}
 }
 
+// WithTemplateFS 从 fs.FS 文件系统加载模板文件.
 func WithTemplateFS(fsys fs.FS, root string) TemplateOption {
 	return func(e *templateEngine) {
 		sub, err := fs.Sub(fsys, root)
@@ -65,6 +68,7 @@ func WithTemplateFS(fsys fs.FS, root string) TemplateOption {
 	}
 }
 
+// NewTemplateEngine 创建模板引擎实例.
 func NewTemplateEngine(opts ...TemplateOption) *templateEngine {
 	e := &templateEngine{templates: make(map[string]*template.Template)}
 	for _, opt := range opts {

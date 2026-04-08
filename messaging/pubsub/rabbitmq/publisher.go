@@ -1,4 +1,4 @@
-// pubsub/rabbitmq/publisher.go
+// Package rabbitmq 提供基于 RabbitMQ 的 pubsub.Publisher 和 pubsub.Subscriber 实现.
 package rabbitmq
 
 import (
@@ -14,7 +14,7 @@ import (
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 
-// Publisher 通过 RabbitMQ 发布消息。
+// Publisher 通过 RabbitMQ 发布消息.
 type Publisher struct {
 	conn   *amqp.Connection
 	ch     *amqp.Channel
@@ -25,7 +25,7 @@ type Publisher struct {
 	confirms chan amqp.Confirmation
 }
 
-// NewPublisher 基于 AMQP URL 创建 Publisher。
+// NewPublisher 基于 AMQP URL 创建 Publisher.
 func NewPublisher(url string, opts ...PublisherOption) (*Publisher, error) {
 	if url == "" {
 		return nil, errors.New("pubsub/rabbitmq: url 不能为空")
@@ -88,7 +88,7 @@ func (p *Publisher) setupChannel() error {
 	return nil
 }
 
-// Publish 发布一条或多条消息到指定 routing key（topic）。
+// Publish 发布一条或多条消息到指定 routing key（topic）.
 func (p *Publisher) Publish(ctx context.Context, topic string, msgs ...*pubsub.Message) error {
 	if p.closed.Load() {
 		return pubsub.ErrClosed
@@ -146,7 +146,7 @@ func (p *Publisher) Publish(ctx context.Context, topic string, msgs ...*pubsub.M
 	return nil
 }
 
-// Close 关闭 Publisher。幂等，多次调用不报错。
+// Close 关闭 Publisher. 幂等，多次调用不报错.
 func (p *Publisher) Close() error {
 	if p.closed.Swap(true) {
 		return nil

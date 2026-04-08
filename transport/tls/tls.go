@@ -12,11 +12,13 @@ import (
 	"os"
 )
 
-// 预定义错误.
 var (
-	ErrNilConfig   = errors.New("tls: config is nil")
+	// ErrNilConfig 配置为 nil.
+	ErrNilConfig = errors.New("tls: config is nil")
+	// ErrMissingCert 缺少证书文件.
 	ErrMissingCert = errors.New("tls: cert_file is required")
-	ErrMissingKey  = errors.New("tls: key_file is required")
+	// ErrMissingKey 缺少密钥文件.
+	ErrMissingKey = errors.New("tls: key_file is required")
 )
 
 // Config TLS 配置.

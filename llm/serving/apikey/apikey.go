@@ -1,3 +1,4 @@
+// Package apikey 提供 AI 服务的 API Key 管理功能.
 package apikey
 
 import (
@@ -35,14 +36,22 @@ func (Key) TableName() string { return "api_keys" }
 
 // 预定义错误.
 var (
-	ErrNilStore      = errors.New("apikey: store is nil")
-	ErrKeyNotFound   = errors.New("apikey: key not found")
-	ErrKeyDisabled   = errors.New("apikey: key is disabled")
-	ErrKeyExpired    = errors.New("apikey: key has expired")
+	// ErrNilStore Store 为 nil 时返回.
+	ErrNilStore = errors.New("apikey: store is nil")
+	// ErrKeyNotFound 密钥未找到.
+	ErrKeyNotFound = errors.New("apikey: key not found")
+	// ErrKeyDisabled 密钥已禁用.
+	ErrKeyDisabled = errors.New("apikey: key is disabled")
+	// ErrKeyExpired 密钥已过期.
+	ErrKeyExpired = errors.New("apikey: key has expired")
+	// ErrQuotaExceeded 配额已用尽.
 	ErrQuotaExceeded = errors.New("apikey: quota exceeded")
-	ErrRateLimited   = errors.New("apikey: rate limited")
-	ErrMissingKey    = errors.New("apikey: missing API key")
-	ErrInvalidKey    = errors.New("apikey: invalid API key")
+	// ErrRateLimited 请求被限流.
+	ErrRateLimited = errors.New("apikey: rate limited")
+	// ErrMissingKey 请求中缺少 API 密钥.
+	ErrMissingKey = errors.New("apikey: missing API key")
+	// ErrInvalidKey 无效的 API 密钥.
+	ErrInvalidKey = errors.New("apikey: invalid API key")
 )
 
 // Manager API Key 管理器接口.

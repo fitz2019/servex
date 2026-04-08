@@ -12,11 +12,8 @@ import (
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器租户拦截器.
-//
 // 默认 TokenExtractor 为 MetadataTokenExtractor("x-tenant-token").
-//
 // 示例:
-//
 //	srv := grpc.NewServer(
 //	    grpc.UnaryInterceptor(tenant.UnaryServerInterceptor(resolver)),
 //	)

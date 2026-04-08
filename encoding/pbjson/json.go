@@ -6,7 +6,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// 默认 JSON 序列化选项.
 var (
 	// MarshalOptions 序列化选项，输出零值字段.
 	MarshalOptions = protojson.MarshalOptions{

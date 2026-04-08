@@ -9,15 +9,18 @@ import (
 	"github.com/Tsukikage7/servex/errors"
 )
 
+// Response HTTP 响应封装.
 type Response struct {
 	*http.Response
 }
 
+// JSON 将响应体解码为 JSON.
 func (r *Response) JSON(v any) error {
 	defer r.Body.Close()
 	return json.NewDecoder(r.Body).Decode(v)
 }
 
+// Text 将响应体读取为字符串.
 func (r *Response) Text() (string, error) {
 	defer r.Body.Close()
 	b, err := io.ReadAll(r.Body)
@@ -27,11 +30,13 @@ func (r *Response) Text() (string, error) {
 	return string(b), nil
 }
 
+// Bytes 将响应体读取为字节切片.
 func (r *Response) Bytes() ([]byte, error) {
 	defer r.Body.Close()
 	return io.ReadAll(r.Body)
 }
 
+// CheckStatus 检查响应状态码是否为 2xx，否则返回错误.
 func (r *Response) CheckStatus() error {
 	if r.StatusCode >= 200 && r.StatusCode < 300 {
 		return nil

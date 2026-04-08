@@ -12,12 +12,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// 错误定义.
 var (
-	ErrCodeExpired     = errors.New("captcha: code expired")
-	ErrCodeInvalid     = errors.New("captcha: invalid code")
+	// ErrCodeExpired 验证码已过期.
+	ErrCodeExpired = errors.New("captcha: code expired")
+	// ErrCodeInvalid 验证码无效.
+	ErrCodeInvalid = errors.New("captcha: invalid code")
+	// ErrTooManyAttempts 验证次数过多.
 	ErrTooManyAttempts = errors.New("captcha: too many attempts")
-	ErrCooldown        = errors.New("captcha: please wait before requesting a new code")
+	// ErrCooldown 请求过于频繁.
+	ErrCooldown = errors.New("captcha: please wait before requesting a new code")
 )
 
 // Code 验证码.

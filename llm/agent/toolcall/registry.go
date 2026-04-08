@@ -1,4 +1,3 @@
-// Package toolcall 提供 AI 工具调用框架，支持工具注册和自动循环执行.
 package toolcall
 
 import (

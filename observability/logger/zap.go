@@ -1,4 +1,3 @@
-// Package logger 提供结构化日志记录功能.
 package logger
 
 import (
@@ -305,12 +304,9 @@ func toZapField(f Field) zap.Field {
 }
 
 // WithContext 返回带有 context 中 trace 信息的 logger.
-//
 // 从 context 中提取 traceId 和 spanId，返回带有这些字段的新 logger.
 // 如果 context 中没有 trace 信息，返回当前 logger.
-//
 // 使用示例:
-//
 //	func (s *Service) Handle(ctx context.Context) {
 //	    s.log.WithContext(ctx).Info("处理请求")
 //	    // 输出: {"msg":"处理请求","traceId":"abc...","spanId":"def..."}

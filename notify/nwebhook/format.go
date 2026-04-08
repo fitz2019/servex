@@ -1,8 +1,8 @@
-// notification/webhook/format.go
 package nwebhook
 
 import "encoding/json"
 
+// Formatter 消息格式化函数类型.
 type Formatter func(subject, body string) []byte
 
 func getFormatter(format string) Formatter {

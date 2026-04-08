@@ -31,8 +31,11 @@ import (
 
 // 错误定义.
 var (
+	// ErrNilConfig 配置为 nil 时返回.
 	ErrNilConfig = errors.New("redis: config is nil")
+	// ErrNilLogger 日志记录器为 nil 时返回.
 	ErrNilLogger = errors.New("redis: logger is nil")
+	// ErrEmptyAddr 地址为空时返回.
 	ErrEmptyAddr = errors.New("redis: addr is empty")
 )
 

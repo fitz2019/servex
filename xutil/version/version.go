@@ -6,11 +6,14 @@ import (
 	"runtime"
 )
 
-// 编译时通过 -ldflags 注入的变量.
 var (
-	Version   = "dev"
+	// Version 版本号.
+	Version = "dev"
+	// GitCommit Git 提交哈希.
 	GitCommit = "unknown"
+	// BuildTime 构建时间.
 	BuildTime = "unknown"
+	// GoVersion Go 编译器版本.
 	GoVersion = runtime.Version()
 )
 

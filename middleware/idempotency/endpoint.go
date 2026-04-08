@@ -10,23 +10,18 @@ import (
 )
 
 // IdempotentRequest 支持幂等性的请求接口.
-//
 // 请求类型可以实现此接口来提供幂等键.
 type IdempotentRequest interface {
 	IdempotencyKey() string
 }
 
 // EndpointMiddleware 返回 Endpoint 幂等性中间件.
-//
 // 当请求携带幂等键时，中间件会：
 //  1. 检查该键是否已有结果
 //  2. 如果有，直接返回之前的结果
 //  3. 如果没有，执行请求并保存结果
-//
 // 请求类型需要实现 IdempotentRequest 接口，或通过 WithKeyExtractor 自定义提取逻辑.
-//
 // 示例:
-//
 //	store := idempotency.NewRedisStore(redisClient)
 //	endpoint = idempotency.EndpointMiddleware(store)(endpoint)
 func EndpointMiddleware(store Store, opts ...Option) endpoint.Middleware {

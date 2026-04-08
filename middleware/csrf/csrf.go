@@ -1,5 +1,4 @@
 // Package csrf 提供 CSRF（跨站请求伪造）防护中间件.
-//
 // 通过 Double Submit Cookie 模式防御 CSRF 攻击：
 //   - 安全方法（GET/HEAD/OPTIONS/TRACE）生成 token 并通过 cookie 下发
 //   - 非安全方法（POST/PUT/DELETE/PATCH）验证请求中的 token 与 cookie 一致
@@ -16,9 +15,10 @@ import (
 	"time"
 )
 
-// 预定义错误.
 var (
+	// ErrMissingToken 缺少 CSRF token.
 	ErrMissingToken = errors.New("csrf: missing CSRF token")
+	// ErrInvalidToken CSRF token 无效.
 	ErrInvalidToken = errors.New("csrf: invalid CSRF token")
 )
 

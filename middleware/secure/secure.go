@@ -1,5 +1,4 @@
 // Package secure 提供 HTTP 安全头中间件.
-//
 // 自动为每个响应设置常见的安全相关头部，防御点击劫持、MIME 嗅探、XSS 等攻击.
 package secure
 
@@ -46,7 +45,6 @@ func DefaultConfig() *Config {
 }
 
 // HTTPMiddleware 创建安全头 HTTP 中间件.
-//
 // 在每个响应中设置配置的安全头部.
 func HTTPMiddleware(cfg *Config) func(http.Handler) http.Handler {
 	if cfg == nil {

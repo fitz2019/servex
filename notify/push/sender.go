@@ -1,4 +1,3 @@
-// notification/push/sender.go
 package push
 
 import (
@@ -12,12 +11,14 @@ import (
 	"github.com/Tsukikage7/servex/notify"
 )
 
+// Sender 推送消息发送器.
 type Sender struct {
 	provider Provider
 	opts     senderOptions
 	closed   atomic.Bool
 }
 
+// NewSender 创建推送发送器实例.
 func NewSender(provider Provider, opts ...Option) (*Sender, error) {
 	if provider == nil {
 		return nil, errors.New("notification/push: provider 不能为空")
@@ -29,8 +30,10 @@ func NewSender(provider Provider, opts ...Option) (*Sender, error) {
 	return &Sender{provider: provider, opts: o}, nil
 }
 
+// Channel 返回推送渠道标识.
 func (s *Sender) Channel() notify.Channel { return notify.ChannelPush }
 
+// Send 向目标设备发送推送消息.
 func (s *Sender) Send(ctx context.Context, msg *notify.Message) (*notify.Result, error) {
 	if msg == nil {
 		return nil, notify.ErrNilMessage
@@ -71,4 +74,5 @@ func (s *Sender) Send(ctx context.Context, msg *notify.Message) (*notify.Result,
 	return &notify.Result{MessageID: lastID, Channel: notify.ChannelPush}, nil
 }
 
+// Close 关闭推送发送器.
 func (s *Sender) Close() error { s.closed.Store(true); return nil }

@@ -2,7 +2,6 @@ package idempotency
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrDuplicateRequest 重复请求.
 	ErrDuplicateRequest = errors.New("idempotency: 重复请求")

@@ -1,5 +1,4 @@
 // Package scheduler 提供任务调度功能.
-//
 // 特性：
 //   - 支持秒级 Cron 表达式
 //   - 单例模式：防止同一任务重叠执行
@@ -8,15 +7,12 @@
 //   - Hook 机制：BeforeJob/AfterJob/OnError/OnSkip
 //   - 失败重试
 //   - 优雅关闭
-//
 // 示例：
-//
 //	// 创建调度器（使用 cache 包实现分布式锁）
 //	s := scheduler.MustNewScheduler(
 //	    scheduler.WithLogger(log),
 //	    scheduler.WithCache(redisCache),  // 复用 cache.Cache 接口
 //	)
-//
 //	// 添加任务
 //	s.Add(scheduler.NewJob("sync-data").
 //	    Schedule("0 */5 * * * *").
@@ -25,7 +21,6 @@
 //	    Distributed().    // 分布式幂等
 //	    MustBuild(),
 //	)
-//
 //	// 启动
 //	s.Start()
 //	defer s.Stop()

@@ -10,7 +10,6 @@ import (
 )
 
 // CommandMetrics 为命令处理器添加 Prometheus 指标装饰器.
-//
 // 收集命令总次数、成功/失败次数和执行耗时直方图.
 func CommandMetrics[C, R any](commandName string, registerer prometheus.Registerer) cqrs.CommandMiddleware[C, R] {
 	if registerer == nil {

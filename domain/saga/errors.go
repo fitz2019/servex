@@ -2,7 +2,6 @@ package saga
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrSagaFailed Saga 执行失败.
 	ErrSagaFailed = errors.New("saga: 执行失败")

@@ -1,14 +1,14 @@
-// openapi/registry.go
 package openapi
 
 import "strings"
 
-// Registry 收集 API 端点信息，构建 OpenAPI Spec。
+// Registry 收集 API 端点信息，构建 OpenAPI Spec.
 type Registry struct {
 	operations []*Operation
 	opts       registryOptions
 }
 
+// NewRegistry 创建一个新的 OpenAPI 注册器.
 func NewRegistry(opts ...RegistryOption) *Registry {
 	var o registryOptions
 	o.version = "0.0.1"
@@ -18,12 +18,12 @@ func NewRegistry(opts ...RegistryOption) *Registry {
 	return &Registry{opts: o}
 }
 
-// Add 注册一个 API 端点。
+// Add 注册一个 API 端点.
 func (r *Registry) Add(ops ...*Operation) {
 	r.operations = append(r.operations, ops...)
 }
 
-// Build 构建完整的 OpenAPI Spec。
+// Build 构建完整的 OpenAPI Spec.
 func (r *Registry) Build() *Spec {
 	spec := &Spec{
 		OpenAPI: "3.0.3",

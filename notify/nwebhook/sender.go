@@ -1,4 +1,4 @@
-// notification/webhook/sender.go
+// Package nwebhook 提供通知渠道的 Webhook 发送能力.
 package nwebhook
 
 import (
@@ -17,11 +17,13 @@ import (
 	"github.com/Tsukikage7/servex/notify"
 )
 
+// Sender 通知 Webhook 发送器.
 type Sender struct {
 	opts   senderOptions
 	closed atomic.Bool
 }
 
+// NewSender 创建通知 Webhook 发送器实例.
 func NewSender(opts ...Option) (*Sender, error) {
 	o := senderOptions{timeout: 10 * time.Second}
 	for _, opt := range opts {
@@ -33,8 +35,10 @@ func NewSender(opts ...Option) (*Sender, error) {
 	return &Sender{opts: o}, nil
 }
 
+// Channel 返回 Webhook 渠道标识.
 func (s *Sender) Channel() notify.Channel { return notify.ChannelWebhook }
 
+// Send 发送 Webhook 通知消息.
 func (s *Sender) Send(ctx context.Context, msg *notify.Message) (*notify.Result, error) {
 	if msg == nil {
 		return nil, notify.ErrNilMessage
@@ -87,4 +91,5 @@ func (s *Sender) doSend(ctx context.Context, url string, payload []byte, secret 
 	return nil
 }
 
+// Close 关闭通知 Webhook 发送器.
 func (s *Sender) Close() error { s.closed.Store(true); return nil }

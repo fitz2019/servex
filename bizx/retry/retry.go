@@ -13,9 +13,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// 错误定义.
 var (
-	ErrNilStore        = errors.New("retry: store is nil")
+	// ErrNilStore 存储为空.
+	ErrNilStore = errors.New("retry: store is nil")
+	// ErrHandlerNotFound 处理器未注册.
 	ErrHandlerNotFound = errors.New("retry: handler not found")
 )
 
@@ -23,10 +24,14 @@ var (
 type Status string
 
 const (
+	// StatusPending 待处理状态.
 	StatusPending Status = "pending"
+	// StatusRunning 运行中状态.
 	StatusRunning Status = "running"
-	StatusDone    Status = "done"
-	StatusDead    Status = "dead"
+	// StatusDone 已完成状态.
+	StatusDone Status = "done"
+	// StatusDead 已失败状态.
+	StatusDead Status = "dead"
 )
 
 // Task 重试任务.

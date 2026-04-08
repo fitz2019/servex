@@ -29,9 +29,10 @@ import (
 // contextKey context 键类型.
 type contextKey string
 
-// context 键定义.
 const (
-	ipContextKey  contextKey = "clientip:ip"
+	// ipContextKey 客户端 IP 的 context 键.
+	ipContextKey contextKey = "clientip:ip"
+	// geoContextKey 地理位置信息的 context 键.
 	geoContextKey contextKey = "clientip:geo"
 )
 

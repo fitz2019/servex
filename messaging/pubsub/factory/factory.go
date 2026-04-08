@@ -1,8 +1,8 @@
-// pubsub/factory/factory.go — Config 驱动的顶层 Pub/Sub 工厂。
+// Package factory 提供根据配置创建 pubsub.Publisher 和 pubsub.Subscriber 的工厂方法.
 //
 // 该包解决了 pubsub 核心包与各 driver 子包之间的循环依赖问题：
 // pubsub/kafka、pubsub/rabbitmq、pubsub/redis 均依赖 pubsub（获取 Message/Publisher/Subscriber），
-// 因此工厂逻辑必须放在独立包中，而非 pubsub 本身。
+// 因此工厂逻辑必须放在独立包中，而非 pubsub 本身.
 package factory
 
 import (
@@ -16,7 +16,7 @@ import (
 	"github.com/Tsukikage7/servex/observability/logger"
 )
 
-// Config 配置 Pub/Sub 连接。
+// Config 配置 Pub/Sub 连接.
 type Config struct {
 	Type string `json:"type" yaml:"type"` // "kafka", "rabbitmq", "redis"
 
@@ -37,7 +37,7 @@ var (
 	errEmptyType = errors.New("pubsub: type 不能为空")
 )
 
-// NewPublisher 根据 Config 创建 Publisher。
+// NewPublisher 根据 Config 创建 Publisher.
 func NewPublisher(cfg *Config, log logger.Logger) (pubsub.Publisher, error) {
 	if cfg == nil {
 		return nil, errNilConfig
@@ -56,7 +56,7 @@ func NewPublisher(cfg *Config, log logger.Logger) (pubsub.Publisher, error) {
 	}
 }
 
-// NewSubscriber 根据 Config 创建 Subscriber。group 用于 Kafka consumer group 和 Redis consumer group。
+// NewSubscriber 根据 Config 创建 Subscriber. group 用于 Kafka consumer group 和 Redis consumer group.
 func NewSubscriber(cfg *Config, group string, log logger.Logger) (pubsub.Subscriber, error) {
 	if cfg == nil {
 		return nil, errNilConfig

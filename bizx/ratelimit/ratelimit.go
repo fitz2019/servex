@@ -1,18 +1,13 @@
 // Package ratelimit 提供业务级限流实现.
-//
 // 区别于 middleware/ratelimit 的请求级限流，本包提供按用户/租户的配额管理，
 // 支持查看使用量、剩余配额、重置时间等信息.
-//
 // 基本用法:
-//
 //	mgr := ratelimit.NewMemoryQuotaManager()
-//
 //	quota := ratelimit.Quota{
 //	    Key:    "user:123",
 //	    Limit:  1000,
 //	    Window: 24 * time.Hour,
 //	}
-//
 //	usage, err := mgr.Consume(ctx, quota, 1)
 //	if errors.Is(err, ratelimit.ErrQuotaExceeded) {
 //	    // 配额已用尽

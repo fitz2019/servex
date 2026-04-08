@@ -1,4 +1,4 @@
-// jobqueue/database/store.go
+// Package database 提供基于关系数据库的 jobqueue.Store 实现.
 package database
 
 import (
@@ -26,12 +26,13 @@ type jobModel struct {
 	Deadline    time.Time
 }
 
-// Store 基于 GORM 的 jobqueue.Store 实现。
+// Store 基于 GORM 的 jobqueue.Store 实现.
 type Store struct {
 	db   *gorm.DB
 	opts options
 }
 
+// NewStore 基于 GORM 数据库连接创建 Store.
 func NewStore(db *gorm.DB, opts ...Option) (*Store, error) {
 	if db == nil {
 		return nil, errors.New("jobqueue/database: db 不能为空")

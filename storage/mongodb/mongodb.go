@@ -33,12 +33,18 @@ import (
 
 // 预定义错误.
 var (
-	ErrNilConfig     = errors.New("mongodb: config is nil")
-	ErrNilLogger     = errors.New("mongodb: logger is nil")
-	ErrEmptyURI      = errors.New("mongodb: URI is empty")
+	// ErrNilConfig 配置为 nil 时返回.
+	ErrNilConfig = errors.New("mongodb: config is nil")
+	// ErrNilLogger 日志记录器为 nil 时返回.
+	ErrNilLogger = errors.New("mongodb: logger is nil")
+	// ErrEmptyURI URI 为空时返回.
+	ErrEmptyURI = errors.New("mongodb: URI is empty")
+	// ErrEmptyDatabase 数据库名为空时返回.
 	ErrEmptyDatabase = errors.New("mongodb: database name is empty")
-	ErrNotConnected  = errors.New("mongodb: not connected")
-	ErrNoDocuments   = mongo.ErrNoDocuments
+	// ErrNotConnected 未连接时返回.
+	ErrNotConnected = errors.New("mongodb: not connected")
+	// ErrNoDocuments 无匹配文档时返回.
+	ErrNoDocuments = mongo.ErrNoDocuments
 )
 
 // Config MongoDB 配置.

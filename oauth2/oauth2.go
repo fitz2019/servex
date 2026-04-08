@@ -1,4 +1,4 @@
-// oauth2/oauth2.go
+// Package oauth2 提供第三方 OAuth2 登录的统一抽象和多平台实现.
 package oauth2
 
 import (
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Token 表示从第三方获取的 OAuth2 令牌。
+// Token 表示从第三方获取的 OAuth2 令牌.
 type Token struct {
 	AccessToken  string
 	TokenType    string
@@ -16,7 +16,7 @@ type Token struct {
 	Raw          map[string]any
 }
 
-// IsExpired 检查 token 是否已过期。
+// IsExpired 检查 token 是否已过期.
 func (t *Token) IsExpired() bool {
 	if t.ExpiresAt.IsZero() {
 		return false
@@ -24,7 +24,7 @@ func (t *Token) IsExpired() bool {
 	return time.Now().After(t.ExpiresAt)
 }
 
-// UserInfo 表示从第三方获取的用户信息。
+// UserInfo 表示从第三方获取的用户信息.
 type UserInfo struct {
 	ProviderID string
 	Provider   string
@@ -34,7 +34,7 @@ type UserInfo struct {
 	Extra      map[string]any
 }
 
-// Provider 对接一个第三方 OAuth2 平台。
+// Provider 对接一个第三方 OAuth2 平台.
 type Provider interface {
 	AuthURL(state string, opts ...AuthURLOption) string
 	Exchange(ctx context.Context, code string) (*Token, error)
@@ -42,7 +42,7 @@ type Provider interface {
 	UserInfo(ctx context.Context, token *Token) (*UserInfo, error)
 }
 
-// StateStore 管理 OAuth2 state 参数，防 CSRF。
+// StateStore 管理 OAuth2 state 参数，防 CSRF.
 type StateStore interface {
 	Generate(ctx context.Context) (string, error)
 	Validate(ctx context.Context, state string) (bool, error)

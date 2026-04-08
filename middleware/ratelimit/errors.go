@@ -2,7 +2,6 @@ package ratelimit
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrRateLimited 请求被限流.
 	ErrRateLimited = errors.New("ratelimit: 请求被限流")

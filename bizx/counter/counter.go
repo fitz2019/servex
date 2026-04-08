@@ -1,19 +1,13 @@
 // Package counter 提供分布式计数器实现.
-//
 // 区别于 storage/redis 的原子操作，本包提供滑动窗口统计、批量聚合等
 // 业务级计数能力.
-//
 // 基本用法:
-//
 //	// 内存实现（适合测试或单进程场景）
 //	c := counter.NewMemoryCounter(counter.WithPrefix("app:"))
-//
 //	// Redis 实现（分布式场景）
 //	c := counter.NewRedisCounter(redisClient, counter.WithPrefix("app:"))
-//
 //	// 简单计数
 //	val, _ := c.Incr(ctx, "login_count", 1)
-//
 //	// 滑动窗口计数
 //	val, _ = c.IncrWindow(ctx, "api_calls", 5*time.Minute)
 //	count, _ := c.GetWindow(ctx, "api_calls", 5*time.Minute)

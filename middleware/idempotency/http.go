@@ -10,16 +10,12 @@ import (
 )
 
 // HTTPMiddleware 返回 HTTP 幂等性中间件.
-//
 // 当请求携带 Idempotency-Key 请求头时，中间件会：
 //  1. 检查该键是否已有结果
 //  2. 如果有，直接返回之前的结果
 //  3. 如果没有，执行请求并保存结果
-//
 // 默认只对 POST、PUT、PATCH 方法生效.
-//
 // 示例:
-//
 //	store := idempotency.NewRedisStore(redisClient)
 //	handler = idempotency.HTTPMiddleware(store)(handler)
 func HTTPMiddleware(store Store, opts ...Option) func(http.Handler) http.Handler {

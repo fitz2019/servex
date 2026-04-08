@@ -68,7 +68,6 @@ func NewGORMStoreFromDB(db *gorm.DB) *GORMStore {
 }
 
 // Save 保存消息.
-//
 // 若 ctx 中注入了事务（通过 InjectTx），则在该事务中保存；否则直接保存.
 func (s *GORMStore) Save(ctx context.Context, msgs ...*OutboxMessage) error {
 	if len(msgs) == 0 {
@@ -82,7 +81,6 @@ func (s *GORMStore) Save(ctx context.Context, msgs ...*OutboxMessage) error {
 }
 
 // WithTx 在事务中执行 fn.
-//
 // fn 收到的 ctx 中已通过 InjectTx 注入了事务，可直接调用 Save.
 func (s *GORMStore) WithTx(ctx context.Context, fn TxFunc) error {
 	return s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -92,7 +90,6 @@ func (s *GORMStore) WithTx(ctx context.Context, fn TxFunc) error {
 }
 
 // FetchPending 拉取待发送消息并原子标记为 Processing.
-//
 // 对支持行锁的数据库（MySQL/PostgreSQL）使用 SELECT FOR UPDATE SKIP LOCKED，
 // SQLite 环境自动降级为普通 SELECT.
 func (s *GORMStore) FetchPending(ctx context.Context, limit int) ([]*OutboxMessage, error) {

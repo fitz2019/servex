@@ -33,12 +33,15 @@ import (
 	"github.com/google/uuid"
 )
 
-// 预定义错误.
 var (
-	ErrClientNotFound   = errors.New("sse: client not found")
-	ErrServerClosed     = errors.New("sse: server is closed")
+	// ErrClientNotFound 客户端不存在.
+	ErrClientNotFound = errors.New("sse: client not found")
+	// ErrServerClosed 服务器已关闭.
+	ErrServerClosed = errors.New("sse: server is closed")
+	// ErrConnectionClosed 连接已关闭.
 	ErrConnectionClosed = errors.New("sse: connection closed")
-	ErrNotFlusher       = errors.New("sse: response writer does not support flushing")
+	// ErrNotFlusher ResponseWriter 不支持 Flush.
+	ErrNotFlusher = errors.New("sse: response writer does not support flushing")
 )
 
 // Event SSE 事件.

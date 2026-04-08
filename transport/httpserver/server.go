@@ -180,11 +180,19 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
-func (s *Server) Name() string           { return s.opts.name }
-func (s *Server) Addr() string           { return s.opts.addr }
-func (s *Server) Handler() http.Handler  { return s.handler }
+// Name 返回服务器名称.
+func (s *Server) Name() string { return s.opts.name }
+
+// Addr 返回监听地址.
+func (s *Server) Addr() string { return s.opts.addr }
+
+// Handler 返回 HTTP 处理器.
+func (s *Server) Handler() http.Handler { return s.handler }
+
+// Health 返回健康检查管理器.
 func (s *Server) Health() *health.Health { return s.health }
 
+// HealthEndpoint 返回健康检查端点信息.
 func (s *Server) HealthEndpoint() *transport.HealthEndpoint {
 	return &transport.HealthEndpoint{
 		Type: transport.HealthCheckTypeHTTP,
@@ -193,8 +201,7 @@ func (s *Server) HealthEndpoint() *transport.HealthEndpoint {
 	}
 }
 
-// ==================== Options ====================
-
+// Option 配置选项函数.
 type Option func(*options)
 
 type options struct {

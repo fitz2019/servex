@@ -1,4 +1,4 @@
-// pubsub/redis/publisher.go
+// Package redis 提供基于 Redis Streams 的 pubsub.Publisher 和 pubsub.Subscriber 实现.
 package redis
 
 import (
@@ -12,14 +12,14 @@ import (
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 
-// Publisher 通过 Redis Streams 发布消息。
+// Publisher 通过 Redis Streams 发布消息.
 type Publisher struct {
 	client goredis.Cmdable
 	closed atomic.Bool
 	opts   publisherOptions
 }
 
-// NewPublisher 基于已有的 redis.Cmdable 创建 Publisher。
+// NewPublisher 基于已有的 redis.Cmdable 创建 Publisher.
 func NewPublisher(client goredis.Cmdable, opts ...PublisherOption) (*Publisher, error) {
 	if client == nil {
 		return nil, errors.New("pubsub/redis: client 不能为空")
@@ -35,7 +35,7 @@ func NewPublisher(client goredis.Cmdable, opts ...PublisherOption) (*Publisher, 
 	return &Publisher{client: client, opts: o}, nil
 }
 
-// Publish 发布一条或多条消息到指定 stream（topic）。
+// Publish 发布一条或多条消息到指定 stream（topic）.
 func (p *Publisher) Publish(ctx context.Context, topic string, msgs ...*pubsub.Message) error {
 	if p.closed.Load() {
 		return pubsub.ErrClosed
@@ -88,7 +88,7 @@ func (p *Publisher) Publish(ctx context.Context, topic string, msgs ...*pubsub.M
 	return nil
 }
 
-// Close 关闭 Publisher。幂等。
+// Close 关闭 Publisher. 幂等.
 func (p *Publisher) Close() error {
 	p.closed.Store(true)
 	return nil

@@ -1,4 +1,3 @@
-// jobqueue/database/config.go
 package database
 
 import (
@@ -10,8 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// NewStoreFromConfig 根据驱动名、DSN 和表名创建 Database Store。
-// driver 支持 "mysql"、"postgres"、"sqlite"。
+// NewStoreFromConfig 根据驱动名、DSN 和表名创建 Database Store.
+// driver 支持 "mysql"、"postgres"、"sqlite".
 func NewStoreFromConfig(driver, dsn, table string) (*Store, error) {
 	var dialector gorm.Dialector
 	switch driver {

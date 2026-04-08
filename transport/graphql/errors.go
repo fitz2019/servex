@@ -1,4 +1,3 @@
-// Package graphql 提供基于 graphql-go 的 GraphQL 服务器适配器（code-first）.
 package graphql
 
 import "errors"

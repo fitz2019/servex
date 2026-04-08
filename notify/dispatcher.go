@@ -12,6 +12,7 @@ import (
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
+// Dispatcher 多渠道消息分发器.
 type Dispatcher struct {
 	opts    dispatcherOptions
 	senders map[Channel]Sender
@@ -19,6 +20,7 @@ type Dispatcher struct {
 	closed  atomic.Bool
 }
 
+// NewDispatcher 创建消息分发器.
 func NewDispatcher(opts ...Option) *Dispatcher {
 	var o dispatcherOptions
 	for _, opt := range opts {
@@ -27,12 +29,14 @@ func NewDispatcher(opts ...Option) *Dispatcher {
 	return &Dispatcher{opts: o, senders: make(map[Channel]Sender)}
 }
 
+// Register 注册指定渠道的发送器.
 func (d *Dispatcher) Register(sender Sender) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	d.senders[sender.Channel()] = sender
 }
 
+// Send 同步发送消息.
 func (d *Dispatcher) Send(ctx context.Context, msg *Message) (*Result, error) {
 	if d.closed.Load() {
 		return nil, ErrClosed
@@ -62,6 +66,7 @@ func (d *Dispatcher) Send(ctx context.Context, msg *Message) (*Result, error) {
 	return sender.Send(ctx, msg)
 }
 
+// Broadcast 向多个渠道广播消息.
 func (d *Dispatcher) Broadcast(ctx context.Context, channels []Channel, msg *Message) []*Result {
 	results := make([]*Result, 0, len(channels))
 	for _, ch := range channels {
@@ -77,7 +82,7 @@ func (d *Dispatcher) Broadcast(ctx context.Context, channels []Channel, msg *Mes
 	return results
 }
 
-// SendAsync 将消息序列化后投入 jobqueue 异步发送。
+// SendAsync 将消息序列化后投入 jobqueue 异步发送.
 func (d *Dispatcher) SendAsync(ctx context.Context, msg *Message) error {
 	if d.closed.Load() {
 		return ErrClosed
@@ -105,6 +110,7 @@ func (d *Dispatcher) SendAsync(ctx context.Context, msg *Message) error {
 	})
 }
 
+// Close 关闭分发器及所有已注册的发送器.
 func (d *Dispatcher) Close() error {
 	if d.closed.Swap(true) {
 		return nil

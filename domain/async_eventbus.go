@@ -14,7 +14,6 @@ type EventConverter interface {
 }
 
 // AsyncEventBus 异步事件总线.
-//
 // 将领域事件通过 pubsub.Publisher 异步投递到消息队列，
 // 同时保留同步内存处理器的能力.
 type AsyncEventBus struct {
@@ -43,7 +42,6 @@ func (b *AsyncEventBus) SubscribeAll(handler EventHandler) {
 }
 
 // Publish 发布领域事件.
-//
 // 处理顺序：
 //  1. 同步调用内存处理器
 //  2. 异步投递到消息队列
@@ -74,7 +72,6 @@ func (b *AsyncEventBus) Dispatch(ctx context.Context, events []DomainEvent, clea
 }
 
 // JSONEventConverter 将领域事件序列化为 JSON 格式的消息转换器.
-//
 // Topic 使用 event.EventName()，Body 为 JSON 序列化结果.
 type JSONEventConverter struct{}
 

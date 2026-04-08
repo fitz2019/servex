@@ -8,7 +8,6 @@ import (
 )
 
 // UnaryServerInterceptor 创建 gRPC 一元 Request ID 拦截器.
-//
 // 优先从 gRPC metadata 读取已有 ID，若不存在则生成新 ID，
 // 并将 ID 注入 context 和设置响应 metadata 透传.
 func UnaryServerInterceptor(opts ...Option) grpc.UnaryServerInterceptor {

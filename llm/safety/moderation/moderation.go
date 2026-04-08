@@ -95,7 +95,6 @@ func WithCategories(cats ...Category) Option {
 	}
 }
 
-// 审核错误类型.
 var (
 	// ErrNilModel 模型为 nil 时返回.
 	ErrNilModel = errors.New("moderation: model is nil")

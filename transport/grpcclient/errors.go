@@ -2,7 +2,6 @@ package grpcclient
 
 import "errors"
 
-// 错误定义.
 var (
 	// ErrConnectionFailed 创建连接失败.
 	ErrConnectionFailed = errors.New("grpc client: 创建连接失败")

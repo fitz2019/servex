@@ -21,7 +21,6 @@ func (h *commandHandlerFunc[C, R]) Handle(ctx context.Context, cmd C) (C, R, err
 }
 
 // ChainCommand 将中间件链应用到命令处理器上.
-//
 // 中间件按参数顺序从外到内执行，即 mws[0] 最先执行.
 func ChainCommand[C, R any](handler CommandHandler[C, R], mws ...CommandMiddleware[C, R]) CommandHandler[C, R] {
 	for i := len(mws) - 1; i >= 0; i-- {

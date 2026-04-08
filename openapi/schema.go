@@ -1,4 +1,3 @@
-// openapi/schema.go
 package openapi
 
 import (
@@ -8,8 +7,8 @@ import (
 	"time"
 )
 
-// SchemaFrom 从 Go 值通过反射生成 JSON Schema。
-// 支持 json、validate、description 三种 struct tag。
+// SchemaFrom 从 Go 值通过反射生成 JSON Schema.
+// 支持 json、validate、description 三种 struct tag.
 func SchemaFrom(v any) *Schema {
 	return schemaFromType(reflect.TypeOf(v))
 }

@@ -8,11 +8,8 @@ import (
 )
 
 // Middleware 返回 Endpoint 租户解析中间件.
-//
 // 流程：skipper → 提取 token → resolve → 检查 enabled → WithTenant(ctx) → next.
-//
 // 示例:
-//
 //	endpoint = tenant.Middleware(resolver)(endpoint)
 func Middleware(resolver Resolver, opts ...Option) endpoint.Middleware {
 	if resolver == nil {

@@ -1,5 +1,4 @@
 // Package recovery 提供 panic 恢复中间件.
-//
 // 支持 HTTP、gRPC 和 Endpoint 三种类型的 panic 恢复.
 package recovery
 
@@ -11,12 +10,10 @@ import (
 )
 
 // Handler 是 panic 处理函数.
-//
 // 参数:
 //   - ctx: 可选的上下文信息（HTTP 为 *http.Request，gRPC 为 context.Context）
 //   - p: panic 值
 //   - stack: 堆栈信息
-//
 // 返回值:
 //   - error: 处理后的错误，将返回给调用方
 type Handler func(ctx any, p any, stack []byte) error

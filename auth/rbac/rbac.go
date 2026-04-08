@@ -34,10 +34,12 @@ import (
 	"github.com/Tsukikage7/servex/auth"
 )
 
-// 错误定义.
 var (
-	ErrRoleNotFound     = errors.New("rbac: role not found")
-	ErrRoleExists       = errors.New("rbac: role already exists")
+	// ErrRoleNotFound 角色未找到错误.
+	ErrRoleNotFound = errors.New("rbac: role not found")
+	// ErrRoleExists 角色已存在错误.
+	ErrRoleExists = errors.New("rbac: role already exists")
+	// ErrPermissionDenied 权限被拒绝错误.
 	ErrPermissionDenied = errors.New("rbac: permission denied")
 )
 
@@ -99,7 +101,7 @@ type RBAC interface {
 	GetUserPermissions(ctx context.Context, userID string) ([]string, error)
 }
 
-// Option Manager 配置选项.
+// Option 为 Manager 配置选项.
 type Option func(*manager)
 
 // WithCache 设置缓存函数.

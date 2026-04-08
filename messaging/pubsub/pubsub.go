@@ -1,9 +1,9 @@
-// pubsub/pubsub.go
+// Package pubsub 提供发布/订阅消息传输的核心抽象.
 package pubsub
 
 import "context"
 
-// Message 是 Pub/Sub 传输的基本单元。
+// Message 是 Pub/Sub 传输的基本单元.
 type Message struct {
 	ID       string
 	Topic    string
@@ -13,13 +13,13 @@ type Message struct {
 	Metadata map[string]any
 }
 
-// Publisher 将消息发布到指定 topic。
+// Publisher 将消息发布到指定 topic.
 type Publisher interface {
 	Publish(ctx context.Context, topic string, msgs ...*Message) error
 	Close() error
 }
 
-// Subscriber 订阅 topic 并通过 channel 接收消息。
+// Subscriber 订阅 topic 并通过 channel 接收消息.
 type Subscriber interface {
 	Subscribe(ctx context.Context, topic string) (<-chan *Message, error)
 	Ack(ctx context.Context, msg *Message) error

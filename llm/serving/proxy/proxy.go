@@ -16,8 +16,11 @@ import (
 
 // 预定义错误.
 var (
-	ErrModelNotFound      = errors.New("proxy: model not found")
-	ErrNoProviders        = errors.New("proxy: no providers available")
+	// ErrModelNotFound 指定模型未注册.
+	ErrModelNotFound = errors.New("proxy: model not found")
+	// ErrNoProviders 没有可用的 Provider.
+	ErrNoProviders = errors.New("proxy: no providers available")
+	// ErrAllProvidersFailed 所有 Provider 调用失败.
 	ErrAllProvidersFailed = errors.New("proxy: all providers failed")
 )
 

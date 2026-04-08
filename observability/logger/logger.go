@@ -3,69 +3,87 @@ package logger
 
 import "context"
 
-// 日志类型常量.
 const (
+	// TypeZap 基于 zap 的日志实现.
 	TypeZap = "zap"
 )
 
-// 日志级别常量.
 const (
+	// LevelDebug 调试级别.
 	LevelDebug = "debug"
-	LevelInfo  = "info"
-	LevelWarn  = "warn"
+	// LevelInfo 信息级别.
+	LevelInfo = "info"
+	// LevelWarn 警告级别.
+	LevelWarn = "warn"
+	// LevelError 错误级别.
 	LevelError = "error"
+	// LevelFatal 致命级别.
 	LevelFatal = "fatal"
+	// LevelPanic 恐慌级别.
 	LevelPanic = "panic"
 )
 
-// 输出格式常量.
 const (
-	FormatJSON    = "json"
+	// FormatJSON JSON 输出格式.
+	FormatJSON = "json"
+	// FormatConsole 控制台输出格式.
 	FormatConsole = "console"
 )
 
-// 输出目标常量.
 const (
+	// OutputConsole 输出到控制台.
 	OutputConsole = "console"
-	OutputFile    = "file"
-	OutputBoth    = "both"
+	// OutputFile 输出到文件.
+	OutputFile = "file"
+	// OutputBoth 同时输出到控制台和文件.
+	OutputBoth = "both"
 )
 
-// 轮转时间常量.
 const (
-	RotationDaily  = "daily"
+	// RotationDaily 按天轮转.
+	RotationDaily = "daily"
+	// RotationHourly 按小时轮转.
 	RotationHourly = "hourly"
 )
 
-// 时间格式常量.
 const (
-	TimeFormatISO8601     = "iso8601"
-	TimeFormatRFC3339     = "rfc3339"
+	// TimeFormatISO8601 ISO8601 时间格式.
+	TimeFormatISO8601 = "iso8601"
+	// TimeFormatRFC3339 RFC3339 时间格式.
+	TimeFormatRFC3339 = "rfc3339"
+	// TimeFormatRFC3339Nano RFC3339 纳秒精度时间格式.
 	TimeFormatRFC3339Nano = "rfc3339nano"
-	TimeFormatEpoch       = "epoch"
+	// TimeFormatEpoch Unix 时间戳格式.
+	TimeFormatEpoch = "epoch"
+	// TimeFormatEpochMillis 毫秒时间戳格式.
 	TimeFormatEpochMillis = "epochmillis"
-	TimeFormatEpochNanos  = "epochnanos"
-	TimeFormatDateTime    = "datetime"
+	// TimeFormatEpochNanos 纳秒时间戳格式.
+	TimeFormatEpochNanos = "epochnanos"
+	// TimeFormatDateTime 日期时间格式.
+	TimeFormatDateTime = "datetime"
 )
 
-// 级别编码常量.
 const (
-	EncodeLevelCapital      = "capital"
+	// EncodeLevelCapital 大写级别编码.
+	EncodeLevelCapital = "capital"
+	// EncodeLevelCapitalColor 大写彩色级别编码.
 	EncodeLevelCapitalColor = "capitalcolor"
-	EncodeLevelLower        = "lower"
-	EncodeLevelLowerColor   = "lowercolor"
+	// EncodeLevelLower 小写级别编码.
+	EncodeLevelLower = "lower"
+	// EncodeLevelLowerColor 小写彩色级别编码.
+	EncodeLevelLowerColor = "lowercolor"
 )
 
-// 调用者编码常量.
 const (
+	// EncodeCallerShort 短路径调用者编码.
 	EncodeCallerShort = "short"
-	EncodeCallerFull  = "full"
+	// EncodeCallerFull 完整路径调用者编码.
+	EncodeCallerFull = "full"
 )
 
 // contextKey context 键类型.
 type contextKey string
 
-// 预定义的 context key，用于存储 trace 信息.
 const (
 	// TraceIDKey 用于在 context 中存储 traceId.
 	TraceIDKey contextKey = "logger:traceId"

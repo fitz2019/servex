@@ -1,21 +1,16 @@
 // Package validation 封装 go-playground/validator，提供带 i18n 错误消息的输入校验框架.
-//
 // 特性：
 //   - 封装 go-playground/validator/v10
 //   - 内置中文/英文错误消息
 //   - 支持自定义错误消息模板（{field}/{param} 占位符）
 //   - 结构体校验 & 单字段校验
 //   - 注册自定义校验规则
-//
 // 示例：
-//
 //	v := validation.New()
-//
 //	type User struct {
 //	    Name  string `json:"name" validate:"required"`
 //	    Email string `json:"email" validate:"required,email"`
 //	}
-//
 //	if err := v.Validate(&User{}); err != nil {
 //	    fmt.Println(err) // validation failed: name (required), email (required)
 //	}
@@ -76,7 +71,6 @@ func WithTagName(tag string) Option {
 }
 
 // WithMessages 自定义错误消息模板.
-//
 // 模板支持 {field} 和 {param} 占位符.
 func WithMessages(msgs map[string]string) Option {
 	return func(v *Validator) {
@@ -181,7 +175,6 @@ func (e *ValidationError) Error() string {
 }
 
 // ParseErrors 将 validator 的错误转换为 ValidationError.
-//
 // msgs 为可选的自定义错误消息模板.
 func ParseErrors(err error, msgs ...map[string]string) *ValidationError {
 	var messages map[string]string

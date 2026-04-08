@@ -11,14 +11,11 @@ import (
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器 panic 恢复拦截器.
-//
 // 当 handler 发生 panic 时，拦截器会：
 //  1. 捕获 panic 并记录堆栈信息
 //  2. 调用自定义 Handler（如果设置）
 //  3. 返回 codes.Internal 错误
-//
 // 示例:
-//
 //	srv := grpc.NewServer(
 //	    grpc.ChainUnaryInterceptor(
 //	        recovery.UnaryServerInterceptor(recovery.WithLogger(log)),
@@ -63,14 +60,11 @@ func UnaryServerInterceptor(opts ...Option) grpc.UnaryServerInterceptor {
 }
 
 // StreamServerInterceptor 返回 gRPC 流服务器 panic 恢复拦截器.
-//
 // 当 handler 发生 panic 时，拦截器会：
 //  1. 捕获 panic 并记录堆栈信息
 //  2. 调用自定义 Handler（如果设置）
 //  3. 返回 codes.Internal 错误
-//
 // 示例:
-//
 //	srv := grpc.NewServer(
 //	    grpc.ChainStreamInterceptor(
 //	        recovery.StreamServerInterceptor(recovery.WithLogger(log)),

@@ -27,10 +27,6 @@ type Store interface {
 	AutoMigrate(ctx context.Context) error
 }
 
-// ============================================================================
-// GORM Store 实现
-// ============================================================================
-
 // gormStore 基于 GORM 的角色存储.
 type gormStore struct {
 	db *gorm.DB
@@ -102,10 +98,6 @@ func (s *gormStore) GetUserRoles(ctx context.Context, userID string) ([]string, 
 func (s *gormStore) AutoMigrate(ctx context.Context) error {
 	return s.db.WithContext(ctx).AutoMigrate(&Role{}, &UserRole{})
 }
-
-// ============================================================================
-// Memory Store 实现（用于测试）
-// ============================================================================
 
 // memoryStore 基于内存的角色存储.
 type memoryStore struct {

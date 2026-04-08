@@ -5,7 +5,6 @@ import (
 )
 
 // HTTPMiddleware 创建 HTTP 熔断器中间件.
-//
 // 熔断器开路时返回 503 Service Unavailable.
 func HTTPMiddleware(cb CircuitBreaker) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

@@ -34,7 +34,6 @@ func WithMiddlewareLogger(log logger.Logger) MiddlewareOption {
 }
 
 // WithBlock 设置是否阻塞等待.
-//
 // 如果为 true，当没有可用许可时会阻塞等待.
 // 如果为 false（默认），会立即返回错误.
 func WithBlock(block bool) MiddlewareOption {
@@ -44,11 +43,8 @@ func WithBlock(block bool) MiddlewareOption {
 }
 
 // EndpointMiddleware 返回 Endpoint 信号量中间件.
-//
 // 限制 endpoint 的并发调用数量.
-//
 // 示例:
-//
 //	sem := semaphore.NewLocal(10)
 //	endpoint = semaphore.EndpointMiddleware(sem)(endpoint)
 func EndpointMiddleware(sem Semaphore, opts ...MiddlewareOption) endpoint.Middleware {
@@ -94,11 +90,8 @@ func EndpointMiddleware(sem Semaphore, opts ...MiddlewareOption) endpoint.Middle
 }
 
 // HTTPMiddleware 返回 HTTP 信号量中间件.
-//
 // 限制 HTTP 请求的并发处理数量.
-//
 // 示例:
-//
 //	sem := semaphore.NewLocal(100)
 //	handler = semaphore.HTTPMiddleware(sem)(handler)
 func HTTPMiddleware(sem Semaphore, opts ...MiddlewareOption) func(http.Handler) http.Handler {
@@ -153,11 +146,8 @@ func HTTPMiddleware(sem Semaphore, opts ...MiddlewareOption) func(http.Handler) 
 }
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器信号量拦截器.
-//
 // 限制 gRPC 请求的并发处理数量.
-//
 // 示例:
-//
 //	sem := semaphore.NewLocal(100)
 //	srv := grpc.NewServer(
 //	    grpc.ChainUnaryInterceptor(
@@ -214,7 +204,6 @@ func UnaryServerInterceptor(sem Semaphore, opts ...MiddlewareOption) grpc.UnaryS
 }
 
 // StreamServerInterceptor 返回 gRPC 流服务器信号量拦截器.
-//
 // 限制 gRPC 流的并发处理数量.
 func StreamServerInterceptor(sem Semaphore, opts ...MiddlewareOption) grpc.StreamServerInterceptor {
 	o := defaultMiddlewareOptions()

@@ -19,9 +19,7 @@ type HTTPClient struct {
 type HTTPRetryableFunc func(resp *http.Response, err error) bool
 
 // NewHTTPClient 创建可重试的 HTTP 客户端.
-//
 // 使用示例:
-//
 //	client := retry.NewHTTPClient(http.DefaultClient, retry.DefaultConfig())
 //	resp, err := client.Do(req)
 func NewHTTPClient(client *http.Client, cfg *Config) *HTTPClient {
@@ -142,7 +140,6 @@ func RetryOnConnectionError(_ *http.Response, err error) bool {
 
 // HTTPMiddleware 返回 HTTP 重试中间件.
 // 适用于服务端，在处理失败时自动重试.
-//
 // 注意：此中间件通常用于 HTTP 客户端场景较少。
 // 服务端重试请求可能导致意外行为，请谨慎使用。
 func HTTPMiddleware(cfg *Config) func(http.Handler) http.Handler {

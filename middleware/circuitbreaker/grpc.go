@@ -9,7 +9,6 @@ import (
 )
 
 // UnaryServerInterceptor 创建 gRPC 一元熔断器拦截器.
-//
 // 熔断器开路时返回 Unavailable 错误.
 func UnaryServerInterceptor(cb CircuitBreaker) grpc.UnaryServerInterceptor {
 	return func(

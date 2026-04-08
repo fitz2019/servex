@@ -2,7 +2,6 @@ package tracing
 
 import "errors"
 
-// 预定义错误常量.
 var (
 	// ErrNilConfig 链路追踪配置为空.
 	ErrNilConfig = errors.New("tracing: 配置为空")

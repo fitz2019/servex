@@ -1,4 +1,4 @@
-// pubsub/kafka/publisher.go
+// Package kafka 提供基于 Apache Kafka 的 pubsub.Publisher 和 pubsub.Subscriber 实现.
 package kafka
 
 import (
@@ -12,7 +12,7 @@ import (
 	"github.com/Tsukikage7/servex/messaging/pubsub"
 )
 
-// Publisher 通过 Kafka 发布消息。
+// Publisher 通过 Kafka 发布消息.
 type Publisher struct {
 	producer sarama.SyncProducer
 	closed   atomic.Bool
@@ -20,7 +20,7 @@ type Publisher struct {
 	opts     publisherOptions
 }
 
-// NewPublisher 基于已有的 sarama.Client 创建 Publisher。
+// NewPublisher 基于已有的 sarama.Client 创建 Publisher.
 func NewPublisher(client sarama.Client, opts ...PublisherOption) (*Publisher, error) {
 	if client == nil {
 		return nil, errors.New("pubsub/kafka: client 不能为空")
@@ -39,7 +39,7 @@ func NewPublisher(client sarama.Client, opts ...PublisherOption) (*Publisher, er
 	return &Publisher{producer: producer, opts: o}, nil
 }
 
-// Publish 发布一条或多条消息到指定 topic。
+// Publish 发布一条或多条消息到指定 topic.
 func (p *Publisher) Publish(ctx context.Context, topic string, msgs ...*pubsub.Message) error {
 	if p.closed.Load() {
 		return pubsub.ErrClosed
@@ -91,7 +91,7 @@ func (p *Publisher) Publish(ctx context.Context, topic string, msgs ...*pubsub.M
 	return p.producer.SendMessages(saramaMsgs)
 }
 
-// Close 关闭 producer。幂等，多次调用不会报错。
+// Close 关闭 producer. 幂等，多次调用不会报错.
 func (p *Publisher) Close() error {
 	if p.closed.Swap(true) {
 		return nil

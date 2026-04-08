@@ -1,4 +1,4 @@
-// jobqueue/kafka/store.go
+// Package kafka 提供基于 Kafka 的 jobqueue.Store 实现.
 package kafka
 
 import (
@@ -12,8 +12,8 @@ import (
 	"github.com/Tsukikage7/servex/messaging/jobqueue"
 )
 
-// Store 基于 Kafka 的 jobqueue.Store 实现。
-// 每个 queue 对应一个 Kafka topic。
+// Store 基于 Kafka 的 jobqueue.Store 实现.
+// 每个 queue 对应一个 Kafka topic.
 type Store struct {
 	client   sarama.Client
 	producer sarama.SyncProducer
@@ -21,6 +21,7 @@ type Store struct {
 	opts     options
 }
 
+// NewStore 基于 sarama.Client 创建 Kafka Store.
 func NewStore(client sarama.Client, opts ...Option) (*Store, error) {
 	if client == nil {
 		return nil, errors.New("jobqueue/kafka: client 不能为空")
@@ -57,8 +58,8 @@ func (s *Store) Enqueue(ctx context.Context, job *jobqueue.Job) error {
 	return err
 }
 
-// Dequeue 不直接支持 — Kafka 场景下使用 consumer group 拉取。
-// 返回 ErrDequeueTimeout 表示需要使用 consumer-based 的方式。
+// Dequeue 不直接支持 — Kafka 场景下使用 consumer group 拉取.
+// 返回 ErrDequeueTimeout 表示需要使用 consumer-based 的方式.
 func (s *Store) Dequeue(_ context.Context, _ string) (*jobqueue.Job, error) {
 	return nil, jobqueue.ErrDequeueTimeout
 }

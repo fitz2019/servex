@@ -24,7 +24,6 @@ type Store interface {
 }
 
 // KV Saga 状态存储所需的键值存储接口.
-//
 // 这是 saga 包的最小依赖接口.
 // 可以用 cache.Cache、Redis 客户端或其他存储实现.
 type KV interface {
@@ -114,7 +113,6 @@ func fromDTO(dto *stateDTO) *State {
 }
 
 // KVStore 基于 KV 接口的 Saga 状态存储.
-//
 // 适用于分布式部署场景.
 type KVStore struct {
 	kv         KV
@@ -140,7 +138,6 @@ func WithStoreTTL(ttl time.Duration) KVStoreOption {
 }
 
 // NewKVStore 创建 KV 存储.
-//
 // kv: KV 存储实现（可用 CacheKV 适配 cache.Cache）
 func NewKVStore(kv KV, opts ...KVStoreOption) *KVStore {
 	s := &KVStore{
@@ -192,7 +189,6 @@ func (s *KVStore) Delete(ctx context.Context, id string) error {
 }
 
 // List 列出指定状态的 Saga.
-//
 // 注意: KV 实现不支持高效的条件查询，返回空列表.
 // 建议在生产环境使用专门的索引或数据库来支持列表查询.
 func (s *KVStore) List(ctx context.Context, status SagaStatus, limit int) ([]*State, error) {
@@ -207,9 +203,7 @@ type cacheKV struct {
 }
 
 // CacheKV 将 cache.Cache 适配为 KV 接口.
-//
 // 示例:
-//
 //	redisCache, _ := cache.New(&cache.Config{Type: "redis", ...})
 //	kv := saga.CacheKV(redisCache)
 //	store := saga.NewKVStore(kv)
@@ -230,7 +224,6 @@ func (c *cacheKV) Del(ctx context.Context, keys ...string) error {
 }
 
 // nopStore 空存储，不保存任何状态.
-//
 // 适用于不需要持久化状态的场景.
 type nopStore struct{}
 

@@ -33,7 +33,6 @@ func applyOptions(timeout time.Duration, opts []Option) *options {
 }
 
 // WithLogger 设置日志记录器.
-//
 // 设置后，超时事件会被记录到日志.
 func WithLogger(log logger.Logger) Option {
 	return func(o *options) {
@@ -42,7 +41,6 @@ func WithLogger(log logger.Logger) Option {
 }
 
 // WithOnTimeout 设置超时回调函数.
-//
 // 当请求超时时会调用此函数，ctx 参数类型取决于中间件类型：
 //   - Endpoint: context.Context
 //   - HTTP: *http.Request

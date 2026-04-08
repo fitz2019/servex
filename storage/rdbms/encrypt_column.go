@@ -32,10 +32,12 @@ type EncryptColumn[T any] struct {
 	Ciphertext string
 }
 
+// NewEncryptColumn 创建有效的加密列值.
 func NewEncryptColumn[T any](val T, key string) EncryptColumn[T] {
 	return EncryptColumn[T]{Val: val, Valid: true, Key: key}
 }
 
+// NullEncryptColumn 创建空值的加密列.
 func NullEncryptColumn[T any](key string) EncryptColumn[T] {
 	return EncryptColumn[T]{Key: key}
 }

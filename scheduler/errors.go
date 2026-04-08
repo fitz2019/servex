@@ -2,7 +2,6 @@ package scheduler
 
 import "errors"
 
-// 预定义错误.
 var (
 	// ErrJobNameEmpty 任务名称为空.
 	ErrJobNameEmpty = errors.New("scheduler: 任务名称不能为空")

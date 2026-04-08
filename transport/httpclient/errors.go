@@ -2,7 +2,6 @@ package httpclient
 
 import "errors"
 
-// 错误定义.
 var (
 	// ErrRequestFailed 请求创建失败.
 	ErrRequestFailed = errors.New("http client: 请求创建失败")

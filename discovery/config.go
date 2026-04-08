@@ -8,7 +8,6 @@ const TypeConsul = "consul"
 // TypeEtcd 表示 etcd 服务发现类型.
 const TypeEtcd = "etcd"
 
-// 协议类型常量.
 const (
 	// ProtocolHTTP 表示 HTTP 协议.
 	ProtocolHTTP = "http"
@@ -16,7 +15,6 @@ const (
 	ProtocolGRPC = "grpc"
 )
 
-// 健康检查内部默认值.
 const (
 	defaultHealthCheckInterval        = "10s"
 	defaultHealthCheckTimeout         = "3s"

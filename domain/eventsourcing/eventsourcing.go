@@ -1,20 +1,15 @@
 // Package eventsourcing 实现事件溯源模式.
-//
 // 事件溯源通过存储聚合根上发生的所有事件来重建聚合状态，
 // 而非直接存储当前状态。支持可选的快照机制加速聚合加载.
-//
 // 使用示例:
-//
 //	// 定义聚合
 //	type Order struct {
 //	    eventsourcing.BaseAggregate
 //	    status string
 //	}
-//
 //	func NewOrder(id string) *Order {
 //	    return &Order{BaseAggregate: eventsourcing.NewBaseAggregate(id, "Order")}
 //	}
-//
 //	func (o *Order) ApplyEvent(event eventsourcing.Event) error {
 //	    switch event.EventType {
 //	    case "OrderCreated":
@@ -22,7 +17,6 @@
 //	    }
 //	    return nil
 //	}
-//
 //	// 使用仓库
 //	store := eventsourcing.NewGORMEventStore(db)
 //	repo := eventsourcing.NewRepository(store, func() *Order {
@@ -73,7 +67,6 @@ type Aggregate interface {
 }
 
 // BaseAggregate 可嵌入的基础聚合根.
-//
 // 提供 Aggregate 接口的基础实现，业务聚合只需嵌入此结构并实现 ApplyEvent 方法.
 type BaseAggregate struct {
 	id                string
@@ -109,7 +102,6 @@ func (a *BaseAggregate) UncommittedEvents() []Event { return a.uncommittedEvents
 func (a *BaseAggregate) ClearUncommittedEvents() { a.uncommittedEvents = nil }
 
 // RaiseEvent 发起事件.
-//
 // 将 data 序列化为 JSON，创建 Event 并调用 ApplyEvent，然后追加到未提交列表.
 // 需要外部聚合实现 ApplyEvent 方法，因此 applier 作为参数传入.
 func (a *BaseAggregate) RaiseEvent(applier func(Event) error, eventType string, data any) error {

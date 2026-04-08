@@ -14,14 +14,11 @@ import (
 )
 
 // UnaryServerInterceptor 返回 gRPC 一元服务器幂等性拦截器.
-//
 // 当请求携带 x-idempotency-key 元数据时，拦截器会：
 //  1. 检查该键是否已有结果
 //  2. 如果有，直接返回之前的结果
 //  3. 如果没有，执行请求并保存结果
-//
 // 示例:
-//
 //	store := idempotency.NewRedisStore(redisClient)
 //	srv := grpc.NewServer(
 //	    grpc.ChainUnaryInterceptor(

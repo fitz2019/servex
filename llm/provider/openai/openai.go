@@ -1,3 +1,5 @@
+// Package openai 提供 OpenAI API 适配器.
+// 兼容 OpenAI 格式的 Provider：DeepSeek、通义千问（Qwen）、Azure OpenAI 等.
 package openai
 
 import (

@@ -1,4 +1,3 @@
-// pubsub/redis/options.go
 package redis
 
 import "github.com/Tsukikage7/servex/observability/logger"
@@ -9,17 +8,17 @@ type publisherOptions struct {
 	approx bool  // use MAXLEN ~ (approximate trimming)
 }
 
-// PublisherOption 配置 Redis Streams Publisher。
+// PublisherOption 配置 Redis Streams Publisher.
 type PublisherOption func(*publisherOptions)
 
-// WithPublisherLogger 设置日志器。
+// WithPublisherLogger 设置日志器.
 func WithPublisherLogger(log logger.Logger) PublisherOption {
 	return func(o *publisherOptions) {
 		o.logger = log
 	}
 }
 
-// WithMaxLen 设置 Stream 最大长度。approx=true 使用近似裁剪（性能更好）。
+// WithMaxLen 设置 Stream 最大长度. approx=true 使用近似裁剪（性能更好）.
 func WithMaxLen(maxLen int64, approx bool) PublisherOption {
 	return func(o *publisherOptions) {
 		o.maxLen = maxLen
@@ -34,17 +33,17 @@ type subscriberOptions struct {
 	block    bool
 }
 
-// SubscriberOption 配置 Redis Streams Subscriber。
+// SubscriberOption 配置 Redis Streams Subscriber.
 type SubscriberOption func(*subscriberOptions)
 
-// WithSubscriberLogger 设置日志器。
+// WithSubscriberLogger 设置日志器.
 func WithSubscriberLogger(log logger.Logger) SubscriberOption {
 	return func(o *subscriberOptions) {
 		o.logger = log
 	}
 }
 
-// WithConsumerGroup 设置消费者组名和消费者名称。
+// WithConsumerGroup 设置消费者组名和消费者名称.
 func WithConsumerGroup(group, consumer string) SubscriberOption {
 	return func(o *subscriberOptions) {
 		o.groupID = group
@@ -52,7 +51,7 @@ func WithConsumerGroup(group, consumer string) SubscriberOption {
 	}
 }
 
-// WithBlock 设置是否使用阻塞读取（默认 true）。
+// WithBlock 设置是否使用阻塞读取（默认 true）.
 func WithBlock(block bool) SubscriberOption {
 	return func(o *subscriberOptions) {
 		o.block = block
