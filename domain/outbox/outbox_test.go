@@ -63,6 +63,13 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		Logger: gormlogger.Default.LogMode(gormlogger.Silent),
 	})
 	require.NoError(t, err)
+
+	// SQLite :memory: 每个连接是独立数据库，必须限制为单连接，
+	// 否则 relay goroutine 拿到不同连接会访问到空数据库.
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	sqlDB.SetMaxOpenConns(1)
+
 	return db
 }
 

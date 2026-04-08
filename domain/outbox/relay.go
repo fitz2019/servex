@@ -10,7 +10,6 @@ import (
 )
 
 // Relay 事务发件箱中继器.
-//
 // 异步轮询数据库中的待发送消息并投递到消息队列.
 type Relay struct {
 	store     Store
@@ -39,7 +38,6 @@ func NewRelay(store Store, publisher pubsub.Publisher, opts ...Option) (*Relay, 
 }
 
 // Start 启动中继器.
-//
 // 启动轮询和清理两个后台 goroutine.
 func (r *Relay) Start(ctx context.Context) error {
 	r.mu.Lock()
@@ -89,6 +87,8 @@ func (r *Relay) Stop(ctx context.Context) error {
 
 // pollLoop 轮询投递循环.
 func (r *Relay) pollLoop(ctx context.Context) {
+	// 立即执行首次轮询，避免等待第一个 tick.
+	r.poll(ctx)
 
 	ticker := time.NewTicker(r.opts.pollInterval)
 	defer ticker.Stop()
@@ -104,7 +104,6 @@ func (r *Relay) pollLoop(ctx context.Context) {
 }
 
 // poll 单次轮询：拉取 → 投递 → 标记.
-//
 // DB 操作使用独立的 context.Background()，确保一旦开始的轮询能原子完成，
 // 不受 relay 生命周期 context 取消的影响（生命周期 context 仅控制循环退出）.
 func (r *Relay) poll(ctx context.Context) {
@@ -156,6 +155,16 @@ func (r *Relay) send(ctx context.Context, msg *OutboxMessage) error {
 
 // cleanupLoop 定期清理已发送消息.
 func (r *Relay) cleanupLoop(ctx context.Context) {
+	cleanup := func() {
+		before := time.Now().Add(-r.opts.cleanupAge)
+		if n, err := r.store.Cleanup(ctx, before); err != nil {
+			r.logErrorf("清理已发送消息失败: %v", err)
+		} else if n > 0 {
+			r.logDebugf("已清理 %d 条过期消息", n)
+		}
+	}
+
+	cleanup()
 
 	ticker := time.NewTicker(r.opts.cleanupInterval)
 	defer ticker.Stop()
@@ -165,12 +174,7 @@ func (r *Relay) cleanupLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			before := time.Now().Add(-r.opts.cleanupAge)
-			if n, err := r.store.Cleanup(ctx, before); err != nil {
-				r.logErrorf("清理已发送消息失败: %v", err)
-			} else if n > 0 {
-				r.logDebugf("已清理 %d 条过期消息", n)
-			}
+			cleanup()
 		}
 	}
 }
